@@ -78,4 +78,11 @@ All of these operate within Tavi's local persistent-learning simulation. In an i
 
 ## Independent map camera and zoom
 
-The observer camera does **not** follow Tavi. Drag the overworld with a mouse or one finger, zoom using the `+` and `−` buttons, mouse/trackpad wheel, or a two-finger pinch on touchscreens (60%–240%). Select **⌖ Find Tavi** or press `F` to center the viewport on Tavi once, without enabling follow mode. `+`/`−` keys adjust zoom; `M` opens the overview map. The overview and minimap show a correctly scaled viewport box. Camera position and zoom are stored separately from Tavi’s personality and save data.
+The zoom-out limit is now **30%** (previously 60%), revealing twice the width and twice the height of the map at the widest view.
+
+The observer camera does **not** follow Tavi. Drag the overworld with a mouse or one finger, zoom using the `+` and `−` buttons, mouse/trackpad wheel, or a two-finger pinch on touchscreens (30%–240%). Select **⌖ Find Tavi** or press `F` to center the viewport on Tavi once, without enabling follow mode. `+`/`−` keys adjust zoom; `M` opens the overview map. The overview and minimap show a correctly scaled viewport box. Camera position and zoom are stored separately from Tavi’s personality and save data.
+
+
+## Internet learning (optional, read-only)
+
+Open **Connect → Internet**. Tavi can read allowlisted HTTPS Wikipedia, Wikisource and Project Gutenberg text pages through a local GET-only proxy (no credentials, uploads, writes, redirects, or executable downloads). Sources are recorded as attributed notes, not unquestioned truths. Independent research is opt-in, off by default, throttled to one curated source every 10 minutes and paused during controlled experiments. The feature requires the Windows launcher, a live internet connection and a browser tab kept open. See [Internet Reading](docs/INTERNET-READING.md).
