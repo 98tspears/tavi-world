@@ -15,6 +15,16 @@ Write-Host "Tavi World is running at http://localhost:$port/"
 Write-Host 'Keep this window open while playing. Press Ctrl+C to stop.'
 try { Start-Process "http://localhost:$port/" } catch { Write-Host 'Browser did not open automatically. Enter this URL yourself: http://localhost:8765/' }
 $mime = @{'.html'='text/html; charset=utf-8';'.js'='text/javascript; charset=utf-8';'.css'='text/css; charset=utf-8';'.json'='application/json';'.svg'='image/svg+xml';'.png'='image/png';'.ico'='image/x-icon';'.webp'='image/webp';'.woff2'='font/woff2';'.txt'='text/plain'}
+# A single bounded JSON writer: the browser must never receive an empty HTTP 500.
+function Send-TaviJson {
+  param([object]$Response,[int]$StatusCode,[hashtable]$Data)
+  $jsonText = ConvertTo-Json -InputObject $Data -Depth 6 -Compress -ErrorAction Stop
+  $bytes = [Text.Encoding]::UTF8.GetBytes($jsonText)
+  $Response.StatusCode = $StatusCode
+  $Response.ContentType = 'application/json; charset=utf-8'
+  $Response.ContentLength64 = $bytes.Length
+  $Response.OutputStream.Write($bytes,0,$bytes.Length)
+}
 try {
   while ($listener.IsListening) {
     $context = $listener.GetContext()
@@ -108,61 +118,69 @@ try {
         continue
       }
 
-      # Restricted local-only proxy for Ollama. The browser never gets filesystem or shell access.
+      # Restricted local-only Ollama bridge. Every branch returns JSON and lets the
+      # enclosing finally close the HttpListener response exactly once.
       if ($context.Request.Url.AbsolutePath -eq '/api/brain') {
-        $context.Response.ContentType = 'application/json; charset=utf-8'
-        $context.Response.Headers.Set('Cache-Control','no-store')
-        $origin = [string]$context.Request.Headers['Origin']
-        if ($origin -and $origin -cne 'http://localhost:8765') {
-          $context.Response.StatusCode = 403
-          $errorBytes = [Text.Encoding]::UTF8.GetBytes('{"error":"Only this Tavi World browser page can contact the local model"}')
-          $context.Response.ContentLength64 = $errorBytes.Length
-          $context.Response.OutputStream.Write($errorBytes,0,$errorBytes.Length)
-          $context.Response.Close();continue
-        }
-        if ($context.Request.HttpMethod -ne 'POST' -or $context.Request.ContentLength64 -gt 16384 -or $context.Request.ContentLength64 -le 0 -or [string]$context.Request.ContentType -notmatch '^application/json\b') {
-          $context.Response.StatusCode = 400
-          $errorBytes = [Text.Encoding]::UTF8.GetBytes('{"error":"Expected a small JSON POST request"}')
-          $context.Response.ContentLength64 = $errorBytes.Length
-          $context.Response.OutputStream.Write($errorBytes,0,$errorBytes.Length)
-          $context.Response.Close();continue
-        }
         try {
-          $reader = New-Object IO.StreamReader($context.Request.InputStream, [Text.Encoding]::UTF8)
-          $body = $reader.ReadToEnd()
-          $req = $body | ConvertFrom-Json -ErrorAction Stop
-          $model = [string]$req.model
-          if ($model -notmatch '^[a-zA-Z0-9._:/-]{1,70}$') { throw 'Invalid Ollama model name. Choose a name shown by ollama list.' }
-          $prompt = [string]$req.instruction + "`nContext: " + ($req.context | ConvertTo-Json -Depth 8 -Compress)
-          if ($prompt.Length -gt 13000) { throw 'Prompt exceeded the local bridge limit.' }
-          $json = @{model=$model; prompt=$prompt; stream=$false; format='json'; options=@{temperature=0.5; num_predict=350}} | ConvertTo-Json -Depth 6 -Compress
-          try {
-            $reply = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/generate' -Method Post -Body $json -ContentType 'application/json' -TimeoutSec 40 -ErrorAction Stop
-            $answer = [string]$reply.response
-            if ([string]::IsNullOrWhiteSpace($answer) -or $answer.Trim() -eq 'undefined') { throw 'Ollama returned an empty completion. Check the selected model and try again.' }
-            $result = @{response=$answer} | ConvertTo-Json -Compress -Depth 5
-            $bytes = [Text.Encoding]::UTF8.GetBytes($result)
-            $context.Response.ContentLength64 = $bytes.Length
-            $context.Response.OutputStream.Write($bytes,0,$bytes.Length)
-          } catch {
-            $context.Response.StatusCode = 503
-            $reason=[string]$_.Exception.Message
-            if ($reason.Length -gt 145) { $reason=$reason.Substring(0,145) }
-            $error = @{error=('Ollama model unavailable or failed: '+$reason)} | ConvertTo-Json -Compress
-            $bytes = [Text.Encoding]::UTF8.GetBytes($error)
-            $context.Response.ContentLength64 = $bytes.Length
-            $context.Response.OutputStream.Write($bytes,0,$bytes.Length)
+          $origin = [string]$context.Request.Headers['Origin']
+          if ($origin -and $origin -cne 'http://localhost:8765') {
+            Send-TaviJson $context.Response 403 @{error='The local model accepts requests only from Tavi World on localhost:8765'; code='ORIGIN_FORBIDDEN'}
+            continue
           }
+          if ($context.Request.HttpMethod -ne 'POST' -or
+              $context.Request.ContentLength64 -le 0 -or
+              $context.Request.ContentLength64 -gt 16384 -or
+              [string]$context.Request.ContentType -notmatch '^application/json\b') {
+            Send-TaviJson $context.Response 400 @{error='Expected a JSON POST request up to 16 KB'; code='INVALID_REQUEST'}
+            continue
+          }
+          $reader = $null
+          try {
+            # Use a real .NET constructor (not the ambiguous New-Object Type(args) form).
+            $reader = [System.IO.StreamReader]::new($context.Request.InputStream,[Text.Encoding]::UTF8)
+            $body = $reader.ReadToEnd()
+          } finally { if ($reader) { $reader.Dispose() } }
+          try {
+            $req = ConvertFrom-Json -InputObject $body -ErrorAction Stop
+            $model = [string]$req.model
+            if ($model -notmatch '^[a-zA-Z0-9._:/-]{1,70}$') { throw 'Invalid model name. Run ollama list and use an installed model.' }
+            $prompt = [string]$req.instruction + "`nContext: " + ($req.context | ConvertTo-Json -Depth 8 -Compress -ErrorAction Stop)
+            if ($prompt.Length -gt 13000) { throw 'Request context exceeded the local model prompt limit.' }
+          } catch {
+            Send-TaviJson $context.Response 400 @{error=('Invalid model request: '+[string]$_.Exception.Message);code='INVALID_MODEL_REQUEST'}
+            continue
+          }
+          # Disable separate thinking output for models such as Qwen3, where a
+          # small generation can otherwise be consumed by reasoning, leaving
+          # a blank response field. No thinking trace is sent to the browser.
+          $payload = @{model=$model; prompt=$prompt; stream=$false; think=$false; format='json'; options=@{temperature=0.5;num_predict=512}} | ConvertTo-Json -Depth 6 -Compress
+          try {
+            $reply = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/generate' -Method Post -Body $payload -ContentType 'application/json' -TimeoutSec 80 -ErrorAction Stop
+          } catch {
+            $detail=[string]$_.Exception.Message
+            if ($detail.Length -gt 180) { $detail=$detail.Substring(0,180) }
+            Write-Host ('[Tavi Ollama connection] ' + $detail) -ForegroundColor Yellow
+            Send-TaviJson $context.Response 503 @{error=('Could not get an Ollama reply. Check that Ollama is running, the model is installed, and the model has finished loading. '+$detail);code='OLLAMA_UNAVAILABLE'}
+            continue
+          }
+          $answer=[string]$reply.response
+          if ([string]::IsNullOrWhiteSpace($answer) -or $answer.Trim() -eq 'undefined') {
+            $reason='Ollama finished without a usable answer. The selected model may need a different format or more generation tokens.'
+            if (-not [string]::IsNullOrWhiteSpace([string]$reply.thinking)) {
+              $reason='Ollama produced thinking text but no final answer. Try a model that supports think:false or update Ollama.'
+            }
+            Write-Host ('[Tavi Ollama empty response] Model: ' + $model + '. ' + $reason) -ForegroundColor Yellow
+            Send-TaviJson $context.Response 502 @{error=$reason;code='OLLAMA_EMPTY_ANSWER'}
+            continue
+          }
+          Send-TaviJson $context.Response 200 @{response=$answer}
         } catch {
-          $context.Response.StatusCode = 400
-          $reason=[string]$_.Exception.Message
-          if($reason.Length -gt 145){$reason=$reason.Substring(0,145)}
-          $error = @{error=('Invalid Tavi model request: '+$reason)} | ConvertTo-Json -Compress
-          $bytes = [Text.Encoding]::UTF8.GetBytes($error)
-          $context.Response.ContentLength64 = $bytes.Length
-          $context.Response.OutputStream.Write($bytes,0,$bytes.Length)
+          $message=[string]$_.Exception.Message
+          if($message.Length -gt 240){$message=$message.Substring(0,240)}
+          Write-Host ('[TAVI BRIDGE ERROR] ' + $message) -ForegroundColor Red
+          try { Send-TaviJson $context.Response 500 @{error='Local bridge exception. Read the [TAVI BRIDGE ERROR] line in the PowerShell launcher.';code='BRIDGE_EXCEPTION'} }
+          catch { Write-Host ('[TAVI BRIDGE SEND FAILED] ' + [string]$_.Exception.Message) -ForegroundColor Red }
         }
-        $context.Response.Close()
         continue
       }
       $urlPath = [Uri]::UnescapeDataString($context.Request.Url.AbsolutePath)
@@ -181,7 +199,16 @@ try {
       $context.Response.ContentLength64 = $bytes.Length
       $context.Response.OutputStream.Write($bytes,0,$bytes.Length)
     } catch {
-      try { $context.Response.StatusCode = 500 } catch {}
+      $message=[string]$_.Exception.Message
+      if($message.Length -gt 240){$message=$message.Substring(0,240)}
+      Write-Host ('[TAVI SERVER ERROR] ' + $message) -ForegroundColor Red
+      try {
+        if ($context.Request.Url.AbsolutePath -like '/api/*') {
+          Send-TaviJson $context.Response 500 @{error='Tavi server error; see the PowerShell launcher diagnostic.';code='SERVER_EXCEPTION'}
+        } else {
+          $context.Response.StatusCode = 500
+        }
+      } catch { Write-Host ('[TAVI SERVER SEND FAILED] ' + [string]$_.Exception.Message) -ForegroundColor Red }
     } finally {
       try { $context.Response.Close() } catch {}
     }
