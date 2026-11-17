@@ -172,3 +172,48 @@ footer{color:#9bc8cb}
  .help-panel{max-width:min(300px,90%)}
  .tip{font-size:10px}
 }
+
+/* Behavioral simulation / observation laboratory */
+:root{--lab-accent:#8fedd2;--lab-amber:#e8c78e;--lab-surface:#112f40}
+.lab-intro{font-size:12px;line-height:1.5;color:#bddfdc;margin:4px 0 12px}
+.lab-banner{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#0d3548;border:1px solid #4e8693;border-radius:12px;padding:11px 12px;margin-bottom:12px}
+.lab-banner strong{color:#fce6bb;font-size:13px}
+.lab-banner small{display:block;color:#a4cbcb;font-size:11px}
+.lab-live{display:inline-block;padding:3px 8px;border-radius:20px;background:#4a9f8d;color:#072d36;font-weight:800;font-size:11px;white-space:nowrap}
+.lab-live.idle{background:#b9cad2;color:#204157}
+.lab-section{border-top:1px solid #3a7080;padding-top:12px;margin-top:11px}
+.lab-title{font:800 11px/1.4 ui-monospace,Consolas,monospace;text-transform:uppercase;letter-spacing:1.1px;color:#ffdba1;margin:2px 0 9px}
+.lab-field{display:block;color:#d7efeb;font-size:12px;margin:8px 0 4px}
+.lab-control{width:100%;border-radius:9px;background:#0b2a3a;color:#ecf3e1;border:1px solid #578d97;padding:9px 10px;min-height:38px}
+.lab-range{background:#16485a;padding:9px 10px 8px;margin:8px 0;border:1px solid #36768a;border-radius:10px}
+.lab-range-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:bold;color:#e7f7ed}
+.lab-range-head output{color:#ffdc8e;font-variant-numeric:tabular-nums}
+.lab-range input{display:block;width:100%;accent-color:#91eacb;cursor:pointer;margin:9px 0 1px}
+.lab-range small{display:block;font-size:10px;color:#a9d1d0;font-weight:400}
+.lab-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:11px}
+.lab-buttons button{font-size:12px;min-width:0;white-space:normal}
+.lab-buttons .full{grid-column:1/-1}
+.lab-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:10px 0}
+.lab-metric{padding:9px;border:1px solid #427b8a;border-radius:10px;background:#123e50}
+.lab-metric span{display:block;font-size:10px;color:#a9d2d1}
+.lab-metric strong{font-size:18px;color:#fff1be;font-variant-numeric:tabular-nums}
+.lab-metric em{font-style:normal;font-size:11px;color:#8fe3c7;margin-left:3px}
+.lab-note{border-left:3px solid #9edac0;background:#0c2f40;padding:9px 11px;font-size:11px;line-height:1.5;color:#c5e3dc;margin:10px 0;border-radius:4px 8px 8px 4px}
+.lab-events{display:flex;flex-direction:column;gap:8px}
+.lab-event{border-left:2px solid #7bceae;background:#10384a;border-radius:3px 9px 9px 3px;padding:8px 11px}
+.lab-event strong{display:block;color:#ffdea3;font-size:12px}
+.lab-event p{margin:4px 0;font-size:12px;color:#e4efec}
+.lab-event time{font:10px ui-monospace,Consolas,monospace;color:#9dc7c9}
+.lab-trace{margin:8px 0;padding:9px;border-radius:8px;background:#0e3040;color:#b5d8d1;font-size:11px;line-height:1.5}
+.study-reason{font-size:11px;color:#a9d7d6;border-top:1px solid #ffffff22;margin-top:9px;padding-top:8px;line-height:1.45}
+.lab-plot{width:100%;height:166px;display:block;border:1px solid #437487;border-radius:10px;background:#0a2b3a;image-rendering:auto;margin-top:9px}
+.lab-empty{padding:15px 10px;color:#accad1;text-align:center;font-size:12px;border:1px dashed #4e7185;border-radius:9px}
+.lab-run{padding:10px;border-radius:10px;background:#113b4c;border:1px solid #4f8090;margin:9px 0}
+.lab-run strong{color:#f5dfad}.lab-run small{display:block;color:#a5cecd;font-size:11px}
+.lab-run .deltas{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.lab-run .deltas span{font-size:10px;background:#235969;padding:4px 6px;border-radius:7px;color:#d7f5e9}
+.lab-stats-label{font-size:10px;color:#b6dcd5;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+@media(max-width:560px){.lab-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.lab-banner{flex-wrap:wrap}.study-reason{font-size:10px}}
+
+/* Lifelong learning readouts and recovery controls */
+.lab-trace{overflow-wrap:anywhere}.lab-run .lab-trace{color:#cef4df;border:1px solid #4a8a7a}
+.lab-run .lab-trace::first-line{font-weight:700}.record.compact .mini-progress i{background:linear-gradient(90deg,#62dfb2,#eacd86)}
