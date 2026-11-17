@@ -179,19 +179,28 @@ try {
           # Disable separate thinking output for models such as Qwen3, where a
           # small generation can otherwise be consumed by reasoning, leaving
           # a blank response field. No thinking trace is sent to the browser.
-          $payload = @{model=$model; prompt=$prompt; stream=$false; think=$false; format='json'; options=@{temperature=0.5;num_predict=512}} | ConvertTo-Json -Depth 6 -Compress
+          # Send UTF-8 bytes explicitly: Windows PowerShell can otherwise encode a
+          # string request body using a different charset than Ollama expects.
+          # Validate locally before sending; never log the prompt or memories.
+          $payload = @{model=$model; prompt=$prompt; stream=$false; think=$false; format='json'; options=@{temperature=0.5;num_predict=512}} | ConvertTo-Json -Depth 6 -Compress -ErrorAction Stop
+          $null = ConvertFrom-Json -InputObject $payload -ErrorAction Stop
+          $payloadBytes = [Text.Encoding]::UTF8.GetBytes($payload)
           $upstreamFailure=$null
           try {
-            $reply = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/generate' -Method Post -Body $payload -ContentType 'application/json' -TimeoutSec 80 -ErrorAction Stop
+            $reply = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/generate' -Method Post -Body $payloadBytes -ContentType 'application/json; charset=utf-8' -TimeoutSec 80 -ErrorAction Stop
           } catch {
             $upstreamFailure=Get-TaviOllamaFailure $_
-            # An older or different Ollama model may reject the optional think
-            # field with HTTP 400. Retry ONCE without it, preserving JSON mode.
-            if ($upstreamFailure.status -eq 400) {
-              Write-Host ('[Tavi Ollama HTTP 400] '+$upstreamFailure.detail+'. Retrying without optional think field.') -ForegroundColor Yellow
-              $compatPayload = @{model=$model;prompt=$prompt;stream=$false;format='json';options=@{temperature=0.5;num_predict=512}} | ConvertTo-Json -Depth 6 -Compress
+            # Only retry for a real think-parameter compatibility rejection.
+            # A malformed JSON error is not fixed by omitting think.
+            $thinkRejected = ($upstreamFailure.status -eq 400) -and
+              ($upstreamFailure.detail -match '(?i)(think.{0,100}(unknown|unsupported|unrecognized|invalid|not supported)|(unknown|unsupported|unrecognized|invalid).{0,100}think)')
+            if ($thinkRejected) {
+              Write-Host '[Tavi Ollama compatibility] Retrying without unsupported think field.' -ForegroundColor Yellow
+              $compatPayload = @{model=$model;prompt=$prompt;stream=$false;format='json';options=@{temperature=0.5;num_predict=512}} | ConvertTo-Json -Depth 6 -Compress -ErrorAction Stop
+              $null = ConvertFrom-Json -InputObject $compatPayload -ErrorAction Stop
+              $compatBytes = [Text.Encoding]::UTF8.GetBytes($compatPayload)
               try {
-                $reply = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/generate' -Method Post -Body $compatPayload -ContentType 'application/json' -TimeoutSec 80 -ErrorAction Stop
+                $reply = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/generate' -Method Post -Body $compatBytes -ContentType 'application/json; charset=utf-8' -TimeoutSec 80 -ErrorAction Stop
                 $upstreamFailure=$null
               } catch { $upstreamFailure=Get-TaviOllamaFailure $_ }
             }
