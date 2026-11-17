@@ -1,37 +1,37 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#102c30"><meta name="description" content="Tavi World: an original, local-first autonomous pixel-art living overworld.">
-<title>Tavi World — The Living Overworld</title>
+<meta name="theme-color" content="#122f42"><meta name="description" content="Tavi World: an original, local-first autonomous pixel-art living overworld.">
+<title>Tavi World — Colorful Valley</title>
 <style>__INLINE_STYLES__</style>
 </head><body>
 <header>
-  <div class="brand"><div class="brand-icon" aria-hidden="true">✦</div><div><div class="eyebrow">A little world, a life of its own</div><h1>Tavi <span>World</span></h1><div class="subtitle">THE LIVING OVERWORLD · ONE CONNECTED VALLEY</div></div></div>
-  <div class="top-info"><div class="chip"><span class="dot"></span><span><strong>Autonomy</strong><br><span id="statusText">Initializing world…</span></span></div><div class="chip"><strong id="clock">--:--</strong></div></div>
+  <div class="brand"><div class="brand-icon" aria-hidden="true">✦</div><div><div class="eyebrow">An original living-world adventure</div><h1>Tavi <span>World</span></h1><div class="subtitle">COLORFUL VALLEY · EVERY DAY AN ADVENTURE</div></div></div>
+  <div class="top-info"><div class="chip chip-status"><span class="dot"></span><span><strong>Living world</strong><br><span id="statusText">Initializing world…</span></span></div><div class="chip"><strong id="clock">--:--</strong></div></div>
 </header>
 <main class="page">
  <section>
   <div class="panel play-panel">
-   <div class="game-top"><div class="region-row"><div class="region-marker" aria-hidden="true">⌂</div><div><h2 id="areaTitle">Tavi’s Valley</h2><div id="areaDesc">A world without scene transitions</div></div></div><div class="chip"><span>✦</span><div><strong id="exploredCount">1/12</strong><br><small>places visited</small></div></div></div>
+   <div class="game-top"><div class="region-row"><div class="region-marker" aria-hidden="true">⌂</div><div><div class="location-overline">CURRENT LOCATION</div><h2 id="areaTitle">Tavi’s Valley</h2><div id="areaDesc">A world without scene transitions</div></div></div><div class="chip visited-chip"><span>✦</span><div><strong id="exploredCount">1/12</strong><br><small>places discovered</small></div></div></div>
    <div class="world-stage">
     <canvas id="game" class="game-canvas" width="960" height="600" aria-label="Continuous pixel art overworld, click or tap to explore"></canvas>
-    <div class="location-badge">✧ A living world · Tavi chooses his path</div>
+    <div class="location-badge">✧ ONE CONNECTED WORLD</div>
     <div class="mini-map" role="button" tabindex="0" title="Open full overworld map"><div class="mini-map-caption">VALLEY MAP <span>✚</span></div><canvas id="minimap" width="178" height="136" aria-label="Minimap"></canvas><div class="mini-map-caption" style="margin-top:4px;margin-bottom:0"><span id="miniLabel">Tavi House</span><span>OPEN MAP</span></div></div>
-    <aside id="helpPanel" class="help-panel" hidden><h3>Explore the living valley</h3><p>Click or tap a landmark to suggest a visit. Tap open ground to guide Tavi along the paths.</p><p><kbd>W A S D</kbd> or <kbd>← ↑ → ↓</kbd> briefly take manual control. Tavi resumes thinking when you stop.</p><p><kbd>M</kbd> shows the full map. Use ◎ Follow to switch between a following camera and a draggable view.</p><p>Tavi has his own needs, growing interests, goals and memories. His choices continue while the game is open.</p></aside>
+    <aside id="helpPanel" class="help-panel" hidden><h3>Explore the living valley</h3><p>Click or tap a landmark to suggest a visit. Tap open ground to guide Tavi along the paths.</p><p><kbd>W A S D</kbd> or <kbd>← ↑ → ↓</kbd> briefly take manual control. Tavi resumes thinking when you stop.</p><p><kbd>M</kbd> shows the full map. Use ◎ Follow to switch between a following camera and a draggable view.</p><p>Tavi rests when tired, follows his curiosity, forms memories and makes art. He can enjoy meals, but he doesn’t need food to survive.</p><p>Open the Journal for goals, questions, memories, settings and save backups.</p></aside>
    </div>
-   <div class="game-bottom"><div class="control-group"><button id="pause" title="Pause or resume Tavi's independent actions">⏸ Pause Tavi</button><button id="visitNext" title="Ask Tavi to choose another goal">✧ Next adventure</button><button id="follow" title="Follow Tavi or drag the world map">◎ Following Tavi</button><button id="mapButton">▣ World map</button><button id="help" class="secondary" title="Controls and help">?</button></div><div class="world-hint">All 12 places exist in one world<br>Touch or click to explore · No scene switching</div></div>
+   <div class="game-bottom"><div class="control-group"><button id="visitNext" class="primary-action" title="Ask Tavi to choose another independent adventure">✦ New adventure</button><button id="pause" title="Pause or resume Tavi’s independent actions">⏸ Pause</button><button id="follow" title="Follow Tavi or drag to explore">◎ Follow</button><button id="mapButton" title="View the full connected valley">▣ Map</button><button id="journalToggle" class="journal-toggle" aria-controls="journalPanel" aria-expanded="true" title="Show or hide the adventure journal">▤ Journal</button><button id="help" class="icon-button secondary" title="How to play" aria-label="How to play">?</button></div></div>
    <div class="meter-row">
-    <div class="stat"><div class="stat-head"><span>✧ Energy</span><strong id="value-energy">82%</strong></div><div class="stat-track"><b id="meter-energy" style="width:82%"></b></div></div>
-    <div class="stat"><div class="stat-head"><span>♧ Satisfied</span><strong id="value-hunger">80%</strong></div><div class="stat-track"><b id="meter-hunger" style="width:80%"></b></div></div>
-    <div class="stat"><div class="stat-head"><span>♥ Happiness</span><strong id="value-happiness">74%</strong></div><div class="stat-track"><b id="meter-happiness" style="width:74%"></b></div></div>
-    <div class="stat"><div class="stat-head"><span>✦ Curiosity</span><strong id="value-curiosity">67%</strong></div><div class="stat-track"><b id="meter-curiosity" style="width:67%"></b></div></div>
+    <div class="stat"><div class="stat-head"><span><span class="stat-glyph">☀</span> Energy</span><strong id="value-energy">82%</strong></div><div class="stat-track"><b id="meter-energy" style="width:82%"></b></div></div>
+    <div class="stat"><div class="stat-head"><span><span class="stat-glyph">♥</span> Happiness</span><strong id="value-happiness">74%</strong></div><div class="stat-track"><b id="meter-happiness" style="width:74%"></b></div></div>
+    <div class="stat"><div class="stat-head"><span><span class="stat-glyph">✧</span> Curiosity</span><strong id="value-curiosity">67%</strong></div><div class="stat-track"><b id="meter-curiosity" style="width:67%"></b></div></div>
    </div>
   </div>
-  <div class="panel living-card"><div><h3>Tavi’s thoughts</h3><div id="thought">I have so much to discover…</div><div id="welcome"></div><div class="small-note"><span id="journalCount">A world of memories</span> · Save stays in your browser</div></div></div>
+  <div class="panel living-card"><div class="portrait-wrap"><canvas id="taviPortrait" width="80" height="80" role="img" aria-label="Portrait of Tavi"></canvas></div><div class="thought-content"><div class="thought-header"><h3>TAVI’S LITTLE WORLD</h3><span id="moodLabel" class="mood-pill">✦ Curious</span></div><div id="thought">I have so much to discover…</div><div class="thought-meta"><span id="activeIntent">Planning an adventure</span><span class="meta-dot">•</span><span id="journalCount">A world of memories</span></div><div id="welcome"></div></div></div>
   <p class="tip">✧ Tavi walks, chooses work, makes art and remembers. <kbd>M</kbd> for the map; <kbd>WASD</kbd> to move manually. Optional Ollama integration is in Settings.</p>
  </section>
- <aside class="panel side-panel"><div class="side-heading"><h2>Adventure Journal</h2><small>LIVE WORLD LOG</small></div><div id="tabs" class="tabs" role="tablist" aria-label="Tavi World sections"></div><section id="sidebarContent" aria-live="polite"></section></aside>
+ <aside class="panel side-panel" id="journalPanel" aria-label="Adventure journal"><div class="side-heading"><div><div class="eyebrow">YOUR ADVENTURE COMPANION</div><h2>Adventure Journal</h2></div><button id="closeJournal" class="icon-button secondary" title="Close journal" aria-label="Close journal">✕</button></div><div id="journalGroups" class="journal-groups" role="tablist" aria-label="Journal category"></div><div id="tabs" class="tabs" role="tablist" aria-label="Journal pages"></div><section id="sidebarContent" aria-live="polite"></section><div class="journal-footer">✦ Tavi’s discoveries live here, always yours to keep.</div></aside>
 </main>
+<div id="drawerScrim" hidden aria-hidden="true"></div>
 <div class="map-overlay" id="mapOverlay" hidden role="dialog" aria-modal="true" aria-label="The full overworld map"><div class="map-inner"><div class="map-head"><div><div class="eyebrow">One valley · 12 destinations</div><h2>The Living Overworld</h2></div><button id="closeMap">✕ Close</button></div><canvas id="bigMapCanvas" width="712" height="544" aria-label="Full connected Tavi World map"></canvas><div class="map-legend"><span><i class="home"></i> Village / landmarks</span><span><i class="forests"></i> Wild places</span><span><i class="shore"></i> Shoreline</span></div><p class="map-hint">Tap near a landmark to suggest Tavi visit it. This does not load another scene; he'll find his way across the overworld.</p></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="startupSplash"><div class="loading-star">✦</div><h2>Growing Tavi’s world…</h2><p>Preparing the connected valley, Tavi’s memories, and his next adventure.</p></div>
