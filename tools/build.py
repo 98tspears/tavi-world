@@ -12,6 +12,7 @@ parts={
 '__INLINE_STYLES__':(src/'style.css').read_text('utf-8'),
 '__INLINE_WORLD__':(src/'world.js').read_text('utf-8'),
 '__INLINE_LIBRARY__':(src/'library.js').read_text('utf-8'),
+'__INLINE_DETAIL_ART__':(src/'detail-art.js').read_text('utf-8'),
 '__INLINE_VISUALS__':(src/'visuals.js').read_text('utf-8'),
 '__INLINE_COMMITMENTS__':(src/'commitments.js').read_text('utf-8'),
 '__INLINE_COGNITION__':(src/'cognition.js').read_text('utf-8'),
