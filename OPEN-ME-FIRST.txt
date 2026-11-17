@@ -1,0 +1,37 @@
+TAVI WORLD — LIVING OVERWORLD EDITION (WINDOWS)
+
+This is the new continuous overworld version. No area-to-area scene switching.
+
+TO START:
+  1. Right-click the ZIP -> Extract All.
+  2. Close ALL older Tavi World PowerShell / launcher windows.
+  3. Open the extracted Tavi-World-Overworld-Edition folder.
+  4. Double-click START-TAVI-WORLD.bat.
+  5. Keep PowerShell open. Play at http://localhost:8765/
+
+TIPS:
+  - Tap or click landmarks to suggest activities.
+  - Tap or click grass or paths to travel there.
+  - WASD / arrow keys briefly control Tavi yourself.
+  - M opens the whole world map; the camera can follow or be dragged.
+  - Settings -> Export full backup protects your save.
+  - Ollama remains optional, and runs locally through the Windows launcher.
+
+SAVE COMPATIBILITY:
+  The legacy save key tavi-world-windows-living-valley-v1 is retained.
+  This edition also backs up any legacy save, unchanged, under
+  tavi-world-legacy-save-before-overworld-v1 in the same browser storage.
+  To see the same saved progress, use the same browser on localhost:8765.
+
+  If Windows prevents startup, OPEN-TAVI-WITHOUT-SERVER.bat can show an offline
+  preview. IMPORTANT: The offline preview has a DIFFERENT save origin and
+  does not have Ollama access. It does not erase your localhost save.
+
+TESTING:
+  Browser startup, autonomous movement, route planning for all 36 activities,
+  map controls, mobile layout and synthetic legacy-save migration passed.
+  Real Windows BAT/PowerShell startup and a live Ollama model still need
+  testing on the owner's PC.
+
+The world is an original pixel-art creature simulation. It is inspired by
+classic top-down adventures, but does not use Nintendo / Pokémon assets.
