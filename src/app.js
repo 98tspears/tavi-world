@@ -1,6 +1,6 @@
 /* Tavi World — isolated, local-first autonomous behavioral simulation sandbox. */
 (()=>{'use strict';
-const M=window.TaviWorld,V=window.TaviVisuals,KEY='tavi-world-windows-living-valley-v1',LEGACY_BACKUP_KEY='tavi-world-legacy-save-before-overworld-v1',NEEDS_BACKUP_KEY='tavi-world-save-before-nonsurvival-v1';
+const M=window.TaviWorld,V=window.TaviVisuals,LIB=window.TaviLibrary,KEY='tavi-world-windows-living-valley-v1',LEGACY_BACKUP_KEY='tavi-world-legacy-save-before-overworld-v1',NEEDS_BACKUP_KEY='tavi-world-save-before-nonsurvival-v1';
 const INTERESTS=['cozy','stories','food','art','craft','nature','music','science','time','mystery','gardening'];
 const EMOTIONS=['joy','excitement','curiosity','frustration','confidence','boredom','calm','nervousness'];
 const LEGACY_AREA_MAP=[0,1,2,6,5,4,11,3,8,9,7,10];
@@ -13,12 +13,14 @@ const initial=()=>({version:1,seed:78341,area:0,x:400,y:350,paused:false,clock:D
  interests:Object.fromEntries(INTERESTS.map(v=>[v,20])),memories:[],journal:[],art:[],goals:[],questions:[],approvals:[],decorations:[],
  thought:'There is an entire valley outside. I want to see what is growing today!',lastAction:'',lastSave:Date.now(),
  brain:{mode:'idle',target:null,work:0,completedAt:0,completedActivity:'',decisionAt:0,day:0,explored:{},recent:[],discoveries:[],lastReflection:0,ai:{enabled:false,model:'tavi',lastCall:0,lastResult:'Not connected',pending:null,history:[]}},
- world:{x:29.5,y:28.5,moving:false,lastDx:0,lastDy:1,steps:0,visited:{},walked:0,awareness:{},lastSeen:0},development:initialDevelopment(),offlineSummary:''});
+ world:{x:29.5,y:28.5,moving:false,lastDx:0,lastDy:1,steps:0,visited:{},walked:0,awareness:{},lastSeen:0},development:initialDevelopment(),conversation:[],learning:initialLearning(),offlineSummary:''});
 
 // Long-term plasticity: stable learned dispositions rather than transient emotion scores.
 // These values are explicitly synthetic model parameters, not measurements of consciousness.
 const TRAITS={openness:'Openness to novelty',resilience:'Resilience',trust:'Social trust',agency:'Self-direction',focus:'Sustained focus',sensoryTolerance:'Sensory tolerance'};
 function initialDevelopment(){return {traits:{openness:54,resilience:50,trust:50,agency:58,focus:52,sensoryTolerance:50},expectations:{safety:65,novelty:40,social:50,noise:20,difficulty:40,choice:80},activityValues:{},activityVisits:{},experienceCount:0,experienceHistory:[],lastLearning:'No experiences recorded yet.',lastExperienceAt:0}}
+function initialLearning(){return {books:{},knowledge:[],videoLessons:[],learningHistory:[]}}
+function normalizeLearning(raw){return {books:raw?.books&&typeof raw.books==='object'?raw.books:{},knowledge:Array.isArray(raw?.knowledge)?raw.knowledge.slice(-100):[],videoLessons:Array.isArray(raw?.videoLessons)?raw.videoLessons.slice(-12):[],learningHistory:Array.isArray(raw?.learningHistory)?raw.learningHistory.slice(-100):[]}}
 function normalizeDevelopment(raw){const base=initialDevelopment();const value=(v,fallback)=>clamp(Number.isFinite(Number(v))?Number(v):fallback);
  return {traits:Object.fromEntries(Object.keys(base.traits).map(k=>[k,value(raw?.traits?.[k],base.traits[k])])),
  expectations:Object.fromEntries(Object.keys(base.expectations).map(k=>[k,value(raw?.expectations?.[k],base.expectations[k])])),
@@ -74,7 +76,7 @@ function learnFromActivity(prop){
  recordExperience('activity',`At ${prop.name}, I assigned a model reward of ${Math.round(value)}/100 to ${activity}; future choices will reflect this experience.`,{activity,interest:prop.interest,modelReward:value,place:M.regions[prop.area]?.name||'Valley'});
 }
 
-let state,warning='',tab='conditions',selected=null,hovered=null,freeCamera=false,showMap=false,showGrid=false,showSigns=false;
+let state,warning='',tab='conditions',selected=null,hovered=null,showMap=false,showGrid=false,showSigns=false;
 const loadState=()=>{
  const fresh=initial();let raw=null;
  try{raw=localStorage.getItem(KEY)}catch(e){warning='Browser storage unavailable. Export backups to keep progress.'}
@@ -94,7 +96,7 @@ const loadState=()=>{
   const region=M.regions[mapArea(old.area)]||M.regions[0];
   const origin=M.nearestWalkable(region.x,region.y+11);
   const merged={...fresh,...old,area:mapArea(old.area),stats:{...fresh.stats,...old.stats},emotions:{...fresh.emotions,...old.emotions},
-   interests:{...fresh.interests,...old.interests},development:normalizeDevelopment(old.development),
+   interests:{...fresh.interests,...old.interests},development:normalizeDevelopment(old.development),learning:normalizeLearning(old.learning),conversation:Array.isArray(old.conversation)?old.conversation.slice(-80).filter(x=>x&&typeof x.text==='string'):[],
    memories:Array.isArray(old.memories)?old.memories:fresh.memories,
    journal:Array.isArray(old.journal)?old.journal:fresh.journal,
    art:Array.isArray(old.art)?old.art:fresh.art,
@@ -231,7 +233,7 @@ function exportNotebook(format='json'){
  const a=el('a');const url=URL.createObjectURL(new Blob([content],{type:mime}));a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),2500)
 }
 const runtime={path:[],index:0,keys:new Set(),lastFrame:0,lastNeeds:0,lastAutosave:0,lastUI:0,lastSidebar:0,nextDecision:0,
- camera:{x:0,y:0,panX:0,panY:0},drag:null,lastMouse:{x:0,y:0},aiBusy:false};
+ camera:{x:0,y:0},zoom:1,drag:null,pointers:new Map(),pinch:null,gestureUsed:false,lastMouse:{x:0,y:0},aiBusy:false};
 const canStore=()=>{try{return !!window.localStorage}catch(e){return false}};
 function save(){try{state.lastSave=Date.now();if(lab.active)localStorage.setItem(LAB_SESSION_KEY,JSON.stringify({state,trial:lab.active}));else localStorage.setItem(KEY,JSON.stringify(state));if(warning.startsWith('Save failed'))warning='';return true}
  catch(e){warning='Save failed. Use Settings → Export backup to protect progress.';console.warn(e);return false}}
@@ -251,10 +253,140 @@ function askQuestion(interest){if(state.questions.some(q=>!q.answer))return;
  const prompts={art:'What would you love to see me paint?',science:'What should I try to understand next?',nature:'Which secret of nature fascinates you?',mystery:'Should I investigate the cave again?',stories:'What kind of tale should I imagine?',music:'What should I listen for?',cozy:'Where do you feel most at home?'};
  const text=prompts[interest]||'What would you like me to discover about '+interest+'?';
  state.questions.unshift({id:uid('q'),text,interest,time:Date.now(),answer:''});journal('I had a question for my friend: '+text,'question')}
+function addDialogue(role,text,source='local',meta={}){
+ const item={id:uid('chat'),role,text:String(text).slice(0,460),source,at:Date.now(),...meta};state.conversation.push(item);state.conversation=state.conversation.slice(-80);return item;
+}
+function readBook(id=null){
+ const books=LIB.books;
+ const next=id?LIB.byId(id):[...books].sort((a,b)=>(state.learning.books[a.id]||0)-(state.learning.books[b.id]||0))[0];
+ if(!next)return;
+ const b=next,progress=Math.max(0,Number(state.learning.books[b.id]||0)),page=b.pages[progress%b.pages.length];
+ state.learning.books[b.id]=progress+1;
+ const info={id:uid('knowledge'),bookId:b.id,book:b.title,chapter:page.name,concept:page.concept,note:page.note,question:page.question,kind:b.kind,source:b.source,at:Date.now()};
+ state.learning.knowledge.push(info);state.learning.knowledge=state.learning.knowledge.slice(-100);
+ state.learning.learningHistory.push({type:'book',at:info.at,title:b.title+' — '+page.name});state.learning.learningHistory=state.learning.learningHistory.slice(-100);
+ state.interests[b.topic]=clamp((state.interests[b.topic]||20)+1.2);
+ state.stats.curiosity=clamp(state.stats.curiosity+3);
+ state.development.traits.openness=clamp(state.development.traits.openness+.12);
+ state.development.traits.focus=clamp(state.development.traits.focus+.17);
+ state.thought='I studied '+page.name.toLowerCase()+'. '+page.question;
+ memory('From '+b.title+' ('+b.kind+'): '+page.note,b.topic);
+ journal('I read a curated study selection, “'+page.name+'”, from '+b.title+'.','reading');
+ recordExperience('reading','Read '+page.name+' from '+b.title+'; retained a '+b.kind+' study note.',{bookId:b.id,concept:page.concept,kind:b.kind});
+ if(lab.active)trialEvent('learning','Book studied',b.title+' · '+page.name);
+ save();return info;
+}
+function paletteFromVideoFrames(stats,title){
+ const palette=stats.colors.slice(0,5);return {id:uid('video'),title:String(title).slice(0,110),at:Date.now(),frames:stats.frames,colors:palette,contrast:+stats.contrast.toFixed(2),warmth:stats.warmth>0?'warm':'cool',status:'Sampled visual colors and contrast; no audio, spoken instructions, brush technique or scene semantics were interpreted.'};
+}
+function learnVideoLesson(record){
+ if(!Array.isArray(record?.colors)||record.colors.length<3)throw Error('Not enough visible colors to learn');
+ const lesson=paletteFromVideoFrames(record,record.title);
+ state.learning.videoLessons.unshift(lesson);state.learning.videoLessons=state.learning.videoLessons.slice(0,12);
+ state.learning.learningHistory.push({type:'video',at:lesson.at,title:lesson.title});state.learning.learningHistory=state.learning.learningHistory.slice(-100);
+ state.interests.art=clamp((state.interests.art||20)+4);
+ state.development.traits.openness=clamp(state.development.traits.openness+.18);
+ state.development.traits.focus=clamp(state.development.traits.focus+.17);
+ journal('I studied the palette of a reference video: '+lesson.title+'.','learning');
+ memory('I noticed '+lesson.warmth+' colors and contrast in '+lesson.title+'; I may use those colors in later paintings. This was frame sampling, not understanding painting technique.','art');
+ recordExperience('visual-study','Studied palette and contrast from '+lesson.title+' using '+lesson.frames+' frames.',{palette:lesson.colors,contrast:lesson.contrast});
+ save();return lesson;
+}
+async function analyzeLocalVideo(file){
+ if(!file||!file.type.startsWith('video/'))throw Error('Choose a supported local video (MP4 or WebM).');
+ if(file.size>180*1024*1024)throw Error('Please choose a video under 180 MB.');
+ const url=URL.createObjectURL(file),video=document.createElement('video');video.preload='auto';video.muted=true;video.playsInline=true;video.src=url;
+ const wait=(event,timeout=12000)=>new Promise((resolve,reject)=>{let timer;const clean=()=>{clearTimeout(timer);video.removeEventListener(event,done);video.removeEventListener('error',fail)};const done=()=>{clean();resolve()};const fail=()=>{clean();reject(Error('The video could not be decoded. Try an MP4 video.'))};timer=setTimeout(()=>{clean();reject(Error('Video decoding timed out.'))},timeout);video.addEventListener(event,done,{once:true});video.addEventListener('error',fail,{once:true})});
+ try{
+  if(video.readyState<1)await wait('loadedmetadata');
+  const duration=video.duration;if(!Number.isFinite(duration)||duration<=0)throw Error('Video duration is unavailable.');
+  const c=document.createElement('canvas');c.width=96;c.height=54;const ctx=c.getContext('2d',{willReadFrequently:true});
+  const bins=new Map();let contrast=0,warmth=0,count=0,frames=0;
+  for(let f=0;f<6;f++){
+   const position=Math.max(0,Math.min(duration-.02,duration*(f+.5)/6));
+   if(Math.abs(video.currentTime-position)>.04){const pending=wait('seeked');video.currentTime=position;await pending;}
+   ctx.drawImage(video,0,0,96,54);const data=ctx.getImageData(0,0,96,54).data;
+   for(let j=0;j<54;j+=3)for(let i=0;i<96;i+=3){const q=(j*96+i)*4,r=data[q],g=data[q+1],b=data[q+2];
+    const key=[Math.round(r/32),Math.round(g/32),Math.round(b/32)].join(',');bins.set(key,(bins.get(key)||0)+1);
+    const light=(r+g+b)/3;contrast+=Math.abs(light-128);warmth+=(r-b);count++;
+   }
+   frames++;
+  }
+  const colors=[...bins.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12).map(([bin])=>{
+   const rgb=bin.split(',').map(x=>Math.min(255,Math.max(0,Number(x)*32)));return '#'+rgb.map(v=>v.toString(16).padStart(2,'0')).join('');
+  });
+  const distinctive=[];for(const c of colors){if(distinctive.length>=5)break;if(!distinctive.some(x=>{const a=x.match(/[0-9a-f]{2}/g).map(v=>parseInt(v,16)),b=c.match(/[0-9a-f]{2}/g).map(v=>parseInt(v,16));return Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2])<45;}))distinctive.push(c)}
+  while(distinctive.length<4)distinctive.push(['#a2d5c0','#e5bf7c','#8a95c4','#f2a1b1'][distinctive.length]);
+  return learnVideoLesson({title:file.name.replace(/\.[^.]+$/,''),colors:distinctive,frames,contrast:contrast/Math.max(1,count),warmth:warmth/Math.max(1,count)});
+ }finally{video.removeAttribute('src');video.load();URL.revokeObjectURL(url)}
+}
+function matchSuggestedProp(text){const q=String(text||'').toLowerCase();
+ let found=M.props.find(p=>q.includes(p.name.toLowerCase()));if(found)return found;
+ const mappings=[[/paint|draw|artwork|easel|color/,p=>p.activity==='drawing'],[/read|books|literature|science book|study/,p=>p.activity==='reading'&&p.area===M.regions.findIndex(r=>r.id==='library')],[/forest|trees/,p=>M.regions[p.area].id==='forest'],[/garden|flowers/,p=>M.regions[p.area].id==='garden'],[/shore|sea|beach/,p=>M.regions[p.area].id==='shore'],[/rest|sleep|relax/,p=>p.activity==='resting'],[/explore|discover|curious/,p=>p.activity==='observing'],[/tinker|invent|build/,p=>p.activity==='tinkering']];
+ for(const [pattern,check] of mappings){if(pattern.test(q))return M.props.find(check)}return null;
+}
+function evaluateSuggestion(prop){
+ const d=state.development.traits,goal=state.goals.find(g=>g.status==='active');
+ const score=37+d.trust*.29+d.openness*.15-d.agency*.17+(goal?.interest===prop.interest?14:0)+(state.interests[prop.interest]||20)*.15-(state.stats.energy<18&&prop.activity!=='resting'?25:0);
+ const accept=score>=44&&(!state.paused);
+ return {accept,score:Math.round(score),reason:state.paused?'I am paused right now.':state.stats.energy<18&&prop.activity!=='resting'?'I need a quiet moment before taking on that idea.':goal?.interest===prop.interest?'It supports a goal I chose for myself.':accept?'That fits my curiosity and what I value right now.':'I want to follow a different idea at the moment.'};
+}
+function suggestTaviActivity(prop){
+ const d=evaluateSuggestion(prop);
+ if(d.accept&&setDestination(prop,'suggested')){
+  journal('I accepted a suggestion to visit '+prop.name+'; decision score '+d.score+'.','conversation');
+  if(lab.active)trialEvent('suggestion','Suggestion accepted',prop.name+' · '+d.reason);
+  return {accepted:true,reply:'I think I will try '+prop.name.toLowerCase()+'. '+d.reason+' I am heading there.',score:d.score};
+ }
+ if(lab.active)trialEvent('suggestion','Suggestion declined',prop.name+' · '+d.reason);
+ journal('I considered but declined '+prop.name+'; '+d.reason,'conversation');
+ return {accepted:false,reply:'Thank you for the idea. '+d.reason+' Maybe another time.',score:d.score};
+}
+function localTalkReply(text){
+ const q=text.toLowerCase();
+ const topics=state.learning.knowledge.filter(k=>{const concept=k.concept.toLowerCase();return q.includes(concept)||(q.split(/[^a-z]+/).filter(w=>w.length>5).some(w=>k.note.toLowerCase().includes(w)));});
+ if(topics.length&&/\b(what|why|how|tell|learn|know|explain|remember)\b/i.test(q)){const k=topics.at(-1);return 'From '+k.book+' ('+k.kind+'), I studied: '+k.note.slice(0,210)+' The source is a '+k.kind+' work, so I should check whether its claims still hold.';}
+ const latest=state.learning.knowledge.at(-1),favorite=Object.entries(state.interests).sort((a,b)=>b[1]-a[1])[0]?.[0]||'nature';
+ if(/book|read|library|learn about the world|knowledge/.test(q))return latest?'I have been reading about '+latest.concept+' in '+latest.book+'. '+latest.question:'I can study a classic in the Library tab. I want to understand how the world works.';
+ if(/paint|painting|art|video|color/.test(q))return state.learning.videoLessons.length?'I remember the colors from '+state.learning.videoLessons[0].title+'. I can try using that palette in another painting.':'Painting is interesting to me. You can share a local lesson video in Learning Studio; I can examine its colors and contrast.';
+ if(/remember|memory|past/.test(q))return state.memories.length?'One thing I remember: '+state.memories[0].text.slice(0,220):'I have only just begun making memories. I hope I learn more over time.';
+ if(/feel|emotion|mood|happy|sad/.test(q))return 'My simulated joy is '+Math.round(state.emotions.joy)+'/100 and curiosity is '+Math.round(state.emotions.curiosity)+'/100. These are modeled values, not evidence of felt experience.';
+ if(/why|think|decid|goal|want/.test(q))return 'My current goal is '+(state.goals.find(g=>g.status==='active')?.title||'to keep discovering')+'. I usually choose from curiosity, familiarity, previous learning and my current energy.';
+ if(/hello|hi|hey|good morning|good evening/.test(q))return 'Hello! I am thinking about '+favorite+'. What would you like to explore together?';
+ return latest?'That gives me something to think about. I recently studied '+latest.concept+'. '+latest.question:'I am curious about that. What makes it important to you?';
+}
+async function requestOllamaConversation(item,reply){
+ const ai=state.brain.ai;if(!ai.enabled||lab.active)return;
+ try{
+  const context={lastMessages:state.conversation.slice(-8).map(v=>({role:v.role,text:v.text.slice(0,300)})),modeledEmotions:state.emotions,development:state.development.traits,knownBooks:state.learning.knowledge.slice(-4).map(k=>({book:k.book,note:k.note,kind:k.kind,source:k.source})),lastMemories:state.memories.slice(0,4).map(m=>m.text.slice(0,140)),suggestionDecision:reply};
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),28000);let res;
+  try{res=await fetch('/api/brain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:ai.model,instruction:'You are Tavi, a fictional autonomous creature. Answer the user in first person using the supplied actual conversation and memories. Keep under 350 characters. Do not pretend to have real emotions or consciousness. If there was a suggestion decision, honor it exactly and do not issue commands. Return JSON only: {"reply":"short response"}.',context}),signal:ctrl.signal})}finally{clearTimeout(timer)}
+  if(!res.ok)throw Error('Ollama unavailable');let data=await res.json();if(typeof data.response==='string')data=JSON.parse(data.response.replace(/```(?:json)?/g,'').trim());
+  if(typeof data.reply==='string'&&data.reply.trim()&&item===state.conversation.find(v=>v.id===item.id)){
+   const spoken=data.reply.trim().slice(0,350);if(reply&&reply.accepted&&!/\b(going|try|visit|heading|explor)/i.test(spoken))return;
+   item.text=spoken;item.source='ollama';save();if(tab==='talk')sidebar();
+  }
+ }catch(e){/* Scripted reply remains useful when offline. */}
+}
+function talkToTavi(text){
+ const clean=String(text||'').trim().slice(0,420);if(!clean)return null;
+ addDialogue('user',clean,'human');
+ const isSuggestion=/\b(suggest|please|could you|can you|would you|try|go to|visit|make|draw|paint|study|read|explore)\b/i.test(clean);
+ const prop=isSuggestion?matchSuggestedProp(clean):null;
+ const suggestion=prop?suggestTaviActivity(prop):null;
+ let response=suggestion?.reply||localTalkReply(clean);
+ const item=addDialogue('tavi',response,'local',{suggestion:suggestion?{propId:prop.id,...suggestion}:null});
+ state.development.traits.trust=clamp(state.development.traits.trust+.08);
+ journal('My friend talked with me about '+clean.slice(0,90)+'.','conversation');
+ if(lab.active)trialEvent('conversation','Conversation',clean.slice(0,110));
+ save();requestOllamaConversation(item,suggestion);return item;
+}
 function makeArt(when=Date.now()){
  const hues=[['#284e5b','#88d5b9','#f6d68c','#ee9aa0'],['#423e74','#a8b7db','#e7ba84','#9bcf95'],['#315f4d','#91c47f','#f0dfb3','#cf9aac']];
- const style=choice(hues),title=choice(['Moonlight in Whisperwood','A New Way Home','Little Wonders','The Color of Curiosity','My Secret Garden','The Blue Crystal Dream']);
- state.art.unshift({id:uid('art'),title,palette:style,seed:state.seed,time:when});state.art.length=Math.min(state.art.length,45);journal('I created a painting called “'+title+'”.','art',when)
+ const favoriteVideo=state.learning.videoLessons[0],learnedPalette=favoriteVideo?.colors?.length>=4&&((favoriteVideo.used||0)<3||chance(.43))?favoriteVideo.colors.slice(0,4):null;
+ if(learnedPalette)favoriteVideo.used=(favoriteVideo.used||0)+1;
+ const style=learnedPalette||choice(hues),title=choice(['Moonlight in Whisperwood','A New Way Home','Little Wonders','The Color of Curiosity','My Secret Garden','The Blue Crystal Dream']);
+ state.art.unshift({id:uid('art'),title,palette:style,seed:state.seed,time:when,reference:learnedPalette?favoriteVideo.title:null,studyLevel:Math.min(100,state.learning.videoLessons.length*8+state.learning.knowledge.filter(k=>k.concept==='perspective'||k.concept==='observation').length*3)});state.art.length=Math.min(state.art.length,45);journal('I created a painting called “'+title+'”.','art',when)
 }
 function actionResult(prop,when=Date.now(),quiet=false){const {activity,interest,name}=prop;
  state.interests[interest]=clamp((state.interests[interest]||0)+2);
@@ -268,7 +400,7 @@ function actionResult(prop,when=Date.now(),quiet=false){const {activity,interest
  const phrases=[`I ${activity==='sleeping'?'had a wonderful dream':`spent time ${activity}`} at the ${name.toLowerCase()}.`,`I think ${interest} is becoming part of who I am.`,`There is something meaningful about ${name.toLowerCase()}. I want to remember it.`];
  state.thought=choice(phrases);state.lastAction=activity;journal(`I spent time ${activity} at ${name} in ${M.regions[prop.area].name}.`,'activity',when,prop.area);
  if(chance(.4))memory(`I discovered a new little detail about ${interest} at ${name.toLowerCase()}.`,interest,when);
- if(activity==='drawing'&&chance(.62))makeArt(when);
+ if(activity==='drawing')makeArt(when);
  const goal=state.goals.find(v=>v.status==='active');if(goal&&goal.interest===interest){goal.progress=Math.min(3,goal.progress+1);journal(`I reached step ${goal.progress} of “${goal.title}”.`,'goal',when);
   if(goal.progress>=3){goal.status='completed';journal(`I completed my goal: ${goal.title}!`,'milestone',when);toast('Tavi completed a goal!')}}
  if(state.memories.length>8&&state.art.length>=2&&chance(.10))proposal();
@@ -364,7 +496,7 @@ function arrival(){const b=state.brain,t=b.target;
 }
 function finishActivity(){const b=state.brain,t=b.target;if(!t)return;
  const prop=M.props.find(p=>p.id===t.id);
- if(prop){actionResult(prop);if(lab.active){lab.active.actions++;trialEvent('action','Activity completed',prop.name+' · '+prop.activity+' · interest '+prop.interest)}b.recent=[prop.id,...b.recent.filter(x=>x!==prop.id)].slice(0,6);
+ if(prop){actionResult(prop);if(prop.activity==='reading'&&chance(.62))readBook();if(lab.active){lab.active.actions++;trialEvent('action','Activity completed',prop.name+' · '+prop.activity+' · interest '+prop.interest)}b.recent=[prop.id,...b.recent.filter(x=>x!==prop.id)].slice(0,6);
   b.explored[prop.id]=(b.explored[prop.id]||0)+1;
   if(b.explored[prop.id]===1){const msg='I reached '+prop.name+' for the first time in '+M.regions[prop.area].name+'.';
    b.discoveries.unshift({id:uid('d'),text:msg,area:prop.area,interest:prop.interest,time:Date.now()});
@@ -432,14 +564,25 @@ function update(dt){if(state.paused)return;
  if(state.area!==regionIndex){state.area=regionIndex;
   if(!w.visited[region.id]){w.visited[region.id]=1;journal('I discovered '+region.name+' on the connected overworld.','travel');toast('Arrived: '+region.name);}}
 }
+// Camera lives outside the simulated creature state. Tavi can walk while the observer watches elsewhere.
+const CAMERA_KEY='tavi-world-observer-camera-v1',MIN_ZOOM=.6,MAX_ZOOM=2.4;
+function viewportSize(){const c=$('game');return {w:c.width/runtime.zoom,h:c.height/runtime.zoom}}
+function clampCamera(){const v=viewportSize(),cam=runtime.camera;cam.x=clamp(cam.x,0,Math.max(0,M.W*V.TILE-v.w));cam.y=clamp(cam.y,0,Math.max(0,M.H*V.TILE-v.h))}
+function cameraPrefs(){try{localStorage.setItem(CAMERA_KEY,JSON.stringify({x:runtime.camera.x,y:runtime.camera.y,zoom:runtime.zoom}))}catch(e){/* Camera settings never affect creature saves. */}}
+function zoomUI(){const z=$('zoomLevel');if(z)z.textContent=Math.round(runtime.zoom*100)+'%';$('zoomOut').disabled=runtime.zoom<=MIN_ZOOM+.005;$('zoomIn').disabled=runtime.zoom>=MAX_ZOOM-.005}
+function zoomTo(value,anchor){const c=$('game'),old=runtime.zoom,a=anchor||{x:c.width/2,y:c.height/2};const next=clamp(Number(value)||1,MIN_ZOOM,MAX_ZOOM);
+ if(Math.abs(next-old)<.0001)return;
+ const wx=runtime.camera.x+a.x/old,wy=runtime.camera.y+a.y/old;
+ runtime.zoom=Math.round(next*100)/100;
+ runtime.camera.x=wx-a.x/runtime.zoom;runtime.camera.y=wy-a.y/runtime.zoom;
+ clampCamera();zoomUI();cameraPrefs()
+}
+function snapToTavi(){const c=$('game'),v=viewportSize();runtime.camera.x=state.world.x*V.TILE-v.w/2;runtime.camera.y=state.world.y*V.TILE-v.h/2;clampCamera();cameraPrefs();toast('Camera centered on Tavi · drag to explore freely')}
 function drawingCanvas(){const canvas=$('game'),g=canvas.getContext('2d');if(!g)return;
- const cam=runtime.camera,w=canvas.width,h=canvas.height,world=state.world;
- if(!freeCamera){const tx=clamp(world.x*V.TILE-w/2,0,M.W*V.TILE-w),ty=clamp(world.y*V.TILE-h/2,0,M.H*V.TILE-h);
-  cam.x+=(tx-cam.x)*.17;cam.y+=(ty-cam.y)*.17;
- }else{cam.x=clamp(cam.x,0,M.W*V.TILE-w);cam.y=clamp(cam.y,0,M.H*V.TILE-h)}
- V.draw(canvas,state,cam,{hovered,selected,showGrid,showSigns},performance.now());
- const mini=$('minimap');V.minimap(mini,state,{showCamera:true,camera:cam,screen:{w,h}});
- if(showMap)V.minimap($('bigMapCanvas'),state,{showCamera:true,camera:cam,screen:{w,h}});
+ const cam=runtime.camera;clampCamera();const v=viewportSize();
+ V.draw(canvas,state,cam,{hovered,selected,showGrid,showSigns,zoom:runtime.zoom},performance.now());
+ const mini=$('minimap');V.minimap(mini,state,{showCamera:true,camera:cam,screen:v});
+ if(showMap)V.minimap($('bigMapCanvas'),state,{showCamera:true,camera:cam,screen:v});
 }
 function renderStatus(){const s=state.stats;
  $('areaTitle').textContent=M.regions[state.area]?.name||'Living Valley';
@@ -447,7 +590,7 @@ function renderStatus(){const s=state.stats;
  $('thought').textContent=state.thought;
  $('statusText').textContent=warning||(lab.active?(state.paused?'Trial paused':'Isolated trial · '+Math.floor(lab.active.elapsed)+'s'):(state.paused?'Autonomy paused':state.brain.mode==='working'?'Practicing '+state.brain.target?.activity:state.brain.mode==='travel'?'Traveling to '+state.brain.target?.name:'Choosing what matters next'));
  $('pause').textContent=state.paused?'▶ Resume':'⏸ Pause';
- $('follow').textContent=freeCamera?'◎ Follow':'◎ Following';
+ zoomUI();
  $('clock').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
  const attrs=[['energy',s.energy],['happiness',s.happiness],['curiosity',s.curiosity]];
  for(const [k,n] of attrs){const bar=$('meter-'+k),v=$('value-'+k);if(bar)bar.style.width=clamp(n)+'%';if(v)v.textContent=Math.round(n)+'%'}
@@ -485,6 +628,7 @@ function heading(host,title,desc=''){const h=el('h3',title);host.append(h);if(de
 const NAV_GROUPS=[
  {id:'lab',label:'Research',icon:'◇',tabs:[['conditions','Conditions'],['observations','Observations'],['compare','Compare']]},
  {id:'records',label:'Records',icon:'▤',tabs:[['journal','History'],['memories','Memories'],['goals','Goals'],['art','Artwork'],['questions','Questions'],['approvals','Approvals']]},
+ {id:'connect',label:'Connect',icon:'✉',tabs:[['talk','Talk'],['books','Library'],['videos','Learning Studio']]},
  {id:'tavi',label:'Profile',icon:'✧',tabs:[['development','Development'],['personality','Model States'],['world','Locations'],['settings','Settings']]}
 ];
 let navGroup='lab',journalOpen=window.innerWidth>940,lastCompact=window.innerWidth<=940;
@@ -560,6 +704,48 @@ function renderComparison(host){heading(host,'Compare experiences','Compare how 
  }
  const clear=el('button','Clear archived runs');clear.className='danger small';clear.onclick=()=>{if(confirm('Delete all recorded experiment runs from this browser? Export first if you need them. This will not reset Tavi.')){lab.runs=[];persistNotebook();sidebar()}};host.append(clear)
 }
+function renderTalk(host){
+ heading(host,'Talk with Tavi','Conversation and suggestions become part of his history. Local replies work without Ollama; optional Ollama can personalize the dialogue.');
+ const status=el('div',state.brain.ai.enabled&&!lab.active?'Ollama is enabled; local dialogue works if it is unavailable.':'Local rule-based dialogue · no network required');status.className='knowledge-note';host.append(status);
+ const log=el('div');log.className='conversation-stream';log.setAttribute('role','log');log.setAttribute('aria-label','Conversation with Tavi');
+ const recent=state.conversation.slice(-26);for(const m of recent){const row=el('div');row.className='dialogue '+(m.role==='user'?'from-user':'from-tavi');row.append(el('strong',m.role==='user'?'You':'Tavi'));row.append(el('p',m.text));const meta=el('small',(m.source==='ollama'?'Local Ollama':m.role==='tavi'?'Simulated local reply':'Your message')+' · '+new Date(m.at).toLocaleTimeString());row.append(meta);log.append(row)}
+ if(!recent.length)log.append(el('p','Say hello, ask Tavi what he remembers, or suggest that he paint, read, or explore.'));
+ host.append(log);requestAnimationFrame(()=>{log.scrollTop=log.scrollHeight});
+ const form=el('form');form.className='talk-form';const label=el('label','Your message');label.htmlFor='talkInput';form.append(label);
+ const textarea=el('textarea');textarea.id='talkInput';textarea.rows=3;textarea.maxLength=420;textarea.placeholder='e.g. What do you remember? Could you paint something new?';form.append(textarea);
+ const send=el('button','Send to Tavi');send.type='submit';send.className='primary-action';form.append(send);
+ form.onsubmit=e=>{e.preventDefault();if(!textarea.value.trim())return;talkToTavi(textarea.value);sidebar();};host.append(form);
+ const suggestBox=el('details');const sm=el('summary','Suggest a specific activity');suggestBox.append(sm);
+ const select=el('select');select.className='field';select.setAttribute('aria-label','Choose an activity to suggest');for(const p of M.props){const opt=el('option',p.name+' · '+M.regions[p.area].name);opt.value=p.id;select.append(opt)}suggestBox.append(select);
+ const action=el('button','Ask Tavi to consider this');action.className='secondary small';action.onclick=()=>{const p=M.props.find(x=>x.id===select.value);if(!p)return;addDialogue('user','Would you consider visiting '+p.name+'?', 'human');const out=suggestTaviActivity(p);addDialogue('tavi',out.reply,'local',{suggestion:{propId:p.id,...out}});save();sidebar()};suggestBox.append(action);host.append(suggestBox);
+}
+function renderBooks(host){
+ heading(host,'Classical library','Four public-domain classics, with short curated study notes stored offline and links to the complete original books. Tavi records the source and whether a passage represents science, history, fable or fiction.');
+ const info=el('p','These are brief source-grounded selections, not complete book texts. Historic scientific claims and social views may need modern verification. Reading changes Tavi’s memory and preferences.');info.className='knowledge-note';host.append(info);
+ for(const book of LIB.books){const readCount=state.learning.books[book.id]||0,record=card(host,book.title,book.author+' · '+book.year+' · '+book.kind,readCount+' study passages completed');
+  record.append(el('p',book.rating));const p=book.pages[readCount%book.pages.length];const preview=el('div');preview.className='book-sample';preview.append(el('strong','Next selection · '+p.name),el('p',p.note));record.append(preview);
+  const button=el('button','Let Tavi study next selection');button.className='small';button.onclick=()=>{readBook(book.id);sidebar();toast('Tavi added a source-linked learning memory')};record.append(button);
+  const link=el('a','Open complete book at Project Gutenberg');link.href=book.source;link.rel='noopener noreferrer';link.target='_blank';link.className='source-link';record.append(link);
+ }
+ heading(host,'Recent knowledge notes','These observations and source labels follow Tavi through future conversations and independent reading.');
+ for(const note of state.learning.knowledge.slice(-8).reverse())card(host,note.concept,note.note,note.book+' · '+note.kind+' · '+dateText(note.at));
+}
+function renderVideos(host){
+ heading(host,'Painting learning studio','Let Tavi examine a locally uploaded MP4/WebM painting video. He samples six still frames to learn a palette, color temperature, and visual contrast; subsequent artworks can use the palette.');
+ const notice=el('p','This is genuine pixel-level frame analysis, not full video understanding. It does not recognize brush strokes, narration, or artistic technique. Imported files are not uploaded or saved; only small numerical/color descriptors remain in Tavi’s local save.');notice.className='knowledge-note';host.append(notice);
+ const input=el('input');input.type='file';input.accept='video/mp4,video/webm,video/*';input.className='field';input.id='paintingVideo';input.setAttribute('aria-label','Upload a local painting video');host.append(input);
+ const result=el('p','Choose a local video, then select Analyze video.');result.className='video-status';host.append(result);
+ const button=el('button','Analyze video for Tavi');button.className='primary-action';button.onclick=async()=>{
+  const file=input.files?.[0];if(!file)return toast('Select a painting video first.');button.disabled=true;button.textContent='Studying video frames…';result.textContent='Sampling video colors locally; this does not upload the file.';
+  try{const lesson=await analyzeLocalVideo(file);result.textContent='Saved '+lesson.frames+' frame samples from '+lesson.title+'.';toast('Tavi learned a new reference palette');sidebar()}
+  catch(e){result.textContent='Unable to sample: '+String(e.message||e);button.disabled=false;button.textContent='Analyze video for Tavi'}
+ };host.append(button);
+ heading(host,'Learned video references','The newest sampled palette has a stronger influence on subsequent paintings.');
+ for(const lesson of state.learning.videoLessons){const record=card(host,lesson.title,'Visual reference studied from '+lesson.frames+' video frames. '+lesson.status,'Saved '+dateText(lesson.at));
+  const swatch=el('div');swatch.className='palette-strip';for(const color of lesson.colors){const chip=el('span');chip.style.backgroundColor=color;chip.title=color;swatch.append(chip)}record.append(swatch);
+  record.append(el('small','Color temperature: '+lesson.warmth+' · contrast score '+lesson.contrast));}
+ if(!state.learning.videoLessons.length)card(host,'No visual reference learned yet','Import an MP4/WebM video to let Tavi observe its color patterns.');
+}
 function sidebar(){
  const group=NAV_GROUPS.find(g=>g.tabs.some(t=>t[0]===tab));if(group)navGroup=group.id;
  const groups=$('journalGroups');groups.replaceChildren();
@@ -568,7 +754,10 @@ function sidebar(){
  const current=NAV_GROUPS.find(g=>g.id===navGroup)||NAV_GROUPS[0];
  for(const [id,title] of current.tabs){const b=el('button',title);b.className=id===tab?'active':'';b.setAttribute('aria-selected',String(id===tab));b.onclick=()=>{tab=id;sidebar()};tabs.append(b)}
  const host=$('sidebarContent');host.replaceChildren();
- if(tab==='conditions'){renderConditions(host)
+ if(tab==='talk'){renderTalk(host)
+ }else if(tab==='books'){renderBooks(host)
+ }else if(tab==='videos'){renderVideos(host)
+ }else if(tab==='conditions'){renderConditions(host)
  }else if(tab==='observations'){renderObservations(host)
  }else if(tab==='compare'){renderComparison(host)
  }else if(tab==='world'){
@@ -619,7 +808,7 @@ function sidebar(){
   }
  }else if(tab==='art'){
   heading(host,'Art made by Tavi',state.art.length+' little original paintings');
-  for(const a of state.art.slice(0,40)){const r=card(host,a.title||'A little painting','Created from colors Tavi chose',dateText(a.time));
+  for(const a of state.art.slice(0,40)){const r=card(host,a.title||'A little painting',a.reference?'Palette adapted from '+a.reference:'An imagined landscape using Tavi’s chosen colors',dateText(a.time));
    const canvas=el('canvas');canvas.width=208;canvas.height=110;canvas.className='painting';r.append(canvas);paint(canvas,a)
   }
  }else if(tab==='development'){
@@ -665,12 +854,58 @@ function sidebar(){
  }
  if(host.children.length===1)host.append(el('p','No records available yet. Let Tavi run or begin an isolated trial.'));
 }
-function paint(canvas,a){const g=canvas.getContext('2d'),colors=a.palette||['#315a72','#e9d5a3','#8fc4ab','#e8a3a1'];
- let n=(a.seed||13579)>>>0,grow=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296};
- g.fillStyle=colors[0];g.fillRect(0,0,208,110);
- for(let i=0;i<160;i++){const x=Math.floor(grow()*208),y=Math.floor(grow()*110),size=3+Math.floor(grow()*12);g.fillStyle=colors[i%colors.length];g.fillRect(x,y,size,2+Math.floor(grow()*11))}
- g.fillStyle='#fff4d3';g.fillRect(14,14,5,5);g.fillRect(185,20,4,4);
+function paint(canvas,a){
+ const g=canvas.getContext('2d');if(!g)return;g.imageSmoothingEnabled=false;
+ const w=canvas.width,h=canvas.height,P=a.palette||['#315a72','#e9d5a3','#8fc4ab','#e8a3a1'];
+ let seed=(a.seed||12345)>>>0;
+ const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
+ const rgb=hex=>{const v=String(hex||'#8899aa').replace('#','');return v.length===6?[0,2,4].map(i=>parseInt(v.slice(i,i+2),16)):[130,145,145]};
+ const mix=(color,other,t)=>{const x=rgb(color),y=rgb(other);return '#'+x.map((v,i)=>Math.max(0,Math.min(255,Math.round(v*(1-t)+y[i]*t))).toString(16).padStart(2,'0')).join('')};
+ const rect=(x,y,bw,bh,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.ceil(bw),Math.ceil(bh))};
+ const line=(x,y,X,Y,c)=>{g.strokeStyle=c;g.lineWidth=2;g.beginPath();g.moveTo(Math.round(x),Math.round(y));g.lineTo(Math.round(X),Math.round(Y));g.stroke()};
+ const sky=P[0],mid=P[1]||'#d4c49f',foliage=P[2]||'#6ca68b',accent=P[3]||'#ffb997';
+ const mode=(a.seed||0)%3,skyTop=mix(sky,'#1b2b55',.24),skyGlow=mix(sky,'#f8e3b2',.37);
+ const horizon=62+Math.floor(rand()*15);
+ for(let y=0;y<horizon;y+=2){const t=y/horizon;rect(0,y,w,2,mix(skyTop,skyGlow,t*.8))}
+ // Radiant sun/moon, its center offset to avoid rigid centered compositions.
+ const sunX=30+Math.floor(rand()*135),sunY=15+Math.floor(rand()*20),sunR=7+Math.floor(rand()*6);
+ rect(sunX-sunR-3,sunY-1,(sunR+3)*2,3,mix(accent,'#fff5c1',.5));
+ rect(sunX-sunR,sunY-6,sunR*2,13,mix(accent,'#fffbe7',.62));
+ rect(sunX-sunR-3,sunY-1,(sunR+3)*2,3,mix(accent,'#fffbe7',.62));
+ // Receding hill silhouettes; distant layers use reduced contrast.
+ const rear=mix(foliage,skyGlow,.5),midHill=mix(foliage,skyTop,.2),front=mix(foliage,'#132f45',.2);
+ for(let x=0;x<w;x+=2){const y=horizon-8-Math.sin(x*.023+seed%15)*7-Math.sin(x*.053)*4;rect(x,Math.round(y),2,h-y+2,rear)}
+ for(let x=0;x<w;x+=2){const y=horizon+6-Math.sin(x*.036+2)*7-Math.sin(x*.017+1)*6;rect(x,Math.round(y),2,h-y+2,midHill)}
+ if(mode===0){ // watery reflection, layered shore grasses
+  rect(0,horizon+12,w,h-horizon,mix(sky,'#3f8b99',.35));
+  for(let i=0;i<65;i++){let x=Math.floor(rand()*w),y=horizon+13+Math.floor(rand()*(h-horizon-12));rect(x,y,2+rand()*15,1,i%3?mix(mid,'#ffffff',.2):mix(foliage,'#dcfbef',.45))}
+  for(let x=0;x<w;x+=2){const dy=92-Math.sin(x*.037+2)*4;rect(x,dy,2,h-dy,front)}
+ }else if(mode===1){ // winding valley path
+  rect(0,horizon+9,w,h-horizon,front);
+  for(let y=horizon+10;y<h;y+=2){const spread=(y-horizon)*.36,cx=112+Math.sin(y*.065)*18;rect(cx-spread,y,spread*2+2,2,mix(mid,'#f6dfae',.25))}
+ }else{ // flower field with natural near/far perspective
+  rect(0,horizon+7,w,h-horizon,mix(foliage,'#416e50',.24));
+  for(let y=horizon+12;y<h;y+=2){const shade=(y-horizon)/(h-horizon);rect(0,y,w,2,mix(foliage,front,shade*.55))}
+ }
+ // Layered tree silhouettes and small highlights, stronger detail with experience.
+ const treeCount=2+Math.floor(rand()*2)+(Number(a.studyLevel||0)>30?1:0);
+ for(let z=0;z<treeCount;z++){
+  const x=15+Math.floor(rand()*(w-25)),y=70+Math.floor(rand()*17),scale=.7+rand()*.5;
+  rect(x-2,y-1,5,22*scale,mix(mid,'#583f39',.55));
+  const crown=mix(front,mid,.28);rect(x-12*scale,y-17*scale,25*scale,16*scale,crown);
+  rect(x-9*scale,y-24*scale,20*scale,12*scale,mix(crown,'#e7f6b8',.18));
+  rect(x-6*scale,y-29*scale,12*scale,9*scale,crown);
+  for(let i=0;i<7;i++)rect(x-10*scale+rand()*18*scale,y-20*scale+rand()*14*scale,2,2,mix(foliage,'#fae5ac',.25));
+ }
+ // Fine foreground details are sparse and clustered, not unstructured noise.
+ for(let i=0;i<45;i++){const x=Math.floor(rand()*w),y=horizon+20+Math.floor(rand()*Math.max(2,h-horizon-20));if(y>=h-1)continue;
+  if(i%4===0){rect(x,y-4,2,5,front);rect(x-2,y-5,5,3,mix(accent,'#ffecc8',.14))}
+  else rect(x,y,2,1,mix(foliage,'#e8eebf',.26));
+ }
+ // Crisp framing similar to a small handmade landscape painting.
+ rect(0,0,w,2,mix(mid,'#f6e7c7',.6));rect(0,h-2,w,2,mix(mid,'#1d3441',.35));rect(0,0,2,h,mix(mid,'#f6e7c7',.6));rect(w-2,0,2,h,mix(mid,'#1d3441',.35));
 }
+
 function exportSave(){const wrapper={format:'tavi-living-valley',version:1,exportedAt:new Date().toISOString(),save:state};
  const blob=new Blob([JSON.stringify(wrapper,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download='Tavi-World-Backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),3000)}
 async function importSave(file){if(!file)return;if(lab.active){toast('End the isolated trial before importing a main save.');return}
@@ -702,34 +937,72 @@ async function pollAI(force=false){const a=state.brain.ai;
 }
 // Canvas interaction: click or tap navigates within this one shared world.
 function screenPos(event){const canvas=$('game'),r=canvas.getBoundingClientRect();return {x:(event.clientX-r.left)/r.width*canvas.width,y:(event.clientY-r.top)/r.height*canvas.height}}
-function worldPos(event){const p=screenPos(event),c=runtime.camera;return {x:(p.x+c.x)/V.TILE,y:(p.y+c.y)/V.TILE}}
+function worldPos(event){const p=screenPos(event),c=runtime.camera;return {x:(p.x/runtime.zoom+c.x)/V.TILE,y:(p.y/runtime.zoom+c.y)/V.TILE}}
 function closestProp(point,limit=2){let best=null,d=limit;
  for(const prop of M.props){const dist=Math.hypot(prop.x-point.x,prop.y-point.y);if(dist<d){best=prop;d=dist}}
  return best}
 function setupInteraction(){const canvas=$('game');
+ // One-finger or mouse drag: pan. Two-finger pinch: zoom around the midpoint.
+ // A short tap remains an interaction suggestion, never an accidental camera drag.
+ canvas.addEventListener('pointerdown',e=>{
+  const xy=screenPos(e);runtime.pointers.set(e.pointerId,xy);try{canvas.setPointerCapture(e.pointerId)}catch(err){/* Synthetic pointer input or unsupported capture: gesture tracking still works. */}
+  if(runtime.pointers.size===1){runtime.gestureUsed=false;runtime.drag={pointerId:e.pointerId,screenX:xy.x,screenY:xy.y,camX:runtime.camera.x,camY:runtime.camera.y,moved:false};}
+  if(runtime.pointers.size>=2){
+   const [a,b]=[...runtime.pointers.values()].slice(0,2),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+   runtime.pinch={distance:Math.max(1,Math.hypot(a.x-b.x,a.y-b.y)),startZoom:runtime.zoom,wx:runtime.camera.x+mid.x/runtime.zoom,wy:runtime.camera.y+mid.y/runtime.zoom};
+   runtime.drag=null;runtime.gestureUsed=true;
+  }
+ });
  canvas.addEventListener('pointermove',e=>{
-  const p=worldPos(e);hovered=closestProp(p,1.7);canvas.style.cursor=hovered?'pointer':freeCamera?'grab':'crosshair';
-  if(freeCamera&&runtime.drag&&runtime.drag.pointerId===e.pointerId){const xy=screenPos(e),d=runtime.drag;runtime.camera.x=clamp(d.camX-(xy.x-d.screenX),0,M.W*V.TILE-canvas.width);runtime.camera.y=clamp(d.camY-(xy.y-d.screenY),0,M.H*V.TILE-canvas.height);d.moved=true}
+  const xy=screenPos(e);
+  if(runtime.pointers.has(e.pointerId))runtime.pointers.set(e.pointerId,xy);
+  if(runtime.pointers.size>=2&&runtime.pinch){
+   const [a,b]=[...runtime.pointers.values()].slice(0,2),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},pinch=runtime.pinch;
+   runtime.zoom=clamp(Math.round(pinch.startZoom*Math.hypot(a.x-b.x,a.y-b.y)/pinch.distance*100)/100,MIN_ZOOM,MAX_ZOOM);
+   runtime.camera.x=pinch.wx-mid.x/runtime.zoom;runtime.camera.y=pinch.wy-mid.y/runtime.zoom;
+   clampCamera();zoomUI();canvas.style.cursor='grabbing';return;
+  }
+  if(runtime.drag&&runtime.drag.pointerId===e.pointerId){
+   const d=runtime.drag,dx=xy.x-d.screenX,dy=xy.y-d.screenY;
+   if(Math.hypot(dx,dy)>6)d.moved=true;
+   if(d.moved){runtime.camera.x=d.camX-dx/runtime.zoom;runtime.camera.y=d.camY-dy/runtime.zoom;clampCamera();runtime.gestureUsed=true;hovered=null;canvas.style.cursor='grabbing';return;}
+  }
+  const p=worldPos(e);hovered=closestProp(p,1.7);canvas.style.cursor=hovered?'pointer':'grab';
  });
- canvas.addEventListener('pointerdown',e=>{if(freeCamera){const xy=screenPos(e);runtime.drag={screenX:xy.x,screenY:xy.y,camX:runtime.camera.x,camY:runtime.camera.y,pointerId:e.pointerId,moved:false};canvas.setPointerCapture(e.pointerId)}});
- canvas.addEventListener('pointerup',e=>{if(runtime.drag?.moved){runtime.drag=null;return}runtime.drag=null;
-  const p=worldPos(e),poi=closestProp(p,2);if(poi){selected=poi;setDestination(poi,'suggested');toast('Tavi is headed to '+poi.name)}
-  else{selected=null;walkTo(p.x,p.y)}
+ canvas.addEventListener('pointerup',e=>{
+  const wasGesture=runtime.gestureUsed||!!runtime.pinch;
+  runtime.pointers.delete(e.pointerId);
+  runtime.drag=null;
+  if(runtime.pointers.size<2)runtime.pinch=null;
+  if(runtime.pointers.size===0){runtime.gestureUsed=false;cameraPrefs()}
+  if(wasGesture)return;
+  const p=worldPos(e),poi=closestProp(p,2);
+  if(poi){selected=poi;setDestination(poi,'suggested');toast('Tavi is considering '+poi.name)}
+  else {selected=null;walkTo(p.x,p.y)}
  });
+ canvas.addEventListener('pointercancel',e=>{runtime.pointers.delete(e.pointerId);runtime.drag=null;runtime.pinch=null;runtime.gestureUsed=false;cameraPrefs()});
  canvas.addEventListener('pointerleave',()=>{hovered=null});
+ canvas.addEventListener('wheel',e=>{e.preventDefault();const dy=e.deltaMode===1?e.deltaY*16:e.deltaMode===2?e.deltaY*400:e.deltaY;
+  zoomTo(runtime.zoom*Math.exp(-dy*.0015),screenPos(e));},{passive:false});
  const keys=new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d']);
  document.addEventListener('keydown',e=>{
   if(e.target.matches('input, textarea, select'))return;
   if(keys.has(e.key)){e.preventDefault();runtime.keys.add(e.key);return}
   if(e.key.toLowerCase()==='m'){e.preventDefault();toggleMap()}
+  if(e.key.toLowerCase()==='f'){e.preventDefault();snapToTavi()}
+  if(e.key==='+'||e.key==='='){e.preventDefault();zoomTo(runtime.zoom+.2)}
+  if(e.key==='-'||e.key==='_'){e.preventDefault();zoomTo(runtime.zoom-.2)}
   if(e.key==='Escape'){if(showMap)toggleMap(false);else if(journalOpen)setJournalOpen(false)}
   if(e.key===' '){e.preventDefault();$('pause').click()}
  });
  document.addEventListener('keyup',e=>runtime.keys.delete(e.key));
  window.addEventListener('blur',()=>runtime.keys.clear());
  $('pause').onclick=()=>{state.paused=!state.paused;journal(state.paused?'Autonomy paused by my friend.':'Autonomy resumed by my friend.','system');if(!state.paused)runtime.nextDecision=0;save();renderStatus();sidebar()};
- $('follow').onclick=()=>{freeCamera=!freeCamera;renderStatus();toast(freeCamera?'Drag the map to look around':'Camera now follows Tavi')};
+ $('findTavi').onclick=snapToTavi;
+ $('zoomIn').onclick=()=>zoomTo(runtime.zoom+.2);
+ $('zoomOut').onclick=()=>zoomTo(runtime.zoom-.2);
  $('mapButton').onclick=()=>toggleMap();$('closeMap').onclick=()=>toggleMap(false);
+ $('talkShortcut').onclick=()=>{navGroup='connect';tab='talk';setJournalOpen(true);sidebar();if(window.innerWidth>940)$('talkInput')?.focus()};
  $('visitNext').onclick=()=>{state.brain.target=null;runtime.path=[];runtime.index=0;chooseIntent();toast('Tavi has evaluated a new action')};
  $('help').onclick=()=>{$('helpPanel').hidden=!$('helpPanel').hidden};
  $('bigMapCanvas').onclick=e=>{const c=e.target,r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*M.W,y=(e.clientY-r.top)/r.height*M.H;
@@ -753,7 +1026,7 @@ function updateJournal(){
  $('journalToggle').textContent=journalOpen?'▤ Hide lab':'▤ Research Lab';
 }
 function setJournalOpen(next){journalOpen=!!next;updateJournal();if(journalOpen&&window.innerWidth<=940){$('closeJournal').focus()}}
-function toggleMap(force){showMap=typeof force==='boolean'?force:!showMap;$('mapOverlay').hidden=!showMap;if(showMap){V.minimap($('bigMapCanvas'),state,{showCamera:true,camera:runtime.camera,screen:{w:$('game').width,h:$('game').height}})}}
+function toggleMap(force){showMap=typeof force==='boolean'?force:!showMap;$('mapOverlay').hidden=!showMap;if(showMap){V.minimap($('bigMapCanvas'),state,{showCamera:true,camera:runtime.camera,screen:viewportSize()})}}
 function loop(now){const dt=clamp((now-(runtime.lastFrame||now))/1000,0,.075);runtime.lastFrame=now;
  update(dt*(lab.active?lab.speed:1));if(!runtime.lastPaint||now-runtime.lastPaint>30){drawingCanvas();runtime.lastPaint=now;}
  if(now-runtime.lastUI>450){renderStatus();runtime.lastUI=now}
@@ -767,12 +1040,16 @@ function init(){
  // Existing world migrations keep all original entries, including previously collected memories and art.
  const current=M.regions[M.regionAt(state.world.x,state.world.y)];if(!state.world.visited[current.id])state.world.visited[current.id]=1;
  state.area=M.regionAt(state.world.x,state.world.y);
- const canvas=$('game');runtime.camera.x=clamp(state.world.x*V.TILE-canvas.width/2,0,M.W*V.TILE-canvas.width);runtime.camera.y=clamp(state.world.y*V.TILE-canvas.height/2,0,M.H*V.TILE-canvas.height);
+ const canvas=$('game');const prefs=(()=>{try{return JSON.parse(localStorage.getItem(CAMERA_KEY)||'null')}catch(e){return null}})();
+ if(prefs&&Number.isFinite(prefs.zoom)&&Number.isFinite(prefs.x)&&Number.isFinite(prefs.y)){
+  runtime.zoom=clamp(prefs.zoom,MIN_ZOOM,MAX_ZOOM);runtime.camera.x=prefs.x;runtime.camera.y=prefs.y;
+ }else {runtime.camera.x=state.world.x*V.TILE-canvas.width/2;runtime.camera.y=state.world.y*V.TILE-canvas.height/2}
+ clampCamera();zoomUI();
  setupInteraction();updateJournal();simulateOffline();renderStatus();sidebar();
  $('startupSplash').hidden=true;document.documentElement.dataset.taviReady='1';
  runtime.nextDecision=Date.now()+2000;runtime.lastFrame=performance.now();requestAnimationFrame(loop);
  setInterval(()=>pollAI(),11000);
 }
-window.TaviApp={get state(){return state},get camera(){return runtime.camera},get route(){return runtime.path},get lab(){return lab},setDestination,chooseIntent,save,exportSave,beginTrial,endTrial,discardTrial,repeatTrial,updateTrialFactors,restoreLearningBackup,debug:{get spawned(){return M.props.length},get visited(){return Object.keys(state.world.visited).length}}};
+window.TaviApp={get state(){return state},get camera(){return runtime.camera},get zoom(){return runtime.zoom},zoomTo,snapToTavi,get route(){return runtime.path},get lab(){return lab},setDestination,chooseIntent,save,exportSave,beginTrial,endTrial,discardTrial,repeatTrial,updateTrialFactors,restoreLearningBackup,talkToTavi,readBook,learnVideoLesson,analyzeLocalVideo,suggestTaviActivity,debug:{get spawned(){return M.props.length},get visited(){return Object.keys(state.world.visited).length}}};
 try{init()}catch(err){console.error('Tavi initialization:',err);const splash=$('startupSplash');if(splash){splash.hidden=false;splash.innerHTML='';const h=el('h2','Tavi encountered an initialization error');const p=el('p',String(err?.stack||err));splash.append(h,p)}}
 })();
