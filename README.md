@@ -1,3 +1,13 @@
+# Tavi World — Ollama JSON Connection Repair
+
+This edition keeps the existing continuous overworld, autonomous learning, conversations, book/video learning, read-only web research, and 30% wide zoom. It fixes the local Ollama bridge error often shown as `Unexpected token u, "undefined" is not valid JSON`.
+
+**Windows startup:** Extract the ZIP completely, close previous launcher windows, run `START-TAVI-WORLD.bat`, and open `http://localhost:8765/` in the same browser as your prior save. In **Profile → Settings**, set the exact Ollama model name from `ollama list`, click **Test local connection**, then enable Ollama advice.
+
+**Validation:** New browser tests cover empty and malformed model replies, valid replies, and local conversation fallback. Existing automated browser tests were also exercised. A live Windows launcher/Ollama test is still required. The save format and key were not changed.
+
+---
+
 # Tavi World — Lifelong Learning Sandbox
 
 **A local-first simulation of an autonomous fictional creature whose experiences can permanently influence later behavior.**
