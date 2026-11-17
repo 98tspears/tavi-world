@@ -13,6 +13,8 @@ parts={
 '__INLINE_WORLD__':(src/'world.js').read_text('utf-8'),
 '__INLINE_LIBRARY__':(src/'library.js').read_text('utf-8'),
 '__INLINE_VISUALS__':(src/'visuals.js').read_text('utf-8'),
+'__INLINE_COMMITMENTS__':(src/'commitments.js').read_text('utf-8'),
+'__INLINE_COGNITION__':(src/'cognition.js').read_text('utf-8'),
 '__INLINE_APP__':(src/'app.js').read_text('utf-8'),
 '__SPRITE_DATA__':'data:image/png;base64,'+(src/'tavi-sprite-base64.txt').read_text('utf-8').strip()
 }
