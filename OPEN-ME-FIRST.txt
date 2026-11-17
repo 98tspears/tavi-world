@@ -1,11 +1,19 @@
-TAVI WORLD — COGNITIVE COMMITMENTS EDITION
+TAVI WORLD — DETAILED CONTINUOUS OVERWORLD (2026-11-16)
 
-Close previous Tavi launcher windows. Extract this ZIP. Run START-TAVI-WORLD.bat.
-Open http://localhost:8765/ in your existing browser to preserve your local save.
-Export your save under Profile > Settings before upgrading.
+THE WORLD IS ONE CONTINUOUS PIXEL MAP, NOT STITCHED ILLUSTRATED SCENES.
+The native renderer now has 32px terrain textures, richer tree and decor sprites,
+seamless biome color patches, more detailed water, grass, roads, buildings, and props.
 
-Go to Records > Approvals to view the exact state of each project: pending permission, queued, traveling, working, blocked, or completed with evidence. Approved unfinished work does NOT require a new approval after an interruption. Blocked work can be retried; approved work can be cancelled with a recorded reason.
+TO RUN ON WINDOWS
+1. Export your save in the existing Tavi World first.
+2. Extract this ZIP into a new folder and close any older Tavi launchers.
+3. Double-click START-TAVI-WORLD.bat in the extracted folder.
+4. Open http://localhost:8765/ in the SAME browser to retain your saved Tavi.
+5. For Ollama-powered thoughts, keep Ollama running and test under Profile > Settings.
 
-This version also adds a brain-inspired cognitive model (computational, not a human brain) and includes the improved Ollama HTTP 400 handling. It cannot guarantee conversation quality; the Windows Ollama model must be tested on your PC.
+To view what changed, open docs/forest-before-after.png and
+ docs/house-before-after.png. The actual game screenshots are in docs/.
 
-See README.md and docs/COMMITMENT-LIFECYCLE.md for details.
+No scene-image panels are used by the game, and this update does not change
+Tavi's movement, saved cognition, commitments, or model bridge.
+Native Windows and live local Ollama still need verification on your computer.
