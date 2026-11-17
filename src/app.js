@@ -1,6 +1,6 @@
 /* Tavi World — isolated, local-first autonomous behavioral simulation sandbox. */
 (()=>{'use strict';
-const M=window.TaviWorld,V=window.TaviVisuals,LIB=window.TaviLibrary,KEY='tavi-world-windows-living-valley-v1',LEGACY_BACKUP_KEY='tavi-world-legacy-save-before-overworld-v1',NEEDS_BACKUP_KEY='tavi-world-save-before-nonsurvival-v1';
+const M=window.TaviWorld,V=window.TaviVisuals,LIB=window.TaviLibrary,C=window.TaviCognition,CM=window.TaviCommitments,KEY='tavi-world-windows-living-valley-v1',LEGACY_BACKUP_KEY='tavi-world-legacy-save-before-overworld-v1',NEEDS_BACKUP_KEY='tavi-world-save-before-nonsurvival-v1';
 const INTERESTS=['cozy','stories','food','art','craft','nature','music','science','time','mystery','gardening'];
 const EMOTIONS=['joy','excitement','curiosity','frustration','confidence','boredom','calm','nervousness'];
 const LEGACY_AREA_MAP=[0,1,2,6,5,4,11,3,8,9,7,10];
@@ -13,7 +13,7 @@ const initial=()=>({version:1,seed:78341,area:0,x:400,y:350,paused:false,clock:D
  interests:Object.fromEntries(INTERESTS.map(v=>[v,20])),memories:[],journal:[],art:[],goals:[],questions:[],approvals:[],decorations:[],
  thought:'There is an entire valley outside. I want to see what is growing today!',lastAction:'',lastSave:Date.now(),
  brain:{mode:'idle',target:null,work:0,completedAt:0,completedActivity:'',decisionAt:0,day:0,explored:{},recent:[],discoveries:[],lastReflection:0,ai:{enabled:false,model:'tavi',lastCall:0,lastResult:'Not connected',pending:null,history:[]}},
- world:{x:29.5,y:28.5,moving:false,lastDx:0,lastDy:1,steps:0,visited:{},walked:0,awareness:{},lastSeen:0},development:initialDevelopment(),conversation:[],learning:initialLearning(),offlineSummary:''});
+ cognition:C.initial(),world:{x:29.5,y:28.5,moving:false,lastDx:0,lastDy:1,steps:0,visited:{},walked:0,awareness:{},lastSeen:0},development:initialDevelopment(),conversation:[],learning:initialLearning(),offlineSummary:''});
 
 // Long-term plasticity: stable learned dispositions rather than transient emotion scores.
 // These values are explicitly synthetic model parameters, not measurements of consciousness.
@@ -96,13 +96,13 @@ const loadState=()=>{
   const region=M.regions[mapArea(old.area)]||M.regions[0];
   const origin=M.nearestWalkable(region.x,region.y+11);
   const merged={...fresh,...old,area:mapArea(old.area),stats:{...fresh.stats,...old.stats},emotions:{...fresh.emotions,...old.emotions},
-   interests:{...fresh.interests,...old.interests},development:normalizeDevelopment(old.development),learning:normalizeLearning(old.learning),conversation:Array.isArray(old.conversation)?old.conversation.slice(-80).filter(x=>x&&typeof x.text==='string').map(x=>x.source==='pending'?{...x,source:'interrupted',text:'My last reply was interrupted. Could you ask me again?'}:x):[],
+   interests:{...fresh.interests,...old.interests},cognition:C.normalize(old.cognition),development:normalizeDevelopment(old.development),learning:normalizeLearning(old.learning),conversation:Array.isArray(old.conversation)?old.conversation.slice(-80).filter(x=>x&&typeof x.text==='string').map(x=>x.source==='pending'?{...x,source:'interrupted',text:'My last reply was interrupted. Could you ask me again?'}:x):[],
    memories:Array.isArray(old.memories)?old.memories:fresh.memories,
    journal:Array.isArray(old.journal)?old.journal:fresh.journal,
    art:Array.isArray(old.art)?old.art:fresh.art,
    goals:Array.isArray(old.goals)?old.goals:fresh.goals,
    questions:Array.isArray(old.questions)?old.questions:fresh.questions,
-   approvals:Array.isArray(old.approvals)?old.approvals:fresh.approvals,
+   approvals:CM.normalize(old.approvals),
    decorations:Array.isArray(old.decorations)?old.decorations:fresh.decorations,
    world:migrated?{...fresh.world,x:origin.x+.5,y:origin.y+.5,visited:{[region.id]:1},legacyPos:{x:old.x,y:old.y},sourceVersion:'living-valley-v1'}:
     {...fresh.world,...old.world,visited:{...fresh.world.visited,...old.world?.visited}},
@@ -118,6 +118,15 @@ const loadState=()=>{
  }catch(e){warning='Your existing save could not be read. A new world was opened without deleting the original browser data.';console.error('Tavi save load:',e);return fresh}
 };
 state=loadState();
+// Previous builds immediately marked the mural complete without an artwork entry.
+// Backfill its record once, without inventing a second mural or changing the world.
+function reconcileLegacyMural(){
+ const old=state.approvals.find(a=>a.type==='mural'&&(a.status==='executed'||a.status==='approved')&&state.decorations.includes('mural'));
+ if(old){old.status='executed';old.stage='completed';old.completedAt=old.completedAt||old.time;
+  if(!state.art.some(a=>a.commissionId===old.id))state.art.unshift({id:'legacy-'+old.id,commissionId:old.id,kind:'mural',title:'Star and Flower House Mural',palette:['#315f4d','#91c47f','#f0dfb3','#cf9aac'],seed:state.seed,time:old.time||Date.now(),reference:null,studyLevel:0});
+ }
+}
+reconcileLegacyMural();
 // Controlled experiences are staged in their own slot and become permanent only when committed; completed changes persist in the everyday save.
 const LAB_NOTEBOOK_KEY='tavi-world-observation-notebook-v1',LAB_SESSION_KEY='tavi-world-isolated-trial-v1',PRE_COMMIT_BACKUP_KEY='tavi-world-pre-lifelong-learning-v1';
 const FACTORS=[
@@ -136,7 +145,7 @@ function effectiveFactors(){const c=normalizeFactors(lab.active?.conditions||lab
 function loadNotebook(){try{const raw=JSON.parse(localStorage.getItem(LAB_NOTEBOOK_KEY)||'{}');return {runs:Array.isArray(raw.runs)?raw.runs.slice(0,16):[],custom:normalizeCustom(raw.custom),conditions:normalizeFactors(raw.conditions||NEUTRAL),speed:[1,3,6].includes(raw.speed)?raw.speed:1,preset:typeof raw.preset==='string'&&PRESETS[raw.preset]?raw.preset:'neutral',name:typeof raw.name==='string'?raw.name.slice(0,64):'Observation trial'};}catch(e){return {runs:[],custom:[],conditions:{...NEUTRAL},speed:1,preset:'neutral',name:'Observation trial'}}}
 function normalizeFactors(v){const next={};for(const f of FACTORS)next[f.id]=clamp(Number.isFinite(Number(v?.[f.id]))?Number(v[f.id]):NEUTRAL[f.id]);return next}
 const lab={...loadNotebook(),active:null,lastReason:'No decision evaluated yet.'};
-try{const saved=JSON.parse(localStorage.getItem(LAB_SESSION_KEY)||'null');if(saved?.trial?.baseline?.version===1&&saved?.state?.version===1&&saved.state.world&&Array.isArray(saved.trial.samples)){lab.active=saved.trial;lab.active.conditions=normalizeFactors(lab.active.conditions);lab.active.custom=normalizeCustom(lab.active.custom);state=saved.state;state.development=normalizeDevelopment(state.development);state.clock=Date.now();state.brain.ai.enabled=false;state.brain.mode='idle';state.brain.target=null;state.brain.work=0;lab.lastReason=lab.active.lastReason||lab.lastReason;}}
+try{const saved=JSON.parse(localStorage.getItem(LAB_SESSION_KEY)||'null');if(saved?.trial?.baseline?.version===1&&saved?.state?.version===1&&saved.state.world&&Array.isArray(saved.trial.samples)){lab.active=saved.trial;lab.active.conditions=normalizeFactors(lab.active.conditions);lab.active.custom=normalizeCustom(lab.active.custom);state=saved.state;state.development=normalizeDevelopment(state.development);state.cognition=C.normalize(state.cognition);state.approvals=CM.normalize(state.approvals);state.clock=Date.now();state.brain.ai.enabled=false;state.brain.mode='idle';state.brain.target=null;state.brain.work=0;lab.lastReason=lab.active.lastReason||lab.lastReason;}}
 catch(e){console.warn('Could not reopen isolated trial',e)}
 function persistNotebook(){try{localStorage.setItem(LAB_NOTEBOOK_KEY,JSON.stringify({runs:lab.runs.slice(0,16),conditions:lab.conditions,custom:lab.custom,speed:lab.speed,preset:lab.preset,name:lab.name}))}catch(e){warning='Observation notebook could not be saved. Export results.'}}
 function statePoint(){return {energy:+state.stats.energy.toFixed(2),happiness:+state.stats.happiness.toFixed(2),curiosity:+state.stats.curiosity.toFixed(2),joy:+state.emotions.joy.toFixed(2),excitement:+state.emotions.excitement.toFixed(2),nervousness:+state.emotions.nervousness.toFixed(2),calm:+state.emotions.calm.toFixed(2),frustration:+state.emotions.frustration.toFixed(2),confidence:+state.emotions.confidence.toFixed(2),boredom:+state.emotions.boredom.toFixed(2)}}
@@ -192,7 +201,7 @@ function discardTrial(){if(!lab.active)return;if(confirm('Discard this experimen
 function restoreLearningBackup(){if(lab.active)return toast('End the current experiment before restoring a checkpoint.');
  try{const snapshot=JSON.parse(localStorage.getItem(PRE_COMMIT_BACKUP_KEY)||'null');if(!snapshot?.state?.version)throw Error('No pre-experiment checkpoint found.');
   if(!confirm('Restore Tavi to the checkpoint before the last committed experiment? Please export the current save first.'))return;
-  const current=JSON.stringify(state);localStorage.setItem(KEY,JSON.stringify(snapshot.state));state=loadState();runtime.path=[];runtime.index=0;runtime.nextDecision=0;save();
+  const current=JSON.stringify(state);localStorage.setItem(KEY,JSON.stringify(snapshot.state));state=loadState();reconcileLegacyMural();runtime.path=[];runtime.index=0;runtime.nextDecision=0;save();
   // Make the previous checkpoint a one-step undo toggle rather than silently deleting it.
   localStorage.setItem(PRE_COMMIT_BACKUP_KEY,JSON.stringify({at:Date.now(),name:'Checkpoint before restore',state:JSON.parse(current)}));
   sidebar();toast('Tavi restored from the pre-experiment checkpoint.');
@@ -244,8 +253,94 @@ function uid(prefix){return prefix+'-'+Date.now().toString(36)+'-'+(++state.tick
 function journal(text,kind='activity',when=Date.now(),area=state.area){state.journal.unshift({id:uid('j'),time:when,area:M.regions[area]?.name||'Tavi World',kind,text});state.journal.length=Math.min(state.journal.length,450)}
 function memory(text,interest,when=Date.now()){state.memories.unshift({id:uid('m'),time:when,area:M.regions[state.area]?.name||'Tavi World',text,interest});state.memories.length=Math.min(state.memories.length,220)}
 function toast(text){const n=$('toast');n.textContent=text;n.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>n.classList.remove('show'),3600)}
-function proposal(){if(state.approvals.some(v=>v.status==='pending'&&v.type==='mural'))return;
- state.approvals.unshift({id:uid('a'),type:'mural',status:'pending',text:'Paint a permanent star-and-flower mural inside Tavi House',reason:'I have saved so many inspiring memories from our world.',time:Date.now()});journal('I asked permission to paint a mural. I will wait for an answer.','request');toast('Tavi has an approval request')}
+// Every request uses a persistent intent key and a stateful follow-through plan.
+// Identical open requests are reused. A new scope/version can be requested later.
+function requestApproval(spec,options={}){
+ const {item,created,reason}=CM.request(state.approvals,spec,{id:uid('a'),...options});
+ if(created){journal('I asked permission for: '+item.text+'.','request');toast('Tavi has an approval request')}
+ else if(CM.isOpen(item)){state.thought=item.status==='pending'?`I already asked about ${item.text}. I am waiting for an answer.`:`I already have permission for ${item.text}. I should finish that first.`;}
+ save();return {item,created,reason};
+}
+function proposal(){
+ // A finished permanent house mural is still physically there. Another mural
+ // must be a genuinely new design/goal, not a reissued request for the same work.
+ if(state.decorations.includes('mural'))return;
+ requestApproval({type:'mural',intentKey:'mural:house:stars-and-flowers:v1',scope:'house:stars-and-flowers:v1',
+  text:'Paint a permanent star-and-flower mural inside Tavi House',reason:'I have saved so many inspiring memories from our world.'},{repeatable:false});
+}
+// A single durable ledger tracks every type; executors are registered by type.
+function nextApprovedTask(){return CM.outstanding(state.approvals)[0]||null}
+function workInProgress(a){const t=state.brain.target;return !!(a&&t&&t.approvalId===a.id&&state.brain.mode!=='idle')}
+function interruptActiveTask(why){
+ const t=state.brain.target;
+ if(!t?.approvalId)return;
+ const a=state.approvals.find(v=>v.id===t.approvalId);
+ if(a&&CM.interrupt(a,why)){journal('My approved project was interrupted. The permission remains valid and the work is still queued.','approval');save()}
+}
+function approvedMural(){return CM.outstanding(state.approvals).find(a=>a.type==='mural')||null}
+function scheduleMural(a){
+ if(!a||a.status!=='approved'||a.type!=='mural')return false;
+ if(state.decorations.includes('mural')){
+  const art=state.art.find(v=>v.commissionId===a.id);
+  if(art){CM.complete(a,{evidence:{id:art.id,kind:'artwork'},legacyExecuted:true});save();return true}
+  CM.block(a,'The mural already exists, but no matching artwork record was found. Inspect this before continuing.');save();return false;
+ }
+ if(workInProgress(a))return true; // Don't restart travel or erase work in progress.
+ if(state.brain.target)return false; // Finish the current action, then honor this promise.
+ const home=M.props.find(p=>M.regions[p.area]?.id==='house'&&p.kind==='shelf')||M.props.find(p=>M.regions[p.area]?.id==='house'&&p.activity==='reading')||M.props.find(p=>M.regions[p.area]?.id==='house');
+ if(!home){CM.block(a,'No reachable house project location is registered.');save();return false}
+ if(!setDestination(home,'approved-mural')){CM.block(a,'There is no safe route to the house project location.');save();return false}
+ state.brain.target={...state.brain.target,name:'Tavi House mural',activity:'drawing',interest:'art',reason:'approved-mural',approvalId:a.id};
+ CM.progress(a,'traveling','Travel to Tavi House to make approved artwork');
+ state.thought='I already have permission to paint my mural. I want to finish this before deciding what to request next.';
+ journal('I resumed an approved house mural. I am traveling to do the work.','approval');save();return true;
+}
+const TASK_EXECUTORS={mural:scheduleMural};
+function scheduleApprovedTask(a){
+ if(!a||a.status!=='approved')return false;
+ const handler=TASK_EXECUTORS[a.type];
+ if(!handler){CM.block(a,'No executor exists for this request type yet. Approval alone cannot perform the work.');journal('I cannot complete '+a.text+' yet: the necessary action is not implemented.','approval');save();return false}
+ return handler(a);
+}
+function approveRequest(a){
+ if(!CM.approve(a))return false;
+ journal('Permission granted for '+a.text+'. I have a task to fulfill, not another request to make.','approval');
+ C.episode(state.cognition,'commitment','Permission granted: '+a.text,a.type==='mural'?'art':'',75,{source:'human-approval'});
+ if(!state.paused&&!state.brain.target)scheduleApprovedTask(a);
+ save();return true;
+}
+function declineRequest(a){if(!CM.decline(a))return false;journal('My request was declined; I should respect that decision.','approval');save();return true}
+function retryRequest(a){if(!CM.retry(a))return false;
+ if(!state.paused&&!state.brain.target)scheduleApprovedTask(a);
+ save();return true;
+}
+function cancelRequest(a,why='Cancelled by the observer'){
+ if(!CM.cancel(a,why))return false;
+ if(state.brain.target?.approvalId===a.id){state.brain.target=null;state.brain.mode='idle';state.brain.work=0;runtime.path=[];runtime.index=0;runtime.nextDecision=Date.now()+900;}
+ journal('The approved project “'+a.text+'” was cancelled: '+why,'approval');
+ C.episode(state.cognition,'commitment','Cancelled project: '+a.text+' — '+why,a.type==='mural'?'art':'',null,{source:'human-decision'});
+ save();return true;
+}
+function completeMural(id){
+ const a=state.approvals.find(v=>v.id===id&&v.type==='mural');
+ if(!a||a.status!=='approved'||a.stage!=='working')return false;
+ const existing=state.art.find(v=>v.commissionId===a.id);
+ if(!existing){
+  const video=state.learning.videoLessons[0];
+  const palette=Array.isArray(video?.colors)&&video.colors.length>=4?video.colors.slice(0,4):['#315f4d','#91c47f','#f0dfb3','#cf9aac'];
+  const image={id:uid('art'),commissionId:a.id,kind:'mural',title:'Star and Flower House Mural',palette,seed:state.seed,time:Date.now(),reference:video?.title||null,studyLevel:30};
+  state.art.unshift(image);state.art.length=Math.min(state.art.length,45);a.artId=image.id;
+ }else a.artId=existing.id;
+ if(!state.decorations.includes('mural'))state.decorations.push('mural');
+ if(!CM.complete(a,{evidence:{id:a.artId,kind:'artwork'},legacyExecuted:true}))return false;
+ state.interests.art=clamp((state.interests.art||20)+3);
+ state.thought='My house mural is finished. I can see the stars and flowers whenever I return home.';
+ journal('I finished my approved house mural and added it to my artwork collection.','approval');
+ memory('I painted the star-and-flower mural at Tavi House after receiving permission.','art');
+ C.milestone(state.cognition,'I completed my approved mural at home.','art',86);
+ recordExperience('mural','I finished a permanent mural in my house after receiving permission.',{approvalId:a.id,artId:a.artId});
+ toast('House mural finished — see Tavi House and Records → Artwork');save();return true;
+}
 function newGoal(interest){if(state.goals.some(v=>v.status==='active'))return;
  const title=({art:'Paint a memory of the valley',nature:'Become a friend to the forest',science:'Investigate a curious mystery',stories:'Collect three unforgettable stories',gardening:'Help the valley grow'})[interest]||'Explore the world of '+interest;
  state.goals.unshift({id:uid('g'),title,interest,steps:['Discover a new '+interest+' place','Practice a '+interest+' activity','Reflect on what I learned'],progress:0,status:'active',time:Date.now()});state.goals.length=Math.min(state.goals.length,40);journal('I set myself a goal: '+title+'.','goal')}
@@ -481,6 +576,9 @@ function buildTaviContext(userText='',decision=null){
    learnedDisposition:state.development.traits,learnedExpectations:state.development.expectations,
    currentGoal:goal?{title:goal.title,interest:goal.interest,progress:goal.progress}:null,interests:namedInterests,
    mostRecentArt:state.art[0]?{title:state.art[0].title,reference:state.art[0].reference||null}:null},
+  cognition:C.context(state.cognition,userText),
+  approvalHistory:CM.summarize(state.approvals),
+  outstandingCommitments:CM.outstanding(state.approvals).map(a=>({type:a.type,stage:a.stage,text:a.text,blocker:a.blocker||''})),
   evidence:{memories,experiences,journal:journals,books,videoStudies:state.learning.videoLessons.slice(0,2).map(v=>({title:v.title,colors:v.colors})),recentResearch:state.learning.internet.reads.slice(0,2).map(r=>({title:r.title,url:r.url,excerpt:String(r.excerpt||'').slice(0,170)}))},
   recentConversation:recentDialogue,
   suggestionDecision:decision?{accepted:!!decision.accepted,reason:decision.reason||'',selectedActivity:decision.propName||'',score:decision.score}:null};
@@ -500,10 +598,45 @@ const TAVI_DIALOGUE_PROMPT=[
  'Your memories, books, current action and last conversation are provided as evidence, not dialogue to parrot. Cite one concrete personal experience or activity when relevant; avoid repeating the same details every time.',
  'Do not claim to remember, have read, seen, done or learned anything absent from the supplied context. If you do not know something, say so. Do not invent personal experiences or claim that a simulated emotion establishes real consciousness.',
  'For a suggested activity, follow suggestionDecision exactly; never say you accepted if the decision says declined, or vice versa. You may still express your own reasons in your own words.',
+ 'A request is different from approval, and approval is different from completing work. Consult approvalHistory and outstandingCommitments. If a request is already approved but unfinished, acknowledge that commitment and its current next step; do NOT ask again for approval. A later genuinely new project may need fresh approval. Never claim a project is finished until completion evidence exists.',
  'Reply appropriately to the actual latestUserMessage, not to a prewritten fallback. Avoid numerical emotion scores, boilerplate disclaimers and generic greetings unless specifically asked.',
  'Use natural length: one short sentence for a simple exchange, a few thoughtful sentences for deeper questions (maximum about 850 characters).',
  'Return only a JSON object with fields {"reply":"your actual response","focus":"optional one of cozy,stories,food,art,craft,nature,music,science,time,mystery,gardening or empty string"}. No Markdown fences, tools, or commands.'
 ].join(' ');
+// Keep grounded context, but never exceed the local bridge's bounded input.
+// Prefer actual memories, goals and the entire validated activity catalog to
+// low-priority old dialogue. UTF-8 bytes matter, not JavaScript string length.
+function serializeBrainRequest(payload){
+ const request=JSON.parse(JSON.stringify(payload));
+ const context=request.context||{};
+ const budget=12288;
+ const encode=()=>JSON.stringify(request);
+ const byteLength=()=>new TextEncoder().encode(encode()).byteLength;
+ if(byteLength()<=budget)return encode();
+ const recent=context.recentConversation;
+ if(Array.isArray(recent))context.recentConversation=recent.slice(-4);
+ const evidence=context.evidence;
+ if(evidence){
+  for(const [key,limit] of [['memories',4],['experiences',3],['journal',3],['books',2],['recentResearch',1],['videoStudies',1]]){
+   if(Array.isArray(evidence[key]))evidence[key]=evidence[key].slice(0,limit);
+  }
+ }
+ if(byteLength()<=budget)return encode();
+ if(Array.isArray(context.recentConversation))context.recentConversation=context.recentConversation.slice(-2);
+ if(evidence){
+  for(const [key,limit] of [['memories',2],['experiences',2],['journal',1],['books',1],['recentResearch',0],['videoStudies',0]]){
+   if(Array.isArray(evidence[key]))evidence[key]=evidence[key].slice(0,limit);
+  }
+ }
+ if(byteLength()<=budget)return encode();
+ // Never drop the live user message, current goal, learned traits or valid actions.
+ if(context.tavi){delete context.tavi.learnedExpectations;delete context.tavi.lastAction;}
+ if(context.cognition){context.cognition.associations=context.cognition.associations?.slice(0,1)||[];delete context.cognition.semantic;delete context.cognition.learnedActionValues;}
+ if(Array.isArray(context.approvalHistory))context.approvalHistory=context.approvalHistory.slice(0,5);
+ if(Array.isArray(context.outstandingCommitments))context.outstandingCommitments=context.outstandingCommitments.slice(0,4);
+ if(byteLength()<=budget)return encode();
+ throw Error('Tavi has too much context for the local Ollama bridge. Export your save and report this error; no memories were deleted.');
+}
 async function requestOllamaConversation(item,decision,userMessage){
  const ai=state.brain.ai;if(!ai.enabled||lab.active)return;
  runtime.chatPending=true;
@@ -511,7 +644,7 @@ async function requestOllamaConversation(item,decision,userMessage){
  item.contextTags=contextTags(context);
  try{
   const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),86000);let res;
-  try{res=await fetch('/api/brain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:ai.model,instruction:TAVI_DIALOGUE_PROMPT,context}),signal:ctrl.signal})}finally{clearTimeout(timer)}
+  try{res=await fetch('/api/brain',{method:'POST',headers:{'Content-Type':'application/json'},body:serializeBrainRequest({model:ai.model,instruction:TAVI_DIALOGUE_PROMPT,context}),signal:ctrl.signal})}finally{clearTimeout(timer)}
   const data=await readOllamaResponse(res);
   if(typeof data.reply!=='string'||!data.reply.trim())throw Error('Ollama did not provide a conversational reply.');
   if(!state.conversation.some(v=>v.id===item.id)||lab.active)return;
@@ -520,6 +653,7 @@ async function requestOllamaConversation(item,decision,userMessage){
    state.interests[data.focus]=clamp((state.interests[data.focus]||20)+.75);
   }
   recordExperience('conversation','I explored a conversation about: '+userMessage.slice(0,100),{origin:'local-ollama',focus:data.focus||null,reply:item.text.slice(0,300)});
+  C.conversation(state.cognition,item.text,INTERESTS.includes(data.focus)?data.focus:'','local-ollama');
   ai.lastResult='Connected · '+new Date().toLocaleTimeString();
  }catch(e){
   // A clearly labeled fallback, never disguised as a model-generated reply.
@@ -541,6 +675,7 @@ function talkToTavi(text){
  const modelEnabled=state.brain.ai.enabled&&!lab.active;
  const item=addDialogue('tavi',modelEnabled?'Considering your question…':(suggestion?.reply||localTalkReply(clean)),modelEnabled?'pending':'local',{suggestion:suggestion?{propId:prop.id,...suggestion}:null});
  state.development.traits.trust=clamp(state.development.traits.trust+.08);
+ C.conversation(state.cognition,clean,prop?.interest||'','human');
  journal('My friend talked with me about '+clean.slice(0,90)+'.','conversation');
  if(lab.active)trialEvent('conversation','Conversation',clean.slice(0,110));
  save();if(modelEnabled)requestOllamaConversation(item,suggestion,clean);return item;
@@ -565,6 +700,7 @@ function actionResult(prop,when=Date.now(),quiet=false){const {activity,interest
  state.thought=choice(phrases);state.lastAction=activity;journal(`I spent time ${activity} at ${name} in ${M.regions[prop.area].name}.`,'activity',when,prop.area);
  if(chance(.4))memory(`I discovered a new little detail about ${interest} at ${name.toLowerCase()}.`,interest,when);
  if(activity==='drawing')makeArt(when);
+ C.outcome(state.cognition,prop,state);
  const goal=state.goals.find(v=>v.status==='active');if(goal&&goal.interest===interest){goal.progress=Math.min(3,goal.progress+1);journal(`I reached step ${goal.progress} of “${goal.title}”.`,'goal',when);
   if(goal.progress>=3){goal.status='completed';journal(`I completed my goal: ${goal.title}!`,'milestone',when);toast('Tavi completed a goal!')}}
  if(state.memories.length>8&&state.art.length>=2&&chance(.10))proposal();
@@ -573,6 +709,7 @@ function actionResult(prop,when=Date.now(),quiet=false){const {activity,interest
 }
 function reflection(when=Date.now()){if(when-(state.brain.lastReflection||0)<110000)return;
  state.brain.lastReflection=when;
+ C.consolidate(state.cognition);
  const favorites=Object.entries(state.interests).sort((a,b)=>b[1]-a[1]);
  if(favorites.length&&!state.goals.some(g=>g.status==='active')&&chance(.7))newGoal(favorites[Math.floor(rng()*Math.min(3,favorites.length))][0]);
  if(state.memories.length&&chance(.48)){
@@ -608,6 +745,7 @@ function activityScore(prop){
  if(r===0)n+=(traits.agency-50)*.17;
  if(['sleeping','resting'].includes(prop.activity))n-=(traits.resilience-50)*.08;
  n+=((state.development.activityValues[prop.activity]??50)-50)*.38;
+ n+=C.score(state.cognition,prop,state);
  if(lab.active){const c=effectiveFactors();
   if(c.safety<45&&['resting','sleeping','reading'].includes(prop.activity))n+=(45-c.safety)*.36;
   if(c.novelty>50&&['observing','exploring','drawing'].includes(prop.activity))n+=(c.novelty-50)*.3+(state.brain.explored[prop.id]||0?0:7);
@@ -620,9 +758,12 @@ function activityScore(prop){
  return n+(rng()-.5)*15;
 }
 function chooseIntent(){if(state.paused||state.brain.target)return;
+ C.appraise(state.cognition,state,lab.active?effectiveFactors():NEUTRAL);
+ const outstanding=nextApprovedTask();if(outstanding){scheduleApprovedTask(outstanding);if(outstanding.stage!=='blocked')return;}
  let best=null,bestScore=-Infinity;const rankings=[];
- for(const prop of M.props){const score=activityScore(prop);if(lab.active)rankings.push({prop,score});if(score>bestScore){bestScore=score;best=prop}}
+ for(const prop of M.props){const score=activityScore(prop);rankings.push({prop,score});if(score>bestScore){bestScore=score;best=prop}}
  if(!best)return;
+ C.decision(state.cognition,rankings,state);
  if(lab.active){rankings.sort((a,b)=>b.score-a.score);lab.active.decisions++;lab.lastReason=trialReason(best,rankings);lab.active.lastReason=lab.lastReason;trialEvent('decision','Model selected '+best.name,lab.lastReason)}
  const modelSuggestion=state.brain.ai.pending;
  const fromModel=!!(modelSuggestion&&best.area===modelSuggestion.area&&best.obj===modelSuggestion.obj);
@@ -631,6 +772,7 @@ function chooseIntent(){if(state.paused||state.brain.target)return;
 }
 function setDestination(prop,reason='autonomous'){
  if(!prop)return false;
+ if(state.brain.target?.approvalId&&reason!=='approved-mural')interruptActiveTask('An alternate activity changed the current destination');
  const here=state.world,goal=M.approach(prop,here),path=M.route(here,goal);
  if(!path.length&&Math.hypot(here.x-goal.x,here.y-goal.y)>1.6){
   journal('I could not find a safe path to '+prop.name.toLowerCase()+'.','navigation');runtime.nextDecision=Date.now()+2000;return false
@@ -646,6 +788,7 @@ function setDestination(prop,reason='autonomous'){
 }
 function walkTo(x,y){const goal=M.nearestWalkable(x,y),path=M.route(state.world,goal);
  if(!path.length)return toast('That spot is not reachable. Try a nearby path.');
+ interruptActiveTask('A different location was chosen');
  state.brain.target={id:null,area:M.regionAt(x,y),obj:null,name:'a place I noticed',activity:'exploring',interest:'nature',x:goal.x+.5,y:goal.y+.5,reason:'suggested-wander'};
  state.brain.mode='travel';state.brain.work=0;runtime.path=path;runtime.index=0;
  state.thought='My friend pointed out somewhere to visit. I wonder what I will see there.';
@@ -659,9 +802,18 @@ function arrival(){const b=state.brain,t=b.target;
   journal('I explored somewhere my friend pointed out.','travel');runtime.nextDecision=Date.now()+1400;return
  }
  b.mode='working';b.work=0;
+ if(t.approvalId){const a=state.approvals.find(v=>v.id===t.approvalId);if(a)CM.progress(a,'working','Painting at the approved location');save()}
  state.thought='I arrived at '+t.name.toLowerCase()+'. I want to learn something from this moment.';
 }
 function finishActivity(){const b=state.brain,t=b.target;if(!t)return;
+ if(t.reason==='approved-mural'){
+  const currentApproval=state.approvals.find(v=>v.id===t.approvalId);
+  if(currentApproval&&currentApproval.stage==='traveling'&&b.mode==='working')CM.progress(currentApproval,'working','Recovered the work phase after a state transition');
+  const done=completeMural(t.approvalId);
+  if(!done){const a=state.approvals.find(v=>v.id===t.approvalId);if(a)CM.block(a,'The painting finished but no valid artwork completion was recorded; retry after checking the project.');}
+  b.completedAt=Date.now();b.completedActivity='drawing';b.target=null;b.mode='idle';b.work=0;
+  runtime.nextDecision=Date.now()+2600;reflection();save();sidebar();return;
+ }
  const prop=M.props.find(p=>p.id===t.id);
  if(prop){actionResult(prop);if(prop.activity==='reading'&&chance(.62))readBook();if(lab.active){lab.active.actions++;trialEvent('action','Activity completed',prop.name+' · '+prop.activity+' · interest '+prop.interest)}b.recent=[prop.id,...b.recent.filter(x=>x!==prop.id)].slice(0,6);
   b.explored[prop.id]=(b.explored[prop.id]||0)+1;
@@ -675,7 +827,8 @@ function finishActivity(){const b=state.brain,t=b.target;if(!t)return;
 function simulateOffline(){if(lab.active){state.clock=Date.now();return}const now=Date.now(),elapsed=Math.floor((now-(state.clock||now))/1000);if(elapsed<75)return;
  const simulated=Math.min(6*3600,elapsed),events=Math.min(65,Math.floor(simulated/225));
  if(!state.paused){
-  for(let i=0;i<events;i++){
+  const commitmentsWaiting=CM.outstanding(state.approvals).length>0;
+  for(let i=0;i<(commitmentsWaiting?0:events);i++){
    // Offline is reconstructed in bounded steps; this is not background processing.
    const r=M.props[Math.floor(rng()*M.props.length)];
    state.stats.energy=clamp(state.stats.energy-1.1);
@@ -683,6 +836,7 @@ function simulateOffline(){if(lab.active){state.clock=Date.now();return}const no
     state.area=r.area;state.world.x=M.approach(r,state.world).x+.5;state.world.y=M.approach(r,state.world).y+.5;
     if(i%4===0)actionResult(r,date,true)}
   }
+  if(state.brain.target?.approvalId)interruptActiveTask('The browser closed before the approved work was completed');
   state.brain.target=null;state.brain.mode='idle';state.world.moving=false;runtime.path=[];
  }
  state.clock=now;
@@ -706,7 +860,7 @@ function update(dt){if(state.paused)return;
    if(M.walkable(nx,w.y))w.x=nx;if(M.walkable(w.x,ny))w.y=ny;
   }
   w.lastDx=manualX;w.lastDy=manualY;w.moving=true;w.walked+=speed;w.steps++;
-  if(b.target){b.target=null;b.mode='idle';runtime.path=[];}
+  if(b.target){interruptActiveTask('Manual movement interrupted the current task');b.target=null;b.mode='idle';runtime.path=[];}
   runtime.nextDecision=Date.now()+4500;
  }else if(b.mode==='travel'&&b.target){
   w.moving=true;
@@ -796,7 +950,7 @@ const NAV_GROUPS=[
  {id:'lab',label:'Research',icon:'◇',tabs:[['conditions','Conditions'],['observations','Observations'],['compare','Compare']]},
  {id:'records',label:'Records',icon:'▤',tabs:[['journal','History'],['memories','Memories'],['goals','Goals'],['art','Artwork'],['questions','Questions'],['approvals','Approvals']]},
  {id:'connect',label:'Connect',icon:'✉',tabs:[['talk','Talk'],['books','Library'],['videos','Learning Studio'],['internet','Internet']]},
- {id:'tavi',label:'Profile',icon:'✧',tabs:[['development','Development'],['personality','Model States'],['world','Locations'],['settings','Settings']]}
+ {id:'tavi',label:'Profile',icon:'✧',tabs:[['development','Development'],['cognition','Cognition'],['personality','Model States'],['world','Locations'],['settings','Settings']]}
 ];
 let navGroup='lab',journalOpen=window.innerWidth>940,lastCompact=window.innerWidth<=940;
 function renderConditions(host){
@@ -983,12 +1137,25 @@ function sidebar(){
   heading(host,'Your decisions matter','Tavi never makes permanent world changes without permission.');
   for(const a of state.approvals.slice(0,30)){
    const r=card(host,a.status==='pending'?'Approval requested':'Decision: '+a.status,a.text,(a.reason||'')+' · '+dateText(a.time));
+   if(a.status==='approved'){
+    const detail=a.stage==='traveling'?'Travel underway':a.stage==='working'?'Working on it':a.stage==='blocked'?'Blocked: '+a.blocker:'Queued — permission already granted';
+    r.append(el('small','Unfinished commitment · '+detail));
+    if(a.stage==='blocked'){
+     const retry=el('button','Retry approved request');retry.className='small';retry.onclick=()=>{retryRequest(a);sidebar();toast('Approved work queued again')};r.append(retry);
+    }else{
+     const start=el('button',a.type==='mural'?'Continue mural project':'Continue approved work');start.className='small';start.onclick=()=>{
+      if(state.paused)return toast('Resume autonomy first.');
+      if(state.brain.target&&!workInProgress(a))return toast('Tavi will finish his current activity first.');
+      scheduleApprovedTask(a);sidebar();toast('Approved work remains on Tavi’s plan')};r.append(start);
+    }
+   }
+   if(a.status==='approved'){const cancel=el('button','Cancel approved project');cancel.className='small secondary';cancel.onclick=()=>{const reason=prompt('Why cancel this approved but unfinished project?','Changed priorities');if(reason===null)return;if(!reason.trim())return toast('Enter a reason for the cancellation.');if(cancelRequest(a,reason.trim().slice(0,180))){sidebar();toast('Project cancelled with reason recorded')}};r.append(cancel)}
+   if(['executed','completed'].includes(a.status))r.append(el('small','Completed · evidence: '+(a.evidence?.kind||'saved record')+' '+(a.evidence?.id||a.artId||'legacy record')));
+   if(a.history?.length){const h=el('small','Recent: '+a.history.slice(-3).map(v=>v.event).join(' → '));r.append(h)}
    if(a.status==='pending')for(const [label,status] of [['Approve','approved'],['Decline','declined']]){
     const b=el('button',label);b.className='small '+(status==='declined'?'secondary':'');b.onclick=()=>{
-     if(status==='approved'&&a.type==='mural'){
-      if(!state.decorations.includes('mural'))state.decorations.push('mural');a.status='executed';journal('I painted my permanent mural, with permission.','approval');}
-     else{a.status=status;journal('My request was '+status+'.','approval')}
-     save();sidebar();toast('Decision saved')
+     if(status==='approved')approveRequest(a);else declineRequest(a);
+     save();sidebar();toast(status==='approved'?'Permission granted — project queued until completed':'Decision saved')
     };r.append(b)
    }
   }
@@ -1012,6 +1179,20 @@ function sidebar(){
   for(const [key,value] of Object.entries(dev.expectations))card(host,key,Math.round(value)+'/100 expected');
   heading(host,'Experience history','Lasting learning events are stored with the saved identity.');
   for(const item of dev.experienceHistory.slice(0,30))card(host,item.kind,item.description,dateText(item.when));
+ }else if(tab==='cognition'){
+  const c=state.cognition;
+  heading(host,'Cognitive architecture','Computational analogies to attention, working memory, autobiographical memory, emotional appraisal, learned expectations, reinforcement, habits, planning, and reflection—not human neurons or evidence of consciousness.');
+  card(host,'Attention / working memory',c.workspace.focus+' · '+c.workspace.reason,'Decision updated: '+dateText(c.workspace.lastUpdated||Date.now()));
+  heading(host,'Executive planning','The candidate actions and their predicted utility at the most recent independent decision.');
+  for(const v of c.workspace.candidates)card(host,v.name,'Predicted total choice score '+v.score);
+  heading(host,'Simulated affective appraisal','Computed from conditions, expected safety, and current emotion variables.');
+  for(const [k,v] of Object.entries(c.appraisal))card(host,k,Math.round(v)+'/100');
+  heading(host,'Reinforcement / habits','Predicted reward and practice history are used to score future activities.');
+  for(const [k,v] of Object.entries(c.actionValues).sort((a,b)=>b[1]-a[1]).slice(0,12))card(host,k,'Expected reward '+Math.round(v)+' / 100 · habit strength '+Math.round(c.habits[k]||0));
+  heading(host,'Semantic associations','Concept confidence is accumulated through repeated observations, not assumed to be verified factual knowledge.');
+  for(const [k,v] of Object.entries(c.semantic).sort((a,b)=>b[1].confidence-a[1].confidence))card(host,k,Math.round(v.value)+'/100 mean value · '+Math.round(v.confidence)+'/100 confidence · '+v.count+' observations');
+  heading(host,'Reflection / episodic memory',c.metacognition.insight);
+  for(const e of c.episodes.slice(0,18))card(host,e.kind+' · '+(e.topic||'general'),e.text,dateText(e.time));
  }else if(tab==='personality'){
   heading(host,'Modeled emotional variables','Numerical outputs of predefined rules, not evidence of felt emotion or consciousness.');
   for(const [k,v] of Object.entries(state.emotions)){const c=card(host,k,Math.round(v)+'/100');c.className+=' compact';const m=el('div');m.className='mini-progress';const fill=el('i');fill.style.width=clamp(v)+'%';m.append(fill);c.append(m)}
@@ -1098,7 +1279,7 @@ function exportSave(){const wrapper={format:'tavi-living-valley',version:1,expor
 async function importSave(file){if(!file)return;if(lab.active){toast('End the isolated trial before importing a main save.');return}
  try{const data=JSON.parse(await file.text()),next=data.save||data;if(!next||next.version!==1)throw Error('Not a supported Tavi World save');
   if(!confirm('Replace current save with the imported backup? Export your current save first.'))return;
-  const raw=JSON.stringify(next);localStorage.setItem(KEY,raw);state=loadState();runtime.path=[];runtime.index=0;save();sidebar();toast('Backup restored successfully')
+  const raw=JSON.stringify(next);localStorage.setItem(KEY,raw);state=loadState();reconcileLegacyMural();runtime.path=[];runtime.index=0;save();sidebar();toast('Backup restored successfully')
  }catch(e){toast('Restore failed: '+e.message)}}
 async function testLocalOllama(){
  const ai=state.brain.ai;
@@ -1122,10 +1303,10 @@ async function pollAI(force=false){const a=state.brain.ai;
  try{
   const choices=M.props.map(p=>({area:p.area,obj:p.obj,name:p.name,interest:p.interest,place:M.regions[p.area].name}));
   const autonomousContext=buildTaviContext('What would I choose to do next, given my own interests and recent experiences?');
-  const payload={model:a.model,context:{tavi:autonomousContext.tavi,evidence:autonomousContext.evidence,recentConversation:autonomousContext.recentConversation.slice(-5),options:choices},
-   instruction:'You are Tavi, a virtual creature with a persistent simulated personality. Independently choose one activity from the exact options list using your ongoing goals, preferences, actual memories and what you are currently doing. Give a concrete, distinctive first-person reason based on supplied evidence, not a generic inspirational phrase. No claims of real consciousness; no invented memories or unsupported knowledge. Return JSON ONLY: {"area":integer,"obj":integer,"thought":"your original reason in 1-2 sentences under 250 characters","question":"optional specific question for your human (or empty string)"}. A question should reference a real memory, goal, or uncertainty; usually leave it empty. Choose an available area and obj. No commands, tools, external actions, or permanent edits.'};
+  const payload={model:a.model,context:{tavi:autonomousContext.tavi,cognition:autonomousContext.cognition,approvalHistory:autonomousContext.approvalHistory,outstandingCommitments:autonomousContext.outstandingCommitments,evidence:autonomousContext.evidence,recentConversation:autonomousContext.recentConversation.slice(-5),options:choices},
+   instruction:'You are Tavi, a virtual creature with a persistent simulated personality. If there are approved unfinished commitments, prioritize following through instead of making the request again. Independently choose one activity from the exact options list using your ongoing goals, preferences, actual memories and what you are currently doing. Give a concrete, distinctive first-person reason based on supplied evidence, not a generic inspirational phrase. No claims of real consciousness; no invented memories or unsupported knowledge. Return JSON ONLY: {"area":integer,"obj":integer,"thought":"your original reason in 1-2 sentences under 250 characters","question":"optional specific question for your human (or empty string)"}. A question should reference a real memory, goal, or uncertainty; usually leave it empty. Choose an available area and obj. No commands, tools, external actions, or permanent edits.'};
   const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),86000);
-  let res;try{res=await fetch('/api/brain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctrl.signal})}finally{clearTimeout(timer)}
+  let res;try{res=await fetch('/api/brain',{method:'POST',headers:{'Content-Type':'application/json'},body:serializeBrainRequest(payload),signal:ctrl.signal})}finally{clearTimeout(timer)}
   const parsed=await readOllamaResponse(res);
   if(!Number.isInteger(parsed.area)||!Number.isInteger(parsed.obj)||!M.props.some(p=>p.area===parsed.area&&p.obj===parsed.obj))throw Error('Model suggested an unknown landmark');
   a.pending={area:parsed.area,obj:parsed.obj};
@@ -1245,6 +1426,7 @@ function loop(now){const dt=clamp((now-(runtime.lastFrame||now))/1000,0,.075);ru
  requestAnimationFrame(loop)
 }
 function init(){
+ reconcileLegacyMural();
  const safe=M.nearestWalkable(state.world.x,state.world.y);
  if(!M.walkable(state.world.x,state.world.y)){state.world.x=safe.x+.5;state.world.y=safe.y+.5;}
  // Existing world migrations keep all original entries, including previously collected memories and art.
@@ -1260,6 +1442,6 @@ function init(){
  runtime.nextDecision=Date.now()+2000;runtime.lastFrame=performance.now();requestAnimationFrame(loop);
  setInterval(()=>pollAI(),11000);setInterval(()=>autonomousResearch(),45000);
 }
-window.TaviApp={get state(){return state},get camera(){return runtime.camera},get zoom(){return runtime.zoom},zoomTo,snapToTavi,get route(){return runtime.path},get lab(){return lab},setDestination,chooseIntent,save,exportSave,beginTrial,endTrial,discardTrial,repeatTrial,updateTrialFactors,restoreLearningBackup,talkToTavi,pollAI,readBook,learnVideoLesson,analyzeLocalVideo,suggestTaviActivity,researchUrl,autonomousResearch,debug:{get spawned(){return M.props.length},get visited(){return Object.keys(state.world.visited).length}}};
+window.TaviApp={get state(){return state},requestApproval,approveRequest,declineRequest,retryRequest,cancelRequest,scheduleApprovedTask,get commitments(){return CM.summarize(state.approvals)},get camera(){return runtime.camera},get zoom(){return runtime.zoom},zoomTo,snapToTavi,get route(){return runtime.path},get lab(){return lab},get cognition(){return state.cognition},completeMural,scheduleMural,setDestination,chooseIntent,save,exportSave,beginTrial,endTrial,discardTrial,repeatTrial,updateTrialFactors,restoreLearningBackup,talkToTavi,pollAI,readBook,learnVideoLesson,analyzeLocalVideo,suggestTaviActivity,researchUrl,autonomousResearch,debug:{get spawned(){return M.props.length},get visited(){return Object.keys(state.world.visited).length}}};
 try{init()}catch(err){console.error('Tavi initialization:',err);const splash=$('startupSplash');if(splash){splash.hidden=false;splash.innerHTML='';const h=el('h2','Tavi encountered an initialization error');const p=el('p',String(err?.stack||err));splash.append(h,p)}}
 })();
