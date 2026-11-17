@@ -217,3 +217,25 @@ footer{color:#9bc8cb}
 /* Lifelong learning readouts and recovery controls */
 .lab-trace{overflow-wrap:anywhere}.lab-run .lab-trace{color:#cef4df;border:1px solid #4a8a7a}
 .lab-run .lab-trace::first-line{font-weight:700}.record.compact .mini-progress i{background:linear-gradient(90deg,#62dfb2,#eacd86)}
+
+/* Connect: conversation, book studies, video-palette research */
+.conversation-stream{max-height:365px;overflow-y:auto;padding:9px 7px;border:1px solid #488577;border-radius:12px;background:#0b2634;display:flex;flex-direction:column;gap:10px;margin:10px 0}
+.dialogue{padding:9px 11px;border-radius:12px;max-width:96%;background:#174e58;border:1px solid #468e8d;color:#e8f8eb;align-self:flex-start}
+.dialogue.from-user{align-self:flex-end;background:#316270;border-color:#6db6b7}
+.dialogue strong{font-size:12px;color:#ffdc9a}.dialogue p{font-size:13px;white-space:pre-wrap;line-height:1.45;margin:5px 0}.dialogue small{font-size:10px;opacity:.72}
+.talk-form{display:flex;flex-direction:column;gap:8px}.talk-form label{font-size:12px;color:#f6e1a0}.talk-form textarea{margin:0;min-height:80px}.talk-form button{align-self:flex-end}
+.knowledge-note{font-size:12px;padding:12px;border-left:3px solid #f2c775;border-radius:7px;background:#17465b;color:#d8f4ed;line-height:1.5}
+.book-sample{padding:11px;margin:8px 0;background:#224a55;border-radius:9px;border:1px solid #587d80}.book-sample strong{font-size:12px;color:#fff0b8}.book-sample p{font-size:12px;line-height:1.5}
+.source-link{display:block;margin-top:9px;color:#bce4f5;font-size:12px;text-decoration:underline}.palette-strip{display:flex;margin:11px 0 6px;gap:4px;height:32px}.palette-strip span{flex:1;border:2px solid #f8e5c3;border-radius:5px}.video-status{font-size:12px;color:#cae6dd}
+@media(max-width:560px){.conversation-stream{max-height:33vh}.dialogue{max-width:97%}}
+
+/* Observer-controlled viewport: independent camera with accessible zoom tools. */
+.camera-controls{display:inline-flex;align-items:center;border:1px solid #6fabc2;background:#133f57;border-radius:10px;box-shadow:0 2px 0 #0a2537;overflow:hidden;min-height:41px}
+.control-group .camera-controls button{border:0;border-radius:0;box-shadow:none;background:#1e6a80;color:#e8f9f2;font:bold 19px/1 system-ui;min-width:41px;padding:7px 11px}
+.control-group .camera-controls button:hover{background:#318ca4}
+.control-group .camera-controls button:disabled{opacity:.4;cursor:not-allowed}
+.camera-controls output{min-width:58px;padding:7px 6px;text-align:center;font:800 12px/1.2 ui-monospace,Consolas,monospace;color:#ffdf9c;font-variant-numeric:tabular-nums}
+.control-group #findTavi{background:#285968;border-color:#8bb6b4}
+.game-canvas{cursor:grab;touch-action:none}
+.game-canvas:active{cursor:grabbing}
+@media(max-width:560px){.control-group .camera-controls button{min-width:34px;padding:6px 8px}.camera-controls output{min-width:47px;font-size:11px}.control-group #findTavi{padding:7px 9px}}
