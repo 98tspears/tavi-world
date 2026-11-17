@@ -462,7 +462,7 @@ async function requestOllamaConversation(item,reply){
  const ai=state.brain.ai;if(!ai.enabled||lab.active)return;
  try{
   const context={lastMessages:state.conversation.slice(-8).map(v=>({role:v.role,text:v.text.slice(0,300)})),modeledEmotions:state.emotions,development:state.development.traits,knownBooks:state.learning.knowledge.slice(-4).map(k=>({book:k.book,note:k.note,kind:k.kind,source:k.source})),lastMemories:state.memories.slice(0,4).map(m=>m.text.slice(0,140)),suggestionDecision:reply};
-  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),28000);let res;
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),86000);let res;
   try{res=await fetch('/api/brain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:ai.model,instruction:'You are Tavi, a fictional autonomous creature. Answer the user in first person using the supplied actual conversation and memories. Keep under 350 characters. Do not pretend to have real emotions or consciousness. If there was a suggestion decision, honor it exactly and do not issue commands. Return JSON only: {"reply":"short response"}.',context}),signal:ctrl.signal})}finally{clearTimeout(timer)}
   const data=await readOllamaResponse(res);
   if(typeof data.reply==='string'&&data.reply.trim()&&item===state.conversation.find(v=>v.id===item.id)){
@@ -957,7 +957,7 @@ function sidebar(){
   heading(host,'Local Ollama brain','Optional; the independent local simulation always keeps running.');
   card(host,'Connection',state.brain.ai.lastResult||'Not connected','Model: '+state.brain.ai.model);
   const toggle=el('button',state.brain.ai.enabled?'Disable Ollama advice':'Enable Ollama advice');toggle.onclick=()=>{state.brain.ai.enabled=!state.brain.ai.enabled;state.brain.ai.lastCall=0;save();sidebar()};host.append(toggle);
-  const test=el('button','Test local connection');test.className='secondary';test.onclick=()=>pollAI(true);host.append(test);
+  const test=el('button','Test local connection');test.className='secondary';test.onclick=()=>testLocalOllama();host.append(test);
   const model=el('input');model.className='field';model.value=state.brain.ai.model;model.placeholder='Local Ollama model name (example: tavi)';model.maxLength=70;model.onchange=()=>{state.brain.ai.model=model.value.trim().replace(/[^a-zA-Z0-9._:/-]/g,'')||'tavi';save()};host.append(model);
   card(host,'Sandboxed model','The local model can suggest only a valid landmark and a short reflection. The simulator validates its suggestion. No code, system commands, account access or world edits are permitted.');
   heading(host,'World and display');
@@ -1035,6 +1035,21 @@ async function importSave(file){if(!file)return;if(lab.active){toast('End the is
   if(!confirm('Replace current save with the imported backup? Export your current save first.'))return;
   const raw=JSON.stringify(next);localStorage.setItem(KEY,raw);state=loadState();runtime.path=[];runtime.index=0;save();sidebar();toast('Backup restored successfully')
  }catch(e){toast('Restore failed: '+e.message)}}
+async function testLocalOllama(){
+ const ai=state.brain.ai;
+ if(runtime.aiBusy){toast('Ollama is already handling a request.');return}
+ runtime.aiBusy=true;ai.lastResult='Checking local Ollama connection…';sidebar();
+ try {
+  const payload={model:ai.model, instruction:'Return only a small JSON object with exactly these fields: {"area":0,"obj":0,"thought":"I am ready to explore."}',context:{kind:'connection_test',instruction:'This is a connection test; do not change game state.'}};
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),86000);
+  let res;try{res=await fetch('/api/brain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctrl.signal})}finally{clearTimeout(timer)}
+  const parsed=await readOllamaResponse(res);
+  if(!parsed||typeof parsed!=='object')throw Error('Ollama did not return a structured test reply.');
+  ai.lastResult='Connected · '+new Date().toLocaleTimeString();
+ }catch(err){
+  ai.lastResult=(err?.name==='AbortError'?'The model test timed out. Confirm Ollama is running, then try again.':String(err?.message||err)).slice(0,320);
+ }finally{runtime.aiBusy=false;save();sidebar();toast(ai.lastResult)}
+}
 async function pollAI(force=false){const a=state.brain.ai;
  if(lab.active||(!a.enabled&&!force)||runtime.aiBusy||state.paused||document.hidden)return;
  if(!force&&Date.now()-a.lastCall<100000)return;
@@ -1043,7 +1058,7 @@ async function pollAI(force=false){const a=state.brain.ai;
   const choices=M.props.map(p=>({area:p.area,obj:p.obj,name:p.name,interest:p.interest,place:M.regions[p.area].name}));
   const payload={model:a.model,context:{needs:state.stats,emotions:state.emotions,learnedTraits:state.development.traits,lifeExperiences:state.development.experienceHistory.slice(0,6).map(x=>x.description),interests:Object.entries(state.interests).sort((x,y)=>y[1]-x[1]).slice(0,6),recentMemories:state.memories.slice(0,8).map(v=>v.text.slice(0,160)),goal:state.goals.find(v=>v.status==='active')||null,currentArea:M.regions[state.area].name,options:choices},
    instruction:'You are Tavi, a curious fictional creature in an original pixel-art world. Think gently about your memories, needs, goals and interests. Reply with JSON ONLY containing {"area":integer,"obj":integer,"thought":"a first-person imaginative sentence under 180 characters"}. Select exactly one available area and obj from options. No commands, tools, code, external actions, claims of consciousness, or permanent edits.'};
-  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),43000);
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),86000);
   let res;try{res=await fetch('/api/brain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctrl.signal})}finally{clearTimeout(timer)}
   const parsed=await readOllamaResponse(res);
   if(!Number.isInteger(parsed.area)||!Number.isInteger(parsed.obj)||!M.props.some(p=>p.area===parsed.area&&p.obj===parsed.obj))throw Error('Model suggested an unknown landmark');
@@ -1053,7 +1068,7 @@ async function pollAI(force=false){const a=state.brain.ai;
   }
   a.lastResult='Connected · '+new Date().toLocaleTimeString();
   if(state.brain.mode==='idle'){runtime.nextDecision=0;chooseIntent()}
- }catch(e){a.lastResult=String(e.message||e).slice(0,160)}finally{runtime.aiBusy=false;save();if(tab==='settings')sidebar();toast(a.lastResult)}
+ }catch(e){a.lastResult=String(e.message||e).slice(0,320)}finally{runtime.aiBusy=false;save();if(tab==='settings')sidebar();toast(a.lastResult)}
 }
 // Canvas interaction: click or tap navigates within this one shared world.
 function screenPos(event){const canvas=$('game'),r=canvas.getBoundingClientRect();return {x:(event.clientX-r.left)/r.width*canvas.width,y:(event.clientY-r.top)/r.height*canvas.height}}
