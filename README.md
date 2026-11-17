@@ -62,6 +62,20 @@ The engine remains fully autonomous without an LLM. The local Ollama bridge is p
 - `tests/test_sandbox.py`: experimental input effects, graph, persistence, and comparison tests.
 - `tests/test_lifelong.py`: **commit/discard, continued learning, reload, checkpoint recovery and activity-value tests**.
 
-Run `python tools/build.py`, then `python tests/test_smoke.py && python tests/test_sandbox.py && python tests/test_lifelong.py` with Chromium/Playwright installed. See [Learning Model](docs/LEARNING-MODEL.md) and [QA results](docs/QA-RESULTS.md).
+Run `python tools/build.py`, then `python tests/test_smoke.py && python tests/test_sandbox.py && python tests/test_lifelong.py && python tests/test_connect_learning.py && python tests/test_camera.py` with Chromium/Playwright installed. Video test uses the included sample MP4 or generates one with `ffmpeg` if available. See [Learning Model](docs/LEARNING-MODEL.md) and [QA results](docs/QA-RESULTS.md).
 
 **Not yet verified:** native Windows launch on a real PC, live local Ollama integration, or long-duration physical iPhone/iPad Safari testing.
+
+
+
+## Connect: conversation, classic literature, and video references
+
+- **Talk to Tavi:** use **✉ Talk to Tavi** or **Connect → Talk** to converse with the locally simulated agent. Conversation entries persist in his history. Specific activity suggestions are scored against his goals, energy and learned preferences; Tavi may decline. Scripted replies are available offline. Optional Ollama conversational refinement requires a running local model and is not yet tested on a real Windows machine.
+- **Library:** **Connect → Library** offers four curated, original study-note selections from public-domain works by Michael Faraday, Charles Darwin, Aesop and Lewis Carroll. They link to complete original texts at Project Gutenberg; **the full book contents are not bundled**. Tavi's study notes retain provenance, genre and caveats about historical/fictional claims.
+- **Learning Studio:** import a local MP4/WebM painting reference. The browser decodes and samples six frames, deriving palettes and simple contrast/temperature descriptors which can influence later artworks. This does **not** give Tavi semantic understanding of brushwork, speech or the painting process, and the videos themselves are not sent or retained. A separate vision-capable model would be needed for richer audiovisual learning.
+
+All of these operate within Tavi's local persistent-learning simulation. In an isolated trial, keeping the experience makes it permanent; discarding the trial discards that staged learning.
+
+## Independent map camera and zoom
+
+The observer camera does **not** follow Tavi. Drag the overworld with a mouse or one finger, zoom using the `+` and `−` buttons, mouse/trackpad wheel, or a two-finger pinch on touchscreens (60%–240%). Select **⌖ Find Tavi** or press `F` to center the viewport on Tavi once, without enabling follow mode. `+`/`−` keys adjust zoom; `M` opens the overview map. The overview and minimap show a correctly scaled viewport box. Camera position and zoom are stored separately from Tavi’s personality and save data.
