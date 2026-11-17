@@ -1,42 +1,27 @@
-TAVI WORLD — COLORFUL VALLEY UI EDITION (WINDOWS)
+TAVI WORLD — LIFELONG LEARNING SANDBOX
 
-This is the new continuous overworld version. No area-to-area scene switching.
+This edition is a simulation research environment, not a survival game.
+Tavi's simulated experiences can now permanently alter his learned dispositions,
+action preferences, expectations, memories and later autonomous choices.
 
-TO START:
-  1. Right-click the ZIP -> Extract All.
-  2. Close ALL older Tavi World PowerShell / launcher windows.
-  3. Open the extracted Tavi-World-Vibrant-UI-Edition folder.
-  4. Double-click START-TAVI-WORLD.bat.
-  5. Keep PowerShell open. Play at http://localhost:8765/
+START ON WINDOWS
+1. Extract the full ZIP before running anything.
+2. Close any previous Tavi World PowerShell/launcher windows.
+3. Double-click START-TAVI-WORLD.bat in the extracted folder.
+4. Leave PowerShell open and visit http://localhost:8765/ in your browser.
+5. Export your save under Profile > Settings before your first experiment.
 
-TIPS:
-  - Tap or click landmarks to suggest activities.
-  - Tap or click grass or paths to travel there.
-  - WASD / arrow keys briefly control Tavi yourself.
-  - M opens the whole world map; the camera can follow or be dragged.
-  - Journal opens the Explore / Stories / Tavi menu (a slide-up drawer on mobile).
-  - The vibrant HUD shows Energy, Happiness, Curiosity: Tavi has no hunger requirement.
-  - Tavi may still enjoy a meal as an optional hobby.
-  - Settings -> Export full backup protects your save.
-  - Ollama remains optional, and runs locally through the Windows launcher.
+RESEARCH
+- Open Research > Conditions, adjust the six environmental inputs and start an experience.
+- Watch Observations for time-series charts, decisions and event logging.
+- Choose Keep experience & finish to permanently retain what Tavi learns.
+- Choose Discard without learning for a control trial that does not alter Tavi.
+- Profile > Development displays lifelong traits, learned expectations and preferences.
+- Profile > Settings contains a checkpoint restore for the previous committed trial.
 
-SAVE COMPATIBILITY:
-  The legacy save key tavi-world-windows-living-valley-v1 is retained.
-  This edition also backs up any pre-overworld legacy save, unchanged, under
-  tavi-world-legacy-save-before-overworld-v1 in the same browser storage.
-  Saves with the old hunger field are additionally backed up unchanged as
-  tavi-world-save-before-nonsurvival-v1 before removing that field from the active save.
-  To see the same saved progress, use the same browser on localhost:8765.
-
-  If Windows prevents startup, OPEN-TAVI-WITHOUT-SERVER.bat can show an offline
-  preview. IMPORTANT: The offline preview has a DIFFERENT save origin and
-  does not have Ollama access. It does not erase your localhost save.
-
-TESTING:
-  Browser startup, autonomous movement, route planning for all 36 activities,
-  map controls, mobile layout and synthetic legacy-save migration passed.
-  Real Windows BAT/PowerShell startup and a live Ollama model still need
-  testing on the owner's PC.
-
-The world is an original pixel-art creature simulation. It is inspired by
-classic top-down adventures, but does not use Nintendo / Pokémon assets.
+SAVE AND MODEL LIMITATIONS
+- Primary key unchanged: tavi-world-windows-living-valley-v1
+- Active experiences are staged separately until committed; interrupted sessions resume.
+- Close/open simulation does not create true continuous background activity.
+- Ollama remains optional; no live model was tested on this machine.
+- Tavi's emotion and learning numbers are simulated states, not evidence of consciousness.
