@@ -1,0 +1,25 @@
+TAVI WORLD — LOCAL OLLAMA BRIDGE DIAGNOSTICS / REPAIR
+
+Your reported symptom: "The local Ollama bridge returned an empty response (HTTP 500)."
+
+Changes:
+- Every /api/brain error path returns a JSON error object when possible, rather than an empty HTTP 500.
+- The Windows PowerShell launcher prints a clear [TAVI BRIDGE ERROR] diagnostic for unexpected server exceptions.
+- The bridge's request body is decoded using an explicit StreamReader constructor.
+- Ollama is called with think=false and additional output tokens, to avoid Qwen3-style reasoning-only replies.
+- The local connection test sends a short JSON prompt and does not change Tavi's goals or current activity.
+- Client/server timeouts now allow first-time model loading (up to around 80 seconds).
+- Preserves save storage, memories, autonomous behavior, read-only research, and the observer camera.
+
+HOW TO TRY:
+1. Extract the entire ZIP. Do not run files from inside Windows ZIP Explorer.
+2. Close all older Tavi launcher/PowerShell windows. Restart the new START-TAVI-WORLD.bat.
+3. Keep the PowerShell window visible. Visit http://localhost:8765/ (same browser as before).
+4. Check exact model names with "ollama list". In Profile -> Settings, enter an installed name.
+5. Click "Test local connection" once; initial model loading can be slow.
+6. If it fails again, see the PowerShell window line [TAVI BRIDGE ERROR] or [Tavi Ollama connection].
+7. Optional: In PowerShell, from the extracted build folder, run:
+   powershell -ExecutionPolicy Bypass -File .\TEST-OLLAMA-BRIDGE.ps1 -Model tavi
+   Substitute the model name from ollama list (e.g. qwen3:8b).
+
+These changes have not yet been exercised against your Windows installation or live local Ollama model.
