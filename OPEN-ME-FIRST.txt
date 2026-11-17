@@ -1,37 +1,9 @@
-TAVI WORLD — LIFELONG LEARNING SANDBOX
+TAVI WORLD — GROUNDED AUTONOMY / NATURAL CONVERSATION EDITION
 
-This edition is a simulation research environment, not a survival game.
-Tavi's simulated experiences can now permanently alter his learned dispositions,
-action preferences, expectations, memories and later autonomous choices.
+Close your old launcher, unzip this build to a new folder and run START-TAVI-WORLD.bat. Open http://localhost:8765/ in the same browser as before so Tavi can access his saved history.
 
-START ON WINDOWS
-1. Extract the full ZIP before running anything.
-2. Close any previous Tavi World PowerShell/launcher windows.
-3. Double-click START-TAVI-WORLD.bat in the extracted folder.
-4. Leave PowerShell open and visit http://localhost:8765/ in your browser.
-5. Export your save under Profile > Settings before your first experiment.
+Go to Profile > Settings. Keep your working Ollama model and enable advice. Open Connect > Talk and ask about a real memory or goal. When enabled, the initial message is "Considering your question…", then an original Ollama reply. Expand "Context supplied to the model" to review grounding anchors.
 
-RESEARCH
-- Open Research > Conditions, adjust the six environmental inputs and start an experience.
-- Watch Observations for time-series charts, decisions and event logging.
-- Choose Keep experience & finish to permanently retain what Tavi learns.
-- Choose Discard without learning for a control trial that does not alter Tavi.
-- Profile > Development displays lifelong traits, learned expectations and preferences.
-- Profile > Settings contains a checkpoint restore for the previous committed trial.
+To test a self-directed action immediately: Profile > Settings > Invite Tavi to choose independently. If the model is unavailable, dialogue falls back to clearly labeled rule-based responses.
 
-SAVE AND MODEL LIMITATIONS
-- Primary key unchanged: tavi-world-windows-living-valley-v1
-- Active experiences are staged separately until committed; interrupted sessions resume.
-- Close/open simulation does not create true continuous background activity.
-- Ollama remains optional; no live model was tested on this machine.
-- Tavi's emotion and learning numbers are simulated states, not evidence of consciousness.
-
-
-NEW VIEW CONTROLS: The map camera does not follow Tavi. Drag to pan, use + / − or the mouse wheel to zoom. On touchscreens, drag with one finger or pinch with two fingers. Select Find Tavi (or press F) to center on him once.
-
-WIDE ZOOM UPDATE
-- Zoom down to 30% (formerly 60%) using the minus button, wheel, pinch, or minus key.
-- At 30%, the viewport covers twice the width and height compared with 60%.
-- Camera remains independent; Find Tavi still centers it once.
-
-OPTIONAL: Connect > Internet offers read-only research from selected public sites. Independent research is disabled until you enable it. This requires the Windows launcher and a live connection.
+The Windows bridge, game save key, map, experiments, books, video studies and read-only web research remain compatible. See docs/GROUNDED-VOICE-RELEASE.md for limitations, safety, and tests.
