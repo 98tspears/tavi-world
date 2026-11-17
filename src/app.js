@@ -1,6 +1,6 @@
 /* Tavi World — local-first autonomous living overworld. No mandatory cloud services. */
 (()=>{'use strict';
-const M=window.TaviWorld,V=window.TaviVisuals,KEY='tavi-world-windows-living-valley-v1',LEGACY_BACKUP_KEY='tavi-world-legacy-save-before-overworld-v1';
+const M=window.TaviWorld,V=window.TaviVisuals,KEY='tavi-world-windows-living-valley-v1',LEGACY_BACKUP_KEY='tavi-world-legacy-save-before-overworld-v1',NEEDS_BACKUP_KEY='tavi-world-save-before-nonsurvival-v1';
 const INTERESTS=['cozy','stories','food','art','craft','nature','music','science','time','mystery','gardening'];
 const EMOTIONS=['joy','excitement','curiosity','frustration','confidence','boredom','calm','nervousness'];
 const LEGACY_AREA_MAP=[0,1,2,6,5,4,11,3,8,9,7,10];
@@ -8,7 +8,7 @@ const $=id=>document.getElementById(id),clamp=(v,lo=0,hi=100)=>Math.min(hi,Math.
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
 const dateText=ts=>new Date(ts).toLocaleString();
 const initial=()=>({version:1,seed:78341,area:0,x:400,y:350,paused:false,clock:Date.now(),created:Date.now(),tick:0,
- stats:{hunger:20,energy:82,happiness:74,curiosity:67},
+ stats:{energy:82,happiness:74,curiosity:67},
  emotions:{joy:60,excitement:40,curiosity:70,frustration:10,confidence:45,boredom:20,calm:70,nervousness:12},
  interests:Object.fromEntries(INTERESTS.map(v=>[v,20])),memories:[],journal:[],art:[],goals:[],questions:[],approvals:[],decorations:[],
  thought:'There is an entire valley outside. I want to see what is growing today!',lastAction:'',lastSave:Date.now(),
@@ -22,6 +22,11 @@ const loadState=()=>{
  try{
   const old=JSON.parse(raw);if(!old||typeof old!=='object'||old.version!==1)throw Error('Incompatible save version');
   const migrated=!old.world;
+  // Preserve a copy of saves that still contain the old survival-style hunger variable.
+  // Eating is now optional recreation, never a need to survive.
+  if(Object.prototype.hasOwnProperty.call(old.stats||{},'hunger')){
+   try{if(!localStorage.getItem(NEEDS_BACKUP_KEY))localStorage.setItem(NEEDS_BACKUP_KEY,raw)}catch(e){console.warn('Could not store pre-redesign backup',e)}
+  }
   if(migrated){try{if(!localStorage.getItem(LEGACY_BACKUP_KEY))localStorage.setItem(LEGACY_BACKUP_KEY,raw)}catch(e){console.warn('Could not store separate legacy backup',e)}}
   const mapArea=(a)=>migrated?(LEGACY_AREA_MAP[Number(a)]??0):(Number(a)||0);
   const explored=migrated?Object.fromEntries(Object.entries(old.brain?.explored||{}).map(([k,v])=>{const m=/^(\d+):(\d+)$/.exec(k);return [m?mapArea(Number(m[1]))+':'+m[2]:k,v]})):{...old.brain?.explored};
@@ -42,6 +47,7 @@ const loadState=()=>{
    brain:{...fresh.brain,...old.brain,mode:'idle',target:null,work:0,explored,recent:Array.isArray(recent)?recent:[],
       discoveries:Array.isArray(old.brain?.discoveries)?old.brain.discoveries:[],
       ai:{...fresh.brain.ai,...old.brain?.ai,history:Array.isArray(old.brain?.ai?.history)?old.brain.ai.history.slice(-40):[]}}};
+  delete merged.stats.hunger; // Normalize every old save to the new, three-stat non-survival model.
   if(migrated){merged.brain.legacyTarget=old.brain?.target||null;merged.world.legacyExplored=old.brain?.explored||{};merged.world.migratedAt=Date.now()}
   if(!M.walkable(merged.world.x,merged.world.y)){
     const safe=M.nearestWalkable(merged.world.x,merged.world.y);merged.world.x=safe.x+.5;merged.world.y=safe.y+.5;
@@ -80,8 +86,8 @@ function actionResult(prop,when=Date.now(),quiet=false){const {activity,interest
  state.interests[interest]=clamp((state.interests[interest]||0)+2);
  const s=state.stats,e=state.emotions;
  s.energy=clamp(s.energy+(activity==='sleeping'?31:activity==='resting'?17:-4));
- s.hunger=clamp(s.hunger+(activity==='eating'?-29:4));
- s.happiness=clamp(s.happiness+4);s.curiosity=clamp(s.curiosity+(activity==='observing'||activity==='reading'?12:2));
+ // Eating is a pleasant optional activity, not a survival requirement or hunger-management loop.
+ s.happiness=clamp(s.happiness+(activity==='eating'?8:4));s.curiosity=clamp(s.curiosity+(activity==='observing'||activity==='reading'?12:2));
  e.joy=clamp(e.joy+3);e.excitement=clamp(e.excitement+(activity==='playing'?8:1));e.curiosity=clamp(e.curiosity+(activity==='observing'?7:2));
  e.confidence=clamp(e.confidence+1);e.boredom=clamp(e.boredom-8);e.calm=clamp(e.calm+(activity==='resting'||activity==='sleeping'?10:0));e.frustration=clamp(e.frustration-3);
  const phrases=[`I ${activity==='sleeping'?'had a wonderful dream':`spent time ${activity}`} at the ${name.toLowerCase()}.`,`I think ${interest} is becoming part of who I am.`,`There is something meaningful about ${name.toLowerCase()}. I want to remember it.`];
@@ -110,7 +116,7 @@ function activityScore(prop){
  const hour=new Date().getHours();let n=12+(state.interests[prop.interest]||0)*.2;
  if(prop.activity==='sleeping')n+=Math.max(0,64-s.energy)*1.8;
  if(prop.activity==='resting')n+=Math.max(0,52-s.energy)*1.1;
- if(prop.activity==='eating')n+=Math.max(0,s.hunger-31)*2;
+ if(prop.activity==='eating')n+=(state.interests.food||0)*.12; // Optional enjoyment, never hunger pressure.
  if(prop.activity==='observing'||prop.activity==='reading')n+=Math.max(0,66-s.curiosity)*.45+e.curiosity*.11;
  if(prop.activity==='drawing')n+=(state.interests.art||0)*.13;
  if(goal?.interest===prop.interest)n+=38;
@@ -180,7 +186,7 @@ function simulateOffline(){const now=Date.now(),elapsed=Math.floor((now-(state.c
   for(let i=0;i<events;i++){
    // Offline is reconstructed in bounded steps; this is not background processing.
    const r=M.props[Math.floor(rng()*M.props.length)];
-   state.stats.hunger=clamp(state.stats.hunger+1.3);state.stats.energy=clamp(state.stats.energy-1.1);
+   state.stats.energy=clamp(state.stats.energy-1.1);
    if(i%2===0&&r){const date=(state.clock||now)+(i+1)*Math.floor(simulated/Math.max(1,events))*1000;
     state.area=r.area;state.world.x=M.approach(r,state.world).x+.5;state.world.y=M.approach(r,state.world).y+.5;
     if(i%4===0)actionResult(r,date,true)}
@@ -192,7 +198,7 @@ function simulateOffline(){const now=Date.now(),elapsed=Math.floor((now-(state.c
  state.offlineSummary=text;journal(text,'return',now);$('welcome').textContent=text;save();
 }
 function needsTick(dt){const s=state.stats,e=state.emotions;
- s.hunger=clamp(s.hunger+dt*.025);s.energy=clamp(s.energy-dt*.018);s.curiosity=clamp(s.curiosity-dt*.025);
+ s.energy=clamp(s.energy-dt*.018);s.curiosity=clamp(s.curiosity-dt*.025);
  e.boredom=clamp(e.boredom+dt*.026);e.calm=clamp(e.calm+dt*.003);e.joy=clamp(e.joy-dt*.003);
  if(s.energy<20)e.frustration=clamp(e.frustration+dt*.03);
 }
@@ -247,21 +253,53 @@ function renderStatus(){const s=state.stats;
  $('areaDesc').textContent=M.regions[state.area]?.desc||'';
  $('thought').textContent=state.thought;
  $('statusText').textContent=warning||(state.paused?'Autonomy paused':state.brain.mode==='working'?'Practicing '+state.brain.target?.activity:state.brain.mode==='travel'?'Traveling to '+state.brain.target?.name:'Choosing what matters next');
- $('pause').textContent=state.paused?'▶ Resume Tavi':'⏸ Pause Tavi';
- $('follow').textContent=freeCamera?'◎ Follow Tavi':'◎ Following Tavi';
+ $('pause').textContent=state.paused?'▶ Resume':'⏸ Pause';
+ $('follow').textContent=freeCamera?'◎ Follow':'◎ Following';
  $('clock').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
- const attrs=[['energy',s.energy],['hunger',100-s.hunger],['happiness',s.happiness],['curiosity',s.curiosity]];
+ const attrs=[['energy',s.energy],['happiness',s.happiness],['curiosity',s.curiosity]];
  for(const [k,n] of attrs){const bar=$('meter-'+k),v=$('value-'+k);if(bar)bar.style.width=clamp(n)+'%';if(v)v.textContent=Math.round(n)+'%'}
  $('exploredCount').textContent=Object.keys(state.world.visited||{}).length+'/12';
- $('journalCount').textContent=state.journal.length+' memories in motion';
+ $('journalCount').textContent=state.journal.length+' journal entries';
+ $('moodLabel').textContent=moodSummary();
+ $('activeIntent').textContent=state.paused?'Resting in place':state.brain.mode==='travel'&&state.brain.target?'Traveling to '+state.brain.target.name:state.brain.mode==='working'&&state.brain.target?'Enjoying '+state.brain.target.activity:'Dreaming up the next adventure';
+ drawPortrait();
  $('miniLabel').textContent=M.regions[state.area]?.name||'Valley';
+}
+function moodSummary(){
+ const e=state.emotions,s=state.stats;
+ if(s.energy<24)return '☾ Sleepy';
+ if(e.curiosity>70||s.curiosity>72)return '✧ Curious';
+ if(e.excitement>68)return '✦ Inspired';
+ if(e.calm>72)return '☼ Peaceful';
+ if(s.happiness>75)return '♥ Joyful';
+ return '✿ Content';
+}
+function drawPortrait(){const c=$('taviPortrait');if(!c)return;const g=c.getContext('2d');if(!g)return;
+ g.imageSmoothingEnabled=false;g.clearRect(0,0,c.width,c.height);
+ const img=window.TaviSprite?.image;
+ if(img?.complete&&img.naturalWidth>=4){
+  const cw=img.naturalWidth/4,ch=img.naturalHeight/4;
+  const frame=state.brain.mode==='travel'?1+Math.floor(performance.now()/220)%2:0;
+  g.drawImage(img,frame*cw,0,cw,ch,8,3,64,73);
+ }
 }
 function card(host,title,content,meta=''){const wrap=el('article');wrap.className='record';
  const heading=el('strong',title);const body=el('p',content);wrap.append(heading,body);
  if(meta){const foot=el('small',meta);wrap.append(foot)}host.append(wrap);return wrap}
 function heading(host,title,desc=''){const h=el('h3',title);host.append(h);if(desc)host.append(el('p',desc));}
-const TABS=[['world','World'],['journal','Journal'],['memories','Memories'],['goals','Goals'],['questions','Questions'],['approvals','Approvals'],['art','Artwork'],['personality','Personality'],['settings','Settings']];
-function sidebar(){const tabs=$('tabs');tabs.replaceChildren();for(const [id,title] of TABS){const b=el('button',title);b.className=id===tab?'active':'';b.onclick=()=>{tab=id;sidebar()};tabs.append(b)}
+const NAV_GROUPS=[
+ {id:'explore',label:'Explore',icon:'◈',tabs:[['world','World'],['goals','Goals'],['questions','Questions'],['approvals','Approvals']]},
+ {id:'stories',label:'Stories',icon:'✎',tabs:[['journal','Journal'],['memories','Memories'],['art','Artwork']]},
+ {id:'tavi',label:'Tavi',icon:'✦',tabs:[['personality','Personality'],['settings','Settings']]}
+];
+let navGroup='explore',journalOpen=window.innerWidth>940,lastCompact=window.innerWidth<=940;
+function sidebar(){
+ const group=NAV_GROUPS.find(g=>g.tabs.some(t=>t[0]===tab));if(group)navGroup=group.id;
+ const groups=$('journalGroups');groups.replaceChildren();
+ for(const g of NAV_GROUPS){const b=el('button',g.icon+' '+g.label);b.className=g.id===navGroup?'active':'';b.setAttribute('aria-pressed',String(g.id===navGroup));b.onclick=()=>{navGroup=g.id;tab=g.tabs[0][0];sidebar()};groups.append(b)}
+ const tabs=$('tabs');tabs.replaceChildren();
+ const current=NAV_GROUPS.find(g=>g.id===navGroup)||NAV_GROUPS[0];
+ for(const [id,title] of current.tabs){const b=el('button',title);b.className=id===tab?'active':'';b.setAttribute('aria-selected',String(id===tab));b.onclick=()=>{tab=id;sidebar()};tabs.append(b)}
  const host=$('sidebarContent');host.replaceChildren();
  if(tab==='world'){
   heading(host,'Tavi’s next intention','Tavi independently plans routes, explores, creates and learns.');
@@ -398,7 +436,7 @@ function setupInteraction(){const canvas=$('game');
   if(e.target.matches('input, textarea, select'))return;
   if(keys.has(e.key)){e.preventDefault();runtime.keys.add(e.key);return}
   if(e.key.toLowerCase()==='m'){e.preventDefault();toggleMap()}
-  if(e.key==='Escape'&&showMap)toggleMap(false);
+  if(e.key==='Escape'){if(showMap)toggleMap(false);else if(journalOpen)setJournalOpen(false)}
   if(e.key===' '){e.preventDefault();$('pause').click()}
  });
  document.addEventListener('keyup',e=>runtime.keys.delete(e.key));
@@ -414,9 +452,21 @@ function setupInteraction(){const canvas=$('game');
   if(prop){setDestination(prop,'suggested');selected=prop;toggleMap(false);toast('Tavi is traveling to '+nearest.name)}
  };
  $('minimap').onclick=()=>toggleMap();
+ $('journalToggle').onclick=()=>setJournalOpen(!journalOpen);
+ $('closeJournal').onclick=()=>setJournalOpen(false);
+ $('drawerScrim').onclick=()=>setJournalOpen(false);
+ window.addEventListener('resize',()=>{const compact=window.innerWidth<=940;if(compact!==lastCompact){lastCompact=compact;setJournalOpen(!compact)}else updateJournal()});
  document.addEventListener('visibilitychange',()=>{if(document.hidden){state.clock=Date.now();save()}else{simulateOffline();runtime.lastFrame=performance.now()}});
  window.addEventListener('beforeunload',()=>{state.clock=Date.now();save()});
 }
+function updateJournal(){
+ const page=document.querySelector('.page');page.classList.toggle('journal-closed',!journalOpen);
+ const compact=window.innerWidth<=940;
+ $('drawerScrim').hidden=!compact||!journalOpen;
+ $('journalToggle').setAttribute('aria-expanded',String(journalOpen));
+ $('journalToggle').textContent=journalOpen?'▤ Hide journal':'▤ Journal';
+}
+function setJournalOpen(next){journalOpen=!!next;updateJournal();if(journalOpen&&window.innerWidth<=940){$('closeJournal').focus()}}
 function toggleMap(force){showMap=typeof force==='boolean'?force:!showMap;$('mapOverlay').hidden=!showMap;if(showMap){V.minimap($('bigMapCanvas'),state,{showCamera:true,camera:runtime.camera,screen:{w:$('game').width,h:$('game').height}})}}
 function loop(now){const dt=clamp((now-(runtime.lastFrame||now))/1000,0,.075);runtime.lastFrame=now;
  update(dt);if(!runtime.lastPaint||now-runtime.lastPaint>30){drawingCanvas();runtime.lastPaint=now;}
@@ -432,7 +482,7 @@ function init(){
  const current=M.regions[M.regionAt(state.world.x,state.world.y)];if(!state.world.visited[current.id])state.world.visited[current.id]=1;
  state.area=M.regionAt(state.world.x,state.world.y);
  const canvas=$('game');runtime.camera.x=clamp(state.world.x*V.TILE-canvas.width/2,0,M.W*V.TILE-canvas.width);runtime.camera.y=clamp(state.world.y*V.TILE-canvas.height/2,0,M.H*V.TILE-canvas.height);
- setupInteraction();simulateOffline();renderStatus();sidebar();
+ setupInteraction();updateJournal();simulateOffline();renderStatus();sidebar();
  $('startupSplash').hidden=true;document.documentElement.dataset.taviReady='1';
  runtime.nextDecision=Date.now()+2000;runtime.lastFrame=performance.now();requestAnimationFrame(loop);
  setInterval(()=>pollAI(),11000);
