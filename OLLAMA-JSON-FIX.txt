@@ -1,0 +1,22 @@
+TAVI WORLD — LOCAL OLLAMA JSON REPAIR
+
+Fixes responses such as "Unexpected token u... undefined is not valid JSON".
+
+- Checks the local /api/brain reply before parsing.
+- Parses both the bridge's JSON envelope and the model's JSON completion.
+- Handles fenced JSON and thinking blocks, and reports informative errors for empty/malformed output.
+- Keeps the rule-based Tavi simulation running if Ollama fails.
+- Preserves the existing local save key, memories and learned traits.
+- Local bridge returns JSON errors with status codes, instead of blank/unexplained replies.
+- Ollama requests require localhost Origin and JSON POST.
+
+WINDOWS SETUP
+1. Close other old Tavi launcher PowerShell windows.
+2. Extract this ZIP fully into a NEW folder.
+3. Verify `ollama list` shows the model specified in Profile > Settings.
+4. Open START-TAVI-WORLD.bat and keep the PowerShell window open.
+5. Open http://localhost:8765/ in your regular browser.
+6. Profile > Settings > Test local connection.
+7. If the result shows an HTTP 503, check that Ollama is running and that model responds to `ollama run <modelname>`.
+
+This build was not tested against your installed Ollama or Windows launcher.
