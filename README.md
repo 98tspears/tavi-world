@@ -1,4 +1,4 @@
-# Tavi World — The Living Overworld
+# Tavi World — Colorful Valley UI Edition
 
 **An original local-first, continuous pixel-art creature simulation.**
 
@@ -14,14 +14,16 @@ Tavi lives in one connected overworld with paths between **12 named places**, 36
 
 If the launcher cannot open, `OPEN-TAVI-WITHOUT-SERVER.bat` offers an offline preview. Offline `file://` browser storage uses a different save origin; the offline preview will not show a save made via localhost. The offline preview cannot call Ollama.
 
-## What changed in the Overworld Edition
+## What changed in the Colorful Valley UI Edition
 
 - **One seamless world** with a following camera and a full-map overview. The previous area-by-area scene buttons are no longer used.
+- **More vibrant original pixel-art palette:** brighter grass and flower meadows, deeper blue water, clearer forest highlights, warmer wood and brighter prop accents.
+- **Overworld-first, less-cluttered UI:** a colorful three-stat HUD (Energy, Happiness, Curiosity), Tavi's portrait, mood and current intention; an expandable grouped Journal (Explore, Stories, Tavi), and a mobile Journal drawer.
 - **Original pixel art** for roads, sand, rivers, forest, meadow, cutaway interiors, tools, furniture and sprite animation.
 - **36 integrated landmarks** are actual world entities with activity metadata. No random objects obscure the map.
 - **A* route planning**, walkability/collision checks, optional WASD movement, tap/click to travel, and interactive minimap.
-- **Autonomous needs and activities**: Tavi chooses goals from energy, hunger, curiosity, interests, novelty, time of day, recent activity and distance, then travels, works and reflects. Tavi can draw artwork, create goals, make discoveries, ask questions and request approval for permanent world changes.
-- **Persistent save compatibility** with the existing `tavi-world-windows-living-valley-v1` key. The first migration writes a raw copy of the old save into `tavi-world-legacy-save-before-overworld-v1` as a precaution.
+- **Autonomous activity choices**: Tavi chooses goals from energy, happiness, curiosity, interests, novelty, time of day, recent activity and distance, then travels, works and reflects. **No hunger or starvation model:** eating is an optional enjoyable experience that can increase happiness and an interest in food, never a survival obligation. Tavi can draw artwork, create goals, make discoveries, ask questions and request approval for permanent world changes.
+- **Persistent save compatibility** with the existing `tavi-world-windows-living-valley-v1` key. The first migration writes a raw copy of a pre-overworld save to `tavi-world-legacy-save-before-overworld-v1`. A save containing the old hunger variable is also backed up unchanged to `tavi-world-save-before-nonsurvival-v1` before the obsolete field is retired. Only the active save's obsolete hunger field is removed; memories and achievements stay intact.
 - **Optional local Ollama bridge** via `POST /api/brain` proxied only to `127.0.0.1:11434`. The model suggests only a known activity and a short thought; it cannot run commands or approve changes.
 - The distributed `game/index.html` is **self-contained**: its scripts, stylesheet and Tavi sprite are embedded, eliminating missing-script requests that affected previous versions.
 
@@ -58,6 +60,6 @@ The `legacy/` folder in the ZIP keeps the prior game and its art as a source ref
 
 ## Controls
 
-Tap/click a landmark to suggest an activity; tap/click ground to ask Tavi to walk there. WASD or arrow keys briefly take manual control, and **M** opens the full-map view. The **Following Tavi** button toggles a free camera that you can drag. Autonomy is active by default and can be paused.
+Tap/click a landmark to suggest an activity; tap/click ground to ask Tavi to walk there. WASD or arrow keys briefly take manual control, and **M** opens the full-map view. The **Following** button toggles a free camera that you can drag. Use **Journal** to show or hide the adventure panel, then the grouped Explore / Stories / Tavi tabs to navigate. Autonomy is active by default and can be paused.
 
 © Tavi World — original project. For development and testing.
