@@ -1,6 +1,6 @@
-# Overworld Edition — QA summary
+# Colorful Valley UI Edition — QA summary
 
-Checked in headless Linux Chromium using the self-contained HTML (`page.set_content`) because direct file or localhost browsing is restricted in the build environment.
+Checked in headless Linux Chromium using the self-contained HTML (`page.set_content`) and isolated simulated `localStorage` because direct HTTP(S)/localhost browsing is restricted in the build environment.
 
 Passed:
 - Game initializes with no JavaScript page errors.
@@ -9,6 +9,13 @@ Passed:
 - Autonomous decision-making starts a real route and physically moves Tavi.
 - Pause/resume controls and manual keyboard movement.
 - Full overworld map and touch-friendly mobile UI.
+- New three-stat HUD has no hunger meter or survival hunger state.
+- Eating remains an optional recreational activity that can improve happiness.
+- Grouped Journal navigation, collapse/expand on desktop, slide-up drawer on mobile.
+- New sprite portrait, current intention and mood panel.
+- Pixel-art biome palettes have brighter greens, ocean blues, warmth and contrast.
+- Save normalization removes obsolete hunger fields only after backing up the old raw save.
+- Save restoration into a separate browser page with isolated storage shim.
 - Legacy Living Valley v1 save migrates without discarding prior journal entries, memories, artworks or explored counts.
 - All JavaScript source files pass `node --check`.
 
