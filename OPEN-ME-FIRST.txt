@@ -25,3 +25,13 @@ SAVE AND MODEL LIMITATIONS
 - Close/open simulation does not create true continuous background activity.
 - Ollama remains optional; no live model was tested on this machine.
 - Tavi's emotion and learning numbers are simulated states, not evidence of consciousness.
+
+
+NEW VIEW CONTROLS: The map camera does not follow Tavi. Drag to pan, use + / − or the mouse wheel to zoom. On touchscreens, drag with one finger or pinch with two fingers. Select Find Tavi (or press F) to center on him once.
+
+WIDE ZOOM UPDATE
+- Zoom down to 30% (formerly 60%) using the minus button, wheel, pinch, or minus key.
+- At 30%, the viewport covers twice the width and height compared with 60%.
+- Camera remains independent; Find Tavi still centers it once.
+
+OPTIONAL: Connect > Internet offers read-only research from selected public sites. Independent research is disabled until you enable it. This requires the Windows launcher and a live connection.
