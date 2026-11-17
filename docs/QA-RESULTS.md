@@ -1,3 +1,15 @@
+## Ollama bridge repair — November 16, 2026
+
+**Reported Windows symptom:** `The local Ollama bridge returned an empty response (HTTP 500).`
+
+**Confirmed cause in source:** an outer catch in `Start-TaviWorld.ps1` silently set HTTP 500 without serializing an error. The precise exception on the user's Windows machine is not yet known.
+
+**Changes:** explicit StreamReader construction; a centralized JSON error writer; sanitized server-side diagnostics; different 400/502/503/500 responses; `think:false` with 512 output tokens on Ollama `/api/generate`; longer first-load timeouts; a lightweight, non-mutating connection test; local Windows diagnostic script.
+
+**Local verification:** `node --check src/app.js`, `python tools/build.py`, `python tests/test_ollama_json.py`, `python tests/test_bridge_hardening.py`, and the existing browser smoke, sandbox, learning, camera and internet-reader suites all passed. PowerShell parser and live Ollama tests are not available in this container; run `TEST-OLLAMA-BRIDGE.ps1` on Windows.
+
+---
+
 # Tavi World — Lifelong Learning Sandbox QA
 
 Verified using Linux Chromium/Playwright with the single self-contained HTML build (`page.set_content`) and isolated simulated browser storage. Direct localhost and Windows integration were not available in this test runtime.
