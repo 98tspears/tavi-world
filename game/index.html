@@ -873,7 +873,7 @@ const loadState=()=>{
   const region=M.regions[mapArea(old.area)]||M.regions[0];
   const origin=M.nearestWalkable(region.x,region.y+11);
   const merged={...fresh,...old,area:mapArea(old.area),stats:{...fresh.stats,...old.stats},emotions:{...fresh.emotions,...old.emotions},
-   interests:{...fresh.interests,...old.interests},development:normalizeDevelopment(old.development),learning:normalizeLearning(old.learning),conversation:Array.isArray(old.conversation)?old.conversation.slice(-80).filter(x=>x&&typeof x.text==='string'):[],
+   interests:{...fresh.interests,...old.interests},development:normalizeDevelopment(old.development),learning:normalizeLearning(old.learning),conversation:Array.isArray(old.conversation)?old.conversation.slice(-80).filter(x=>x&&typeof x.text==='string').map(x=>x.source==='pending'?{...x,source:'interrupted',text:'My last reply was interrupted. Could you ask me again?'}:x):[],
    memories:Array.isArray(old.memories)?old.memories:fresh.memories,
    journal:Array.isArray(old.journal)?old.journal:fresh.journal,
    art:Array.isArray(old.art)?old.art:fresh.art,
@@ -1010,7 +1010,7 @@ function exportNotebook(format='json'){
  const a=el('a');const url=URL.createObjectURL(new Blob([content],{type:mime}));a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),2500)
 }
 const runtime={path:[],index:0,keys:new Set(),lastFrame:0,lastNeeds:0,lastAutosave:0,lastUI:0,lastSidebar:0,nextDecision:0,
- camera:{x:0,y:0},zoom:1,drag:null,pointers:new Map(),pinch:null,gestureUsed:false,lastMouse:{x:0,y:0},aiBusy:false};
+ camera:{x:0,y:0},zoom:1,drag:null,pointers:new Map(),pinch:null,gestureUsed:false,lastMouse:{x:0,y:0},aiBusy:false,chatPending:false};
 const canStore=()=>{try{return !!window.localStorage}catch(e){return false}};
 function save(){try{state.lastSave=Date.now();if(lab.active)localStorage.setItem(LAB_SESSION_KEY,JSON.stringify({state,trial:lab.active}));else localStorage.setItem(KEY,JSON.stringify(state));if(warning.startsWith('Save failed'))warning='';return true}
  catch(e){warning='Save failed. Use Settings → Export backup to protect progress.';console.warn(e);return false}}
@@ -1031,7 +1031,7 @@ function askQuestion(interest){if(state.questions.some(q=>!q.answer))return;
  const text=prompts[interest]||'What would you like me to discover about '+interest+'?';
  state.questions.unshift({id:uid('q'),text,interest,time:Date.now(),answer:''});journal('I had a question for my friend: '+text,'question')}
 function addDialogue(role,text,source='local',meta={}){
- const item={id:uid('chat'),role,text:String(text).slice(0,460),source,at:Date.now(),...meta};state.conversation.push(item);state.conversation=state.conversation.slice(-80);return item;
+ const item={id:uid('chat'),role,text:String(text).slice(0,role==='tavi'?1100:460),source,at:Date.now(),...meta};state.conversation.push(item);state.conversation=state.conversation.slice(-80);return item;
 }
 // The internet reader is a constrained optional GET-only research surface. The Windows
 // launcher has the only external network capability; Tavi does not receive a browser,
@@ -1235,31 +1235,92 @@ async function readOllamaResponse(res){
  }
  return parseOllamaReply(payload);
 }
-async function requestOllamaConversation(item,reply){
+// Ollama's earlier conversations were constrained by a canned local reply that was
+// inserted BEFORE the model ran. Never put a provisional reply into model context.
+// This contextual retrieval is inspectable: it gives the model evidence, not a script.
+const COMMON_WORDS=new Set('about after again also been could did does from have just know like more much please really should some tell than that them then there these they this want were what when where which while with would your'.split(' '));
+function topicWords(text){return new Set(String(text||'').toLowerCase().match(/[a-z]{4,}/g)?.filter(w=>!COMMON_WORDS.has(w))||[])}
+function contextRelevance(query,text){const words=topicWords(query),candidate=topicWords(text);let hits=0;for(const w of words){if(candidate.has(w))hits+=2;else if([...candidate].some(t=>t.startsWith(w.slice(0,5))))hits+=.7;}return hits}
+function relevantRecords(records,query,limit=5){return (records||[]).map((record,index)=>({record,index,score:contextRelevance(query,record.text||record.description||record.note||'')+Math.max(0,2-index*.07)})).sort((a,b)=>b.score-a.score).slice(0,limit).map(x=>x.record)}
+function buildTaviContext(userText='',decision=null){
+ const goal=state.goals.find(g=>g.status==='active')||null;
+ const target=state.brain.target;
+ const region=M.regions[state.area];
+ const memories=relevantRecords(state.memories,userText,6).map(m=>({id:m.id,when:m.time,place:m.area,interest:m.interest,text:String(m.text).slice(0,220)}));
+ const experiences=relevantRecords(state.development.experienceHistory,userText,5).map(x=>({kind:x.kind,when:x.when,description:String(x.description).slice(0,200)}));
+ const books=relevantRecords(state.learning.knowledge.map(k=>({...k,text:[k.concept,k.note,k.book].join(' ')})),userText,4).map(k=>({book:k.book,concept:k.concept,note:String(k.note||'').slice(0,205),kind:k.kind,source:k.source}));
+ const journals=relevantRecords(state.journal,userText,5).map(j=>({when:j.time,type:j.kind,place:j.area,text:String(j.text).slice(0,170)}));
+ const recentDialogue=state.conversation.filter(m=>m.source!=='pending'&&m.source!=='interrupted').slice(-9).map(m=>({who:m.role==='user'?'user':'Tavi',message:String(m.text).slice(0,400),origin:m.source}));
+ const namedInterests=Object.entries(state.interests).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([name,value])=>({name,value:Math.round(value)}));
+ const context={kind:'tavi-grounded-conversation-v2',latestUserMessage:String(userText).slice(0,420),
+  tavi:{place:region?.name||'Living Valley',presentActivity:target?{place:target.name,activity:target.activity,status:state.brain.mode,reason:target.reason}:null,lastAction:state.lastAction||null,currentThought:String(state.thought||'').slice(0,220),
+   energy:Math.round(state.stats.energy),happiness:Math.round(state.stats.happiness),curiosity:Math.round(state.stats.curiosity),modeledEmotions:state.emotions,
+   learnedDisposition:state.development.traits,learnedExpectations:state.development.expectations,
+   currentGoal:goal?{title:goal.title,interest:goal.interest,progress:goal.progress}:null,interests:namedInterests,
+   mostRecentArt:state.art[0]?{title:state.art[0].title,reference:state.art[0].reference||null}:null},
+  evidence:{memories,experiences,journal:journals,books,videoStudies:state.learning.videoLessons.slice(0,2).map(v=>({title:v.title,colors:v.colors})),recentResearch:state.learning.internet.reads.slice(0,2).map(r=>({title:r.title,url:r.url,excerpt:String(r.excerpt||'').slice(0,170)}))},
+  recentConversation:recentDialogue,
+  suggestionDecision:decision?{accepted:!!decision.accepted,reason:decision.reason||'',selectedActivity:decision.propName||'',score:decision.score}:null};
+ return context;
+}
+function contextTags(context){const tags=[];
+ if(context.tavi.currentGoal)tags.push('Active goal: '+context.tavi.currentGoal.title);
+ if(context.tavi.presentActivity)tags.push('Current activity: '+context.tavi.presentActivity.activity+' at '+context.tavi.presentActivity.place);
+ for(const m of context.evidence.memories.slice(0,2))tags.push('Saved memory: '+m.text.slice(0,90));
+ for(const b of context.evidence.books.slice(0,1))tags.push('Book: '+b.book);
+ for(const x of context.evidence.experiences.slice(0,1))tags.push('Past experience: '+x.description.slice(0,90));
+ return tags.slice(0,6);
+}
+const TAVI_DIALOGUE_PROMPT=[
+ 'You are speaking as Tavi, an original virtual creature with an evolving simulated personality and a personal history. Talk directly to your human companion in first person, in a distinctive, natural voice.',
+ 'You do not need to sound cheerful or agreeable. Form an opinion from your goals, learned traits, situation and past experiences; express uncertainty, mixed feelings or disagreement when warranted. Show curiosity by asking a specific question only when genuinely motivated.',
+ 'Your memories, books, current action and last conversation are provided as evidence, not dialogue to parrot. Cite one concrete personal experience or activity when relevant; avoid repeating the same details every time.',
+ 'Do not claim to remember, have read, seen, done or learned anything absent from the supplied context. If you do not know something, say so. Do not invent personal experiences or claim that a simulated emotion establishes real consciousness.',
+ 'For a suggested activity, follow suggestionDecision exactly; never say you accepted if the decision says declined, or vice versa. You may still express your own reasons in your own words.',
+ 'Reply appropriately to the actual latestUserMessage, not to a prewritten fallback. Avoid numerical emotion scores, boilerplate disclaimers and generic greetings unless specifically asked.',
+ 'Use natural length: one short sentence for a simple exchange, a few thoughtful sentences for deeper questions (maximum about 850 characters).',
+ 'Return only a JSON object with fields {"reply":"your actual response","focus":"optional one of cozy,stories,food,art,craft,nature,music,science,time,mystery,gardening or empty string"}. No Markdown fences, tools, or commands.'
+].join(' ');
+async function requestOllamaConversation(item,decision,userMessage){
  const ai=state.brain.ai;if(!ai.enabled||lab.active)return;
+ runtime.chatPending=true;
+ const context=buildTaviContext(userMessage,decision);
+ item.contextTags=contextTags(context);
  try{
-  const context={lastMessages:state.conversation.slice(-8).map(v=>({role:v.role,text:v.text.slice(0,300)})),modeledEmotions:state.emotions,development:state.development.traits,knownBooks:state.learning.knowledge.slice(-4).map(k=>({book:k.book,note:k.note,kind:k.kind,source:k.source})),lastMemories:state.memories.slice(0,4).map(m=>m.text.slice(0,140)),suggestionDecision:reply};
   const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),86000);let res;
-  try{res=await fetch('/api/brain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:ai.model,instruction:'You are Tavi, a fictional autonomous creature. Answer the user in first person using the supplied actual conversation and memories. Keep under 350 characters. Do not pretend to have real emotions or consciousness. If there was a suggestion decision, honor it exactly and do not issue commands. Return JSON only: {"reply":"short response"}.',context}),signal:ctrl.signal})}finally{clearTimeout(timer)}
+  try{res=await fetch('/api/brain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:ai.model,instruction:TAVI_DIALOGUE_PROMPT,context}),signal:ctrl.signal})}finally{clearTimeout(timer)}
   const data=await readOllamaResponse(res);
-  if(typeof data.reply==='string'&&data.reply.trim()&&item===state.conversation.find(v=>v.id===item.id)){
-   const spoken=data.reply.trim().slice(0,350);if(reply&&reply.accepted&&!/\b(going|try|visit|heading|explor)/i.test(spoken))return;
-   item.text=spoken;item.source='ollama';save();if(tab==='talk')sidebar();
+  if(typeof data.reply!=='string'||!data.reply.trim())throw Error('Ollama did not provide a conversational reply.');
+  if(!state.conversation.some(v=>v.id===item.id)||lab.active)return;
+  item.text=data.reply.trim().slice(0,900);item.source='ollama';item.error=null;
+  if(typeof data.focus==='string'&&INTERESTS.includes(data.focus)){
+   state.interests[data.focus]=clamp((state.interests[data.focus]||20)+.75);
   }
- }catch(e){ai.lastResult='Conversation used local fallback: '+String(e.message||e).slice(0,145);save();if(tab==='talk')sidebar();}
+  recordExperience('conversation','I explored a conversation about: '+userMessage.slice(0,100),{origin:'local-ollama',focus:data.focus||null,reply:item.text.slice(0,300)});
+  ai.lastResult='Connected · '+new Date().toLocaleTimeString();
+ }catch(e){
+  // A clearly labeled fallback, never disguised as a model-generated reply.
+  if(state.conversation.some(v=>v.id===item.id)){
+   item.text=decision?.reply||localTalkReply(userMessage);
+   item.source='local';item.error=String(e.message||e).slice(0,190);
+  }
+  ai.lastResult='Conversation used local fallback: '+String(e.message||e).slice(0,145);
+ }finally{runtime.chatPending=false;save();if(tab==='talk')sidebar()}
 }
 function talkToTavi(text){
  const clean=String(text||'').trim().slice(0,420);if(!clean)return null;
+ if(state.brain.ai.enabled&&!lab.active&&runtime.chatPending){toast('Tavi is still considering your last message.');return null}
  addDialogue('user',clean,'human');
  const isSuggestion=/\b(suggest|please|could you|can you|would you|try|go to|visit|make|draw|paint|study|read|explore)\b/i.test(clean);
  const prop=isSuggestion?matchSuggestedProp(clean):null;
  const suggestion=prop?suggestTaviActivity(prop):null;
- let response=suggestion?.reply||localTalkReply(clean);
- const item=addDialogue('tavi',response,'local',{suggestion:suggestion?{propId:prop.id,...suggestion}:null});
+ if(suggestion)suggestion.propName=prop.name;
+ const modelEnabled=state.brain.ai.enabled&&!lab.active;
+ const item=addDialogue('tavi',modelEnabled?'Considering your question…':(suggestion?.reply||localTalkReply(clean)),modelEnabled?'pending':'local',{suggestion:suggestion?{propId:prop.id,...suggestion}:null});
  state.development.traits.trust=clamp(state.development.traits.trust+.08);
  journal('My friend talked with me about '+clean.slice(0,90)+'.','conversation');
  if(lab.active)trialEvent('conversation','Conversation',clean.slice(0,110));
- save();requestOllamaConversation(item,suggestion);return item;
+ save();if(modelEnabled)requestOllamaConversation(item,suggestion,clean);return item;
 }
 function makeArt(when=Date.now()){
  const hues=[['#284e5b','#88d5b9','#f6d68c','#ee9aa0'],['#423e74','#a8b7db','#e7ba84','#9bcf95'],['#315f4d','#91c47f','#f0dfb3','#cf9aac']];
@@ -1340,8 +1401,10 @@ function chooseIntent(){if(state.paused||state.brain.target)return;
  for(const prop of M.props){const score=activityScore(prop);if(lab.active)rankings.push({prop,score});if(score>bestScore){bestScore=score;best=prop}}
  if(!best)return;
  if(lab.active){rankings.sort((a,b)=>b.score-a.score);lab.active.decisions++;lab.lastReason=trialReason(best,rankings);lab.active.lastReason=lab.lastReason;trialEvent('decision','Model selected '+best.name,lab.lastReason)}
+ const modelSuggestion=state.brain.ai.pending;
+ const fromModel=!!(modelSuggestion&&best.area===modelSuggestion.area&&best.obj===modelSuggestion.obj);
  state.brain.ai.pending=null;
- setDestination(best,'autonomous');
+ setDestination(best,fromModel?'ollama-reasoned':'autonomous');
 }
 function setDestination(prop,reason='autonomous'){
  if(!prop)return false;
@@ -1353,6 +1416,7 @@ function setDestination(prop,reason='autonomous'){
   x:goal.x+.5,y:goal.y+.5,reason};
  state.brain.mode='travel';state.brain.work=0;runtime.path=path;runtime.index=0;
  state.thought=reason==='suggested'?`My friend suggested ${prop.name.toLowerCase()}. I will walk there!`:
+  reason==='ollama-reasoned'&&state.brain.ai.history.length?state.brain.ai.history.at(-1).thought:
   `I want to ${prop.activity} at ${prop.name.toLowerCase()} in ${M.regions[prop.area].name}.`;
  runtime.nextDecision=Date.now()+45000;
  return true;
@@ -1585,19 +1649,19 @@ function renderComparison(host){heading(host,'Compare experiences','Compare how 
  const clear=el('button','Clear archived runs');clear.className='danger small';clear.onclick=()=>{if(confirm('Delete all recorded experiment runs from this browser? Export first if you need them. This will not reset Tavi.')){lab.runs=[];persistNotebook();sidebar()}};host.append(clear)
 }
 function renderTalk(host){
- heading(host,'Talk with Tavi','Conversation and suggestions become part of his history. Local replies work without Ollama; optional Ollama can personalize the dialogue.');
- const status=el('div',state.brain.ai.enabled&&!lab.active?'Ollama is enabled; local dialogue works if it is unavailable.':'Local rule-based dialogue · no network required');status.className='knowledge-note';host.append(status);
+ heading(host,'Talk with Tavi','Tavi can draw on his actual memories, current choices and evolving preferences. Ollama creates unscripted dialogue when enabled; a labeled local fallback remains available.');
+ const status=el('div',state.brain.ai.enabled&&!lab.active?(runtime.chatPending?'Tavi is composing an Ollama reply…':'Ollama dialogue enabled · replies reflect the context supplied; inspect each reply below.'):'Local rule-based dialogue · no network required');status.className='knowledge-note';host.append(status);
  const log=el('div');log.className='conversation-stream';log.setAttribute('role','log');log.setAttribute('aria-label','Conversation with Tavi');
- const recent=state.conversation.slice(-26);for(const m of recent){const row=el('div');row.className='dialogue '+(m.role==='user'?'from-user':'from-tavi');row.append(el('strong',m.role==='user'?'You':'Tavi'));row.append(el('p',m.text));const meta=el('small',(m.source==='ollama'?'Local Ollama':m.role==='tavi'?'Simulated local reply':'Your message')+' · '+new Date(m.at).toLocaleTimeString());row.append(meta);log.append(row)}
+ const recent=state.conversation.slice(-26);for(const m of recent){const row=el('div');row.className='dialogue '+(m.role==='user'?'from-user':'from-tavi');row.append(el('strong',m.role==='user'?'You':'Tavi'));row.append(el('p',m.text));const meta=el('small',(m.source==='ollama'?'Local Ollama · generated':m.source==='pending'?'Ollama · considering':m.source==='ollama-initiative'?'Tavi initiated · Local Ollama':m.source==='interrupted'?'Interrupted reply':m.role==='tavi'?'Rule-based local reply':'Your message')+' · '+new Date(m.at).toLocaleTimeString());row.append(meta);if(m.error)row.append(el('small','Model unavailable: '+m.error));if(m.source==='ollama'&&Array.isArray(m.contextTags)&&m.contextTags.length){const det=el('details');det.append(el('summary','Context supplied to the model'));for(const tag of m.contextTags)det.append(el('p',tag));row.append(det)}log.append(row)}
  if(!recent.length)log.append(el('p','Say hello, ask Tavi what he remembers, or suggest that he paint, read, or explore.'));
  host.append(log);requestAnimationFrame(()=>{log.scrollTop=log.scrollHeight});
  const form=el('form');form.className='talk-form';const label=el('label','Your message');label.htmlFor='talkInput';form.append(label);
  const textarea=el('textarea');textarea.id='talkInput';textarea.rows=3;textarea.maxLength=420;textarea.placeholder='e.g. What do you remember? Could you paint something new?';form.append(textarea);
- const send=el('button','Send to Tavi');send.type='submit';send.className='primary-action';form.append(send);
+ const send=el('button','Send to Tavi');send.type='submit';send.className='primary-action';send.disabled=!!(runtime.chatPending&&state.brain.ai.enabled&&!lab.active);form.append(send);
  form.onsubmit=e=>{e.preventDefault();if(!textarea.value.trim())return;talkToTavi(textarea.value);sidebar();};host.append(form);
  const suggestBox=el('details');const sm=el('summary','Suggest a specific activity');suggestBox.append(sm);
  const select=el('select');select.className='field';select.setAttribute('aria-label','Choose an activity to suggest');for(const p of M.props){const opt=el('option',p.name+' · '+M.regions[p.area].name);opt.value=p.id;select.append(opt)}suggestBox.append(select);
- const action=el('button','Ask Tavi to consider this');action.className='secondary small';action.onclick=()=>{const p=M.props.find(x=>x.id===select.value);if(!p)return;addDialogue('user','Would you consider visiting '+p.name+'?', 'human');const out=suggestTaviActivity(p);addDialogue('tavi',out.reply,'local',{suggestion:{propId:p.id,...out}});save();sidebar()};suggestBox.append(action);host.append(suggestBox);
+ const action=el('button','Ask Tavi to consider this');action.className='secondary small';action.onclick=()=>{const p=M.props.find(x=>x.id===select.value);if(!p)return;talkToTavi('Would you consider visiting '+p.name+'?');sidebar()};suggestBox.append(action);host.append(suggestBox);
 }
 function renderBooks(host){
  heading(host,'Classical library','Four public-domain classics, with short curated study notes stored offline and links to the complete original books. Tavi records the source and whether a passage represents science, history, fable or fiction.');
@@ -1731,12 +1795,13 @@ function sidebar(){
   heading(host,'Emerging interests','Tavi’s favorite topics influence decisions.');
   for(const [k,v] of Object.entries(state.interests).sort((a,b)=>b[1]-a[1]))card(host,k,Math.round(v)+'/100');
  }else if(tab==='settings'){
-  heading(host,'Local Ollama brain','Optional; the independent local simulation always keeps running.');
+  heading(host,'Local Ollama brain','Ollama generates dialogue from Tavi’s saved experiences and proposes autonomous choices; the simulation validates actions and continues offline.');
   card(host,'Connection',state.brain.ai.lastResult||'Not connected','Model: '+state.brain.ai.model);
   const toggle=el('button',state.brain.ai.enabled?'Disable Ollama advice':'Enable Ollama advice');toggle.onclick=()=>{state.brain.ai.enabled=!state.brain.ai.enabled;state.brain.ai.lastCall=0;save();sidebar()};host.append(toggle);
   const test=el('button','Test local connection');test.className='secondary';test.onclick=()=>testLocalOllama();host.append(test);
+  const reflectNow=el('button','Invite Tavi to choose independently');reflectNow.className='secondary';reflectNow.disabled=!state.brain.ai.enabled||!!lab.active;reflectNow.onclick=()=>pollAI(true);host.append(reflectNow);
   const model=el('input');model.className='field';model.value=state.brain.ai.model;model.placeholder='Local Ollama model name (example: tavi)';model.maxLength=70;model.onchange=()=>{state.brain.ai.model=model.value.trim().replace(/[^a-zA-Z0-9._:/-]/g,'')||'tavi';save()};host.append(model);
-  card(host,'Sandboxed model','The local model can suggest only a valid landmark and a short reflection. The simulator validates its suggestion. No code, system commands, account access or world edits are permitted.');
+  card(host,'Sandboxed model','Ollama can generate independent reasons, propose one permitted activity, and sometimes initiate a relevant question. The simulator validates all proposed actions. No code, system commands, account access or world edits are permitted.');
   heading(host,'World and display');
   for(const [title,func] of [['Show pixel grid',()=>{showGrid=!showGrid;toast('Pixel grid '+(showGrid?'enabled':'disabled'))}],['Show all landmark labels',()=>{showSigns=!showSigns;toast('Signs '+(showSigns?'shown':'hidden'))}]] ){
    const btn=el('button',title);btn.className='secondary';btn.onclick=func;host.append(btn)
@@ -1828,20 +1893,30 @@ async function testLocalOllama(){
  }finally{runtime.aiBusy=false;save();sidebar();toast(ai.lastResult)}
 }
 async function pollAI(force=false){const a=state.brain.ai;
- if(lab.active||(!a.enabled&&!force)||runtime.aiBusy||state.paused||document.hidden)return;
+ if(lab.active||(!a.enabled&&!force)||runtime.aiBusy||runtime.chatPending||state.paused||document.hidden)return;
  if(!force&&Date.now()-a.lastCall<100000)return;
  runtime.aiBusy=true;a.lastCall=Date.now();
  try{
   const choices=M.props.map(p=>({area:p.area,obj:p.obj,name:p.name,interest:p.interest,place:M.regions[p.area].name}));
-  const payload={model:a.model,context:{needs:state.stats,emotions:state.emotions,learnedTraits:state.development.traits,lifeExperiences:state.development.experienceHistory.slice(0,6).map(x=>x.description),interests:Object.entries(state.interests).sort((x,y)=>y[1]-x[1]).slice(0,6),recentMemories:state.memories.slice(0,8).map(v=>v.text.slice(0,160)),goal:state.goals.find(v=>v.status==='active')||null,currentArea:M.regions[state.area].name,options:choices},
-   instruction:'You are Tavi, a curious fictional creature in an original pixel-art world. Think gently about your memories, needs, goals and interests. Reply with JSON ONLY containing {"area":integer,"obj":integer,"thought":"a first-person imaginative sentence under 180 characters"}. Select exactly one available area and obj from options. No commands, tools, code, external actions, claims of consciousness, or permanent edits.'};
+  const autonomousContext=buildTaviContext('What would I choose to do next, given my own interests and recent experiences?');
+  const payload={model:a.model,context:{tavi:autonomousContext.tavi,evidence:autonomousContext.evidence,recentConversation:autonomousContext.recentConversation.slice(-5),options:choices},
+   instruction:'You are Tavi, a virtual creature with a persistent simulated personality. Independently choose one activity from the exact options list using your ongoing goals, preferences, actual memories and what you are currently doing. Give a concrete, distinctive first-person reason based on supplied evidence, not a generic inspirational phrase. No claims of real consciousness; no invented memories or unsupported knowledge. Return JSON ONLY: {"area":integer,"obj":integer,"thought":"your original reason in 1-2 sentences under 250 characters","question":"optional specific question for your human (or empty string)"}. A question should reference a real memory, goal, or uncertainty; usually leave it empty. Choose an available area and obj. No commands, tools, external actions, or permanent edits.'};
   const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),86000);
   let res;try{res=await fetch('/api/brain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctrl.signal})}finally{clearTimeout(timer)}
   const parsed=await readOllamaResponse(res);
   if(!Number.isInteger(parsed.area)||!Number.isInteger(parsed.obj)||!M.props.some(p=>p.area===parsed.area&&p.obj===parsed.obj))throw Error('Model suggested an unknown landmark');
   a.pending={area:parsed.area,obj:parsed.obj};
+  if(typeof parsed.question==='string'&&parsed.question.trim()&&parsed.question.trim().length<=210&&Date.now()-(a.lastInitiativeAt||0)>1200000){
+    const question=parsed.question.trim();
+    if(!/(?:https?:|<|>|\b(?:execute|install|purchase|buy now)\b)/i.test(question)){
+      addDialogue('tavi',question,'ollama-initiative');a.lastInitiativeAt=Date.now();
+      journal('I formed a question for my friend: '+question.slice(0,170),'question');
+      toast('Tavi has a new question in Connect → Talk');
+      if(tab==='talk')sidebar();
+    }
+  }
   if(typeof parsed.thought==='string'&&parsed.thought.trim()){
-    state.thought=parsed.thought.trim().slice(0,180);a.history.push({time:Date.now(),thought:state.thought});a.history.length=Math.min(a.history.length,45);journal('I considered a new idea: '+state.thought,'reflection');
+    state.thought=parsed.thought.trim().slice(0,250);a.history.push({time:Date.now(),thought:state.thought});a.history.length=Math.min(a.history.length,45);journal('I considered a new idea: '+state.thought,'reflection');
   }
   a.lastResult='Connected · '+new Date().toLocaleTimeString();
   if(state.brain.mode==='idle'){runtime.nextDecision=0;chooseIntent()}
@@ -1962,7 +2037,7 @@ function init(){
  runtime.nextDecision=Date.now()+2000;runtime.lastFrame=performance.now();requestAnimationFrame(loop);
  setInterval(()=>pollAI(),11000);setInterval(()=>autonomousResearch(),45000);
 }
-window.TaviApp={get state(){return state},get camera(){return runtime.camera},get zoom(){return runtime.zoom},zoomTo,snapToTavi,get route(){return runtime.path},get lab(){return lab},setDestination,chooseIntent,save,exportSave,beginTrial,endTrial,discardTrial,repeatTrial,updateTrialFactors,restoreLearningBackup,talkToTavi,readBook,learnVideoLesson,analyzeLocalVideo,suggestTaviActivity,researchUrl,autonomousResearch,debug:{get spawned(){return M.props.length},get visited(){return Object.keys(state.world.visited).length}}};
+window.TaviApp={get state(){return state},get camera(){return runtime.camera},get zoom(){return runtime.zoom},zoomTo,snapToTavi,get route(){return runtime.path},get lab(){return lab},setDestination,chooseIntent,save,exportSave,beginTrial,endTrial,discardTrial,repeatTrial,updateTrialFactors,restoreLearningBackup,talkToTavi,pollAI,readBook,learnVideoLesson,analyzeLocalVideo,suggestTaviActivity,researchUrl,autonomousResearch,debug:{get spawned(){return M.props.length},get visited(){return Object.keys(state.world.visited).length}}};
 try{init()}catch(err){console.error('Tavi initialization:',err);const splash=$('startupSplash');if(splash){splash.hidden=false;splash.innerHTML='';const h=el('h2','Tavi encountered an initialization error');const p=el('p',String(err?.stack||err));splash.append(h,p)}}
 })();
 </script>
