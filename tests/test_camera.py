@@ -78,6 +78,17 @@ with sync_playwright() as p:
     assert page.evaluate('TaviApp.zoom')>prefs['zoom']
     print('✓ Touch pinch zoom')
     assert not errors,errors
+    # Camera preferences restore independently of Tavi's saved development.
+    stored=page.evaluate('localStorage._dump()')
+    checkpoint=page.evaluate('({...TaviApp.camera,zoom:TaviApp.zoom})')
+    other=browser.new_page(viewport={'width':1280,'height':860})
+    other_errors=install(other,stored)
+    restored=other.evaluate('({...TaviApp.camera,zoom:TaviApp.zoom})')
+    assert abs(restored['zoom']-checkpoint['zoom'])<.001,(checkpoint,restored)
+    assert abs(restored['x']-checkpoint['x'])<.1 and abs(restored['y']-checkpoint['y'])<.1,(checkpoint,restored)
+    assert not other_errors,other_errors
+    print('✓ View position and zoom restore after reload')
+    other.close()
     page.screenshot(path=str(ROOT/'docs'/'preview-camera-desktop.png'),full_page=True)
     print('ALL CAMERA TESTS PASSED')
     browser.close()
