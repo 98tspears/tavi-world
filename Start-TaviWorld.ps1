@@ -134,8 +134,8 @@ try {
           $context.Response.OutputStream.Write($bytes,0,$bytes.Length)
         } catch {
           $context.Response.StatusCode=502
-          $error = @{error=('Read failed: '+[string]$_.Exception.Message).Substring(0,[Math]::Min(180,('Read failed: '+[string]$_.Exception.Message).Length))} | ConvertTo-Json -Compress
-          $bytes = [Text.Encoding]::UTF8.GetBytes($error)
+          $errorJson = @{error=('Read failed: '+[string]$_.Exception.Message).Substring(0,[Math]::Min(180,('Read failed: '+[string]$_.Exception.Message).Length))} | ConvertTo-Json -Compress
+          $bytes = [Text.Encoding]::UTF8.GetBytes($errorJson)
           $context.Response.ContentLength64=$bytes.Length
           $context.Response.OutputStream.Write($bytes,0,$bytes.Length)
         } finally {
@@ -254,13 +254,21 @@ try {
       $message=[string]$_.Exception.Message
       if($message.Length -gt 240){$message=$message.Substring(0,240)}
       Write-Host ('[TAVI SERVER ERROR] ' + $message) -ForegroundColor Red
-      try {
-        if ($context.Request.Url.AbsolutePath -like '/api/*') {
-          Send-TaviJson $context.Response 500 @{error='Tavi server error; see the PowerShell launcher diagnostic.';code='SERVER_EXCEPTION'}
-        } else {
-          $context.Response.StatusCode = 500
+      # Some earlier routes intentionally close their response before returning.
+      # If a later exception concerns a disposed response, do not send twice.
+      if ($message -notmatch '(?i)disposed object|cannot access a closed') {
+        try {
+          if ($context.Request.Url.AbsolutePath -like '/api/*') {
+            Send-TaviJson $context.Response 500 @{error='Tavi server error; see the PowerShell launcher diagnostic.';code='SERVER_EXCEPTION'}
+          } else {
+            $context.Response.StatusCode = 500
+          }
+        } catch [System.ObjectDisposedException] {
+          Write-Host '[TAVI SERVER] Response already closed; skipping duplicate error response.' -ForegroundColor Yellow
+        } catch {
+          Write-Host ('[TAVI SERVER SEND FAILED] ' + [string]$_.Exception.Message) -ForegroundColor Red
         }
-      } catch { Write-Host ('[TAVI SERVER SEND FAILED] ' + [string]$_.Exception.Message) -ForegroundColor Red }
+      }
     } finally {
       try { $context.Response.Close() } catch {}
     }
