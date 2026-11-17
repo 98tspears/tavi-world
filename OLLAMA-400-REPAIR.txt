@@ -1,0 +1,11 @@
+TAVI WORLD - OLLAMA HTTP 400 REPAIR
+
+1. Close older Tavi launcher windows and extract the new ZIP.
+2. Run START-TAVI-WORLD.bat.
+3. In the same browser, open http://localhost:8765/.
+4. Profile > Settings: confirm model name, test local connection, and enable Ollama advice.
+5. Connect > Talk: ask Tavi about his own recent experiences.
+6. Profile > Settings: click Invite Tavi to choose independently.
+7. If HTTP 400 returns, copy the [Tavi Ollama HTTP 400] line in the launcher.
+
+The patch preserves Tavi's original save key and all existing memories.
