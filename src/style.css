@@ -12,3 +12,163 @@ footer{text-align:center;font-size:11px;letter-spacing:.3px;color:#9ab8a8;paddin
 @media(max-width:940px){.page{grid-template-columns:1fr;max-width:940px}.side-panel{min-height:0}#sidebarContent{min-height:300px;max-height:500px}.mini-map{width:160px}.top-info{display:none}}
 @media(max-width:560px){header{padding:10px 10px 13px}.brand{gap:9px}.brand-icon{width:42px;height:42px;font-size:21px}h1{font-size:25px}.subtitle{font-size:10px}.page{padding:0 6px 14px;gap:10px}.play-panel{padding:8px}.game-top{padding:2px 4px 10px}.region-marker{width:27px;height:27px;font-size:12px}.game-top h2{font-size:16px}.mini-map{width:100px;top:7px;right:7px;padding:4px;border-width:1px}.mini-map-caption{font-size:8px}.location-badge{top:7px;left:7px;font-size:9px;padding:3px 5px}.world-stage{border-width:3px;outline-width:1px}.game-bottom{padding:10px 0 0}.control-group{gap:4px}.control-group button{padding:7px 8px;font-size:10px}.meter-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding-top:10px}.stat{padding:6px 8px}.stat-track{margin-top:6px}.living-card{padding:13px 14px;margin-top:11px;gap:9px}.living-card:before{width:30px;height:30px;font-size:17px}.living-card #thought{font-size:15px}.side-panel{padding:9px}.help-panel{left:7px;bottom:7px;max-width:260px;font-size:11px}.tip{font-size:11px;padding:10px 3px 0}.map-inner{padding:10px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ----- Colorful Valley UI revision: world first, cohesive saturated RPG palette ----- */
+:root{
+ color-scheme:dark;
+ --navy:#17384a;--ink:#143342;--deep:#081d30;--teal:#40cbb7;--mint:#9be9c0;
+ --cream:#fff2cb;--gold:#ffcf70;--muted:#bfd6dc;--line:#507e96;--wood:#93694f;
+ --danger:#c75c72;--panel:#14394c;--panel-bright:#1b5060;
+}
+html,body{background:#081d30;color:#edf8f2}
+body{background:radial-gradient(ellipse at 10% 0,#216a79 0%,#103746 37%,#071c30 76%) fixed}
+header{max-width:1720px;padding:16px 22px 13px;gap:15px}
+.brand-icon{border:2px solid #ffd27d;background:linear-gradient(145deg,#31bdb8,#116f87);color:#fff6c4;box-shadow:0 4px 0 #0b2431,0 0 0 3px #125465;width:51px;height:51px}
+.brand .eyebrow{color:#ffda91;letter-spacing:1.8px}
+h1{color:#fff6d6;font:800 30px/1.1 Georgia,serif;text-shadow:0 2px #103d51}
+h1 span{color:#94f2c3}
+.subtitle{color:#c2e5df;font-size:10px;letter-spacing:1.05px;font-weight:700}
+.top-info{gap:10px;max-width:58%}
+.chip{border:1px solid #4c8b9a;background:#10384ae8;border-radius:13px;color:#e0f7ec;box-shadow:inset 0 1px #ffffff20;padding:8px 12px}
+.chip strong{color:#ffdf9e}
+.chip-status{max-width:340px}
+.chip-status span span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px}
+.dot{background:#79f5ba;box-shadow:0 0 10px #54f3b5}
+.page{max-width:1720px;grid-template-columns:minmax(0,1fr) 320px;gap:14px;padding:0 17px 24px}
+.page.journal-closed{grid-template-columns:minmax(0,1fr)}
+.page.journal-closed .side-panel{display:none}
+.panel{border:1px solid #497f98;border-radius:16px;background:linear-gradient(155deg,#1a4d59,#112f43);box-shadow:0 7px 0 #06172b70,0 20px 38px #0005}
+.play-panel{padding:12px}
+.game-top{padding:1px 5px 12px}
+.region-marker{background:#ffd583;box-shadow:inset 0 0 0 4px #c18c55;border-color:#fff2c5;color:#21515b}
+.location-overline{font:800 9px/1.3 ui-monospace,Consolas,monospace;letter-spacing:1.7px;color:#80e5cc}
+.game-top h2{font:bold 22px/1.25 Georgia,serif;color:#fff2c7;margin:2px 0 0}
+#areaDesc{color:#c5dfda;font-size:12px}
+.visited-chip{padding:7px 13px;min-width:112px;justify-content:center}
+.visited-chip strong{font-size:16px;color:#fff0b9}
+.visited-chip small{color:#bbe8de}
+.world-stage{border:4px solid #f5cb7b;outline:2px solid #41788b;background:#2e88a1;border-radius:10px;box-shadow:inset 0 0 0 4px #164e61,0 4px 0 #0e3040}
+.world-stage::after{box-shadow:inset 0 0 0 1px #ffffff3a;pointer-events:none}
+.location-badge{background:#0a4250db;color:#fff1c9;border-left:3px solid #ffdc88;border-radius:3px 7px 7px 3px;font-weight:800;letter-spacing:1px;font-size:10px;padding:6px 9px}
+.mini-map{border:2px solid #f1c973;background:#0c3144f5;border-radius:11px;width:158px;box-shadow:0 5px 0 #0b2935b2}
+.mini-map canvas{border:1px solid #a9d8ce;border-radius:3px}
+.mini-map-caption{color:#fff0c2;letter-spacing:1px}
+.mini-map-caption span{color:#a8f0dc}
+.game-bottom{padding:12px 2px 2px}
+.control-group{width:100%;gap:7px;display:flex;flex-wrap:wrap}
+button{background:#235d70;border:1px solid #68a4ad;color:#eaffee;border-radius:10px;font-weight:700;box-shadow:inset 0 1px #ffffff21,0 3px #0c3040;transition:background .18s,transform .18s}
+button:hover{background:#307f8f}
+button:focus-visible{outline:3px solid #ffdc7f;outline-offset:2px}
+button:active{box-shadow:inset 0 1px #ffffff26,0 1px #0c3040}
+.control-group button{padding:9px 12px;font-size:12px;min-height:41px}
+.control-group .primary-action{background:linear-gradient(180deg,#f6d884,#f2aa5a);border-color:#fff0ae;color:#453621;box-shadow:inset 0 1px #fff7ca,0 3px #946744}
+.control-group .primary-action:hover{background:linear-gradient(180deg,#ffe29c,#f8bc70)}
+.control-group .journal-toggle{margin-left:auto;border-color:#79bacc;background:#246b79}
+.control-group .icon-button,.icon-button{min-width:40px;padding:8px 10px;text-align:center}
+button.secondary{background:#19475b;border-color:#527d91;color:#d3e9f4}
+.meter-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding-top:13px}
+.stat{border:1px solid #488ca1;background:linear-gradient(155deg,#1b5363,#184657);padding:11px 12px 10px;border-radius:11px;box-shadow:inset 0 1px #ffffff16}
+.stat-head{font-size:12px}
+.stat-head span{color:#e6f6ed}
+.stat-head strong{color:#fff4ca}
+.stat-glyph{display:inline-block;font-size:16px;line-height:12px;padding-right:4px;color:#ffdd89}
+.stat-track{height:9px;background:#102e3e;border-color:#2d7184;border-radius:9px}
+.stat-track b{border-radius:9px;background:linear-gradient(90deg,#4ccda4,#b0f09a)}
+.stat:nth-child(2) .stat-track b{background:linear-gradient(90deg,#ee819a,#ffbd9d)}
+.stat:nth-child(3) .stat-track b{background:linear-gradient(90deg,#54b9f0,#a7dcff)}
+.living-card{margin-top:12px;display:flex;gap:15px;padding:13px 17px;align-items:center;min-height:106px;background:linear-gradient(140deg,#215d67,#153b50)}
+.living-card:before{display:none}
+.portrait-wrap{width:81px;height:81px;flex:0 0 81px;display:flex;align-items:center;justify-content:center;border-radius:15px;background:radial-gradient(circle at 50% 45%,#ffe6a0,#c2df99 52%,#4dba99 85%);border:3px solid #e8c37d;box-shadow:0 3px 0 #084050, inset 0 0 0 2px #ffffff3b}
+.portrait-wrap canvas{width:77px;height:77px;image-rendering:pixelated;object-fit:contain}
+.thought-content{flex:1;min-width:0}
+.thought-header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:5px}
+.living-card h3{margin:0;font:bold 10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:2px;color:#ffde91}
+.mood-pill{font:800 10px/1.4 ui-monospace,Consolas,monospace;color:#0b4d53;border:1px solid #a5f6c8;background:#a3f2c5;border-radius:30px;padding:5px 10px;white-space:nowrap}
+.living-card #thought{font:italic 17px/1.4 Georgia,serif;color:#fff2d4}
+.thought-meta{display:flex;align-items:center;gap:9px;flex-wrap:wrap;color:#bfe8e6;font-size:11px;margin-top:7px}
+.thought-meta #activeIntent{color:#ffe3aa}
+.meta-dot{color:#58acae}
+.living-card #welcome{font-size:11px;color:#9fd3d0;margin-top:6px}
+.tip{color:#afd2cf;font-size:11px;padding:9px 5px 0}
+.side-panel{background:linear-gradient(155deg,#1c5265,#113044);padding:14px;min-height:650px;display:flex;flex-direction:column}
+.side-heading{margin-bottom:13px;align-items:start}
+.side-heading h2{color:#fff2ca;font-size:22px;margin:3px 0}
+.side-heading .eyebrow{color:#8de7d8;letter-spacing:1.3px;font-size:9px}
+.side-heading #closeJournal{border-radius:10px;width:34px;height:34px;min-width:34px;min-height:34px;padding:5px}
+.journal-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:4px;border-radius:12px;background:#0c2d3ed9;border:1px solid #366c7c;margin-bottom:11px}
+.journal-groups button{padding:9px 3px;background:transparent;box-shadow:none;border:1px solid transparent;border-radius:9px;color:#add3d3;font-size:12px}
+.journal-groups button.active{background:linear-gradient(180deg,#65d8c2,#3db49d);border-color:#b6f5dd;color:#124954;box-shadow:0 2px #155d68}
+.tabs{display:flex;flex-wrap:wrap;overflow:visible;gap:5px;border-bottom:1px solid #4c8994;padding:0 0 12px;margin-bottom:8px}
+.tabs button{padding:6px 9px;border:1px solid #457b88;border-radius:9px;background:#1e566b;color:#c7e8e4;box-shadow:none;font-size:11px}
+.tabs button.active{background:#ffe2a4;color:#355066;border-color:#fff0c5;box-shadow:inset 0 1px #fff7db;font-weight:800}
+#sidebarContent{flex:1;min-height:320px;height:min(65vh,740px);overflow-y:auto;scrollbar-color:#4e8998 #0c3041;padding:3px 4px 10px}
+#sidebarContent h3{color:#ffdda2;font-size:17px;margin-top:12px}
+#sidebarContent>p{color:#c3dedc}
+.record{background:#163b50;border:1px solid #3f7589;border-radius:12px;padding:11px 12px;margin:8px 0;box-shadow:inset 0 1px #ffffff0b}
+.record strong{color:#ffe0a4}
+.record p{color:#deeeeb}
+.record small{color:#b0d2d0}
+.record button.small{font-size:11px}
+.mini-progress{background:#09293d}
+.mini-progress i{background:linear-gradient(90deg,#3cc6aa,#b8f196)}
+.field,textarea{background:#0e3244;border-color:#59899d;color:#fff5da}
+.journal-footer{padding:10px 3px 3px;font-size:10px;letter-spacing:.3px;color:#8fcac7;border-top:1px solid #3d7383;margin-top:8px}
+.map-inner{background:linear-gradient(155deg,#255b6f,#13334b);border-color:#ffd58c}
+#drawerScrim{position:fixed;inset:0;background:#041522c7;z-index:48;backdrop-filter:blur(3px)}
+#toast{background:#fff0bf;border-color:#f3c47b;color:#194f5a;box-shadow:0 5px #225166}
+.help-panel{background:#143f53f2;border-color:#ffd18c}
+.help-panel p{color:#e3f3ec}
+footer{color:#9bc8cb}
+@media(max-width:1180px){.page{grid-template-columns:minmax(0,1fr) 296px;gap:12px}.side-panel{padding:11px}}
+@media(max-width:940px){
+ .page,.page.journal-closed{grid-template-columns:minmax(0,1fr);max-width:980px}
+ .page .side-panel{display:flex;position:fixed;z-index:52;left:10px;right:10px;bottom:10px;top:auto;height:min(82dvh,740px);min-height:0;padding:14px 15px;border-radius:19px;box-shadow:0 25px 70px #000b;overflow:hidden}
+ .page.journal-closed .side-panel{display:none}
+ #sidebarContent{height:auto;min-height:0;max-height:none}
+ .top-info{max-width:48%;display:flex}
+ .chip-status{max-width:240px}
+ .chip-status span span{max-width:170px}
+}
+@media(max-width:560px){
+ header{padding:9px 10px 11px}
+ .brand{gap:9px}
+ .brand-icon{width:39px;height:39px;border-radius:10px;font-size:20px}
+ .brand .eyebrow{font-size:8px;letter-spacing:1px}
+ h1{font-size:23px}
+ .subtitle{font-size:8px;letter-spacing:.6px}
+ .top-info{gap:0}
+ .top-info .chip-status{display:none}
+ .top-info .chip{font-size:11px;padding:7px 9px;min-height:36px}
+ .page{padding:0 6px 16px;gap:10px}
+ .play-panel{padding:7px}
+ .game-top{padding:4px 4px 10px}
+ .game-top h2{font-size:18px}
+ .game-top #areaDesc{font-size:10px;max-width:240px}
+ .visited-chip{min-width:80px;padding:5px 7px;font-size:10px}
+ .visited-chip strong{font-size:13px}
+ .visited-chip small{font-size:9px}
+ .world-stage{border-width:3px;outline-width:1px}
+ .location-badge{top:7px;left:7px;font-size:8px;padding:4px 6px;letter-spacing:.4px}
+ .mini-map{width:93px;top:7px;right:7px;padding:4px;border-width:1px}
+ .mini-map-caption{font-size:7px}
+ .control-group{gap:5px}
+ .control-group button{font-size:10px;min-height:35px;padding:7px 9px}
+ .control-group .primary-action{flex:1 0 38%}
+ .control-group .journal-toggle{margin-left:0}
+ .meter-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding-top:11px}
+ .stat{padding:8px 6px}
+ .stat-head{font-size:10px;flex-wrap:wrap;gap:3px}
+ .stat-glyph{font-size:12px}
+ .stat-track{height:7px;margin-top:7px}
+ .living-card{margin-top:10px;padding:10px 11px;gap:10px;min-height:94px}
+ .portrait-wrap{width:62px;height:62px;flex-basis:62px;border-radius:12px}
+ .portrait-wrap canvas{width:59px;height:59px}
+ .living-card h3{font-size:9px;letter-spacing:1px}
+ .mood-pill{font-size:9px;padding:4px 6px}
+ .living-card #thought{font-size:14px}
+ .thought-meta{font-size:9px;gap:5px}
+ .side-panel{padding:12px}
+ .side-heading h2{font-size:20px}
+ .help-panel{max-width:min(300px,90%)}
+ .tip{font-size:10px}
+}
