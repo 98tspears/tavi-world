@@ -26,6 +26,25 @@ with sync_playwright() as p:
     page.locator('#zoomOut').click()
     assert isclose(page.evaluate('TaviApp.zoom'),1,abs_tol=0.01)
     print('✓ Zoom buttons and zoom label')
+    # New wide overview: minimum 30%, half of the former 60% limit.
+    # Confirm both the camera controller and renderer accept 30% rather than
+    # silently rendering the world with the obsolete 60% clamp.
+    page.evaluate('TaviApp.zoomTo(.6)')
+    baseline_view=960/.6
+    page.evaluate('TaviApp.zoomTo(.3)')
+    assert isclose(page.evaluate('TaviApp.zoom'),.3,abs_tol=.001)
+    assert page.locator('#zoomLevel').inner_text()=='30%'
+    assert page.locator('#zoomOut').is_disabled()
+    assert 960/page.evaluate('TaviApp.zoom')==baseline_view*2
+    assert page.evaluate('TaviApp.camera.x')>=0
+    assert page.evaluate('TaviApp.camera.y')>=0
+    # Bounds remain valid even at 30%, and the wide view is persisted.
+    assert page.evaluate('''() => TaviApp.camera.x <= TaviWorld.W*TaviVisuals.TILE-960/TaviApp.zoom + .01''')
+    page.evaluate('TaviApp.zoomTo(.1)')
+    assert isclose(page.evaluate('TaviApp.zoom'),.3,abs_tol=.001)
+    page.evaluate('TaviApp.zoomTo(1)')
+    print('✓ 30% wide-overworld minimum, zoom clamping, camera bounds')
+
     bounds=page.locator('#game').bounding_box()
     x=bounds['x']+bounds['width']*.42;y=bounds['y']+bounds['height']*.58
     anchor_before=page.evaluate('''(coords)=>({x:(TaviApp.camera.x+coords.x/TaviApp.zoom)/TaviVisuals.TILE,y:(TaviApp.camera.y+coords.y/TaviApp.zoom)/TaviVisuals.TILE})''',{'x':.42*960,'y':.58*600})
