@@ -1,65 +1,67 @@
-# Tavi World — Colorful Valley UI Edition
+# Tavi World — Lifelong Learning Sandbox
 
-**An original local-first, continuous pixel-art creature simulation.**
+**A local-first simulation of an autonomous fictional creature whose experiences can permanently influence later behavior.**
 
-Tavi lives in one connected overworld with paths between **12 named places**, 36 activities and an independently operating behavior system. The game is retro monster-adventure-inspired, but uses original art, names, world objects, and mechanics; it has no Pokémon or Nintendo assets.
+Tavi World is not a survival game or an achievement-driven RPG. The original continuous pixel-art world is a simulation environment: Tavi independently navigates, selects activities, makes art, forms goals, remembers events, and now **changes his learned dispositions and action preferences over time**. The research panel lets the observer introduce environmental conditions, compare simulated responses and either retain or discard a controlled trial.
 
-## Quick start (Windows)
+> The system implements a **rule-based model of artificial life**, not a conscious or biologically living organism. Emotions are numerical model states, and logged decision rationales summarize the model's programmed factors. No test in this build proves subjective awareness, real feelings, or human-like understanding.
 
-1. **Extract the entire ZIP**; do not launch from inside the ZIP viewer.
-2. Close previously running Tavi World launcher/PowerShell windows.
-3. Double-click `START-TAVI-WORLD.bat` in the extracted folder.
-4. The game opens in your browser at **http://localhost:8765/**. Keep the launcher window open while playing.
-5. Export your backup in **Settings** before experimenting with older versions.
+## What's different from the isolated sandbox
 
-If the launcher cannot open, `OPEN-TAVI-WITHOUT-SERVER.bat` offers an offline preview. Offline `file://` browser storage uses a different save origin; the offline preview will not show a save made via localhost. The offline preview cannot call Ollama.
+- **Long-term learned traits:** openness, resilience, trust, agency, focus, sensory tolerance. These evolve slowly under environmental conditions and repeated activities.
+- **Expectations and habituation:** Tavi acquires expectations about safety, novelty, social contact, noise, difficulty and choice. Unexpected drops in safety can affect responses differently based on prior experience.
+- **Learned action preferences:** activities gain modeled reward values based on prior experiences and current conditions. Tavi's future decisions use these values in addition to interests, needs, novelty, goals and travel distance.
+- **Episodic learning history:** significant experiences are recorded in a durable profile with cumulative experience counts. Ordinary autonomous activities also contribute to development.
+- **Commit by default, with control:** controlled experiences run in a recoverable checkpointed session. Press **Keep experience & finish** to merge the evolved self, including memories and learned preferences, into Tavi's original save. **Discard without learning** resets the trial to the original snapshot for controlled comparisons.
+- **Recoverable checkpoint:** before each committed trial, the previous self is copied to a separate local save. Restore it under **Profile → Settings → Restore pre-experience checkpoint**.
+- **Development dashboard:** **Profile → Development** displays lasting traits, emerging activity preferences, expectations, and experience history.
 
-## What changed in the Colorful Valley UI Edition
+## Start on Windows
 
-- **One seamless world** with a following camera and a full-map overview. The previous area-by-area scene buttons are no longer used.
-- **More vibrant original pixel-art palette:** brighter grass and flower meadows, deeper blue water, clearer forest highlights, warmer wood and brighter prop accents.
-- **Overworld-first, less-cluttered UI:** a colorful three-stat HUD (Energy, Happiness, Curiosity), Tavi's portrait, mood and current intention; an expandable grouped Journal (Explore, Stories, Tavi), and a mobile Journal drawer.
-- **Original pixel art** for roads, sand, rivers, forest, meadow, cutaway interiors, tools, furniture and sprite animation.
-- **36 integrated landmarks** are actual world entities with activity metadata. No random objects obscure the map.
-- **A* route planning**, walkability/collision checks, optional WASD movement, tap/click to travel, and interactive minimap.
-- **Autonomous activity choices**: Tavi chooses goals from energy, happiness, curiosity, interests, novelty, time of day, recent activity and distance, then travels, works and reflects. **No hunger or starvation model:** eating is an optional enjoyable experience that can increase happiness and an interest in food, never a survival obligation. Tavi can draw artwork, create goals, make discoveries, ask questions and request approval for permanent world changes.
-- **Persistent save compatibility** with the existing `tavi-world-windows-living-valley-v1` key. The first migration writes a raw copy of a pre-overworld save to `tavi-world-legacy-save-before-overworld-v1`. A save containing the old hunger variable is also backed up unchanged to `tavi-world-save-before-nonsurvival-v1` before the obsolete field is retired. Only the active save's obsolete hunger field is removed; memories and achievements stay intact.
-- **Optional local Ollama bridge** via `POST /api/brain` proxied only to `127.0.0.1:11434`. The model suggests only a known activity and a short thought; it cannot run commands or approve changes.
-- The distributed `game/index.html` is **self-contained**: its scripts, stylesheet and Tavi sprite are embedded, eliminating missing-script requests that affected previous versions.
+1. Extract the ZIP fully outside the Windows compressed-folder preview.
+2. Close any older `START-TAVI-WORLD.bat` or PowerShell Tavi launcher windows.
+3. Run **`START-TAVI-WORLD.bat`** and keep the launcher window open.
+4. Open **http://localhost:8765/** if your browser does not open automatically.
+5. Export a full Tavi save under **Profile → Settings** before experimenting.
 
-## Limits and current work
+The built game in `game/index.html` is a self-contained HTML app; it does not load separate JavaScript files from the server. The fallback `OPEN-TAVI-WITHOUT-SERVER.bat` can show the game offline, but its browser storage is **separate** from `localhost:8765`, and it cannot talk to Ollama.
 
-- This is a substantial **first continuous-overworld release**, not a claim of AAA/Pokémon production polish. All graphics are original and can be expanded with authored animation cycles, dynamic shadows, encounter systems, weather, interiors and much denser environmental detail.
-- Tavi is a **simulated autonomous agent**, not a conscious entity. Live simulation runs while the page is open; when reopened, up to six hours of events are reconstructed approximately. Closing the browser does **not** run a background process.
-- The Windows BAT/PowerShell launcher has not been tested on an actual Windows PC from the build environment.
-- Ollama is prepared, but a live local Ollama session has not yet been verified.
+## A controlled learning experience
 
-## Source and build
+1. Open **Research → Conditions** (or **Research Lab** on mobile).
+2. Name the experience and choose a situation preset or adjust **safety, novelty, social warmth, sensory noise, difficulty, and freedom of choice**. Optional custom variables must map explicitly to one of these six mechanisms. There is no automatic interpretation of arbitrary labels.
+3. Select **1×, 3×, or 6×** speed. Press **Start experience**. The current self is checkpointed and the experiment is saved separately until finalized.
+4. Watch **Research → Observations** for emotions, decisions, event timeline, and trend chart. Adjust conditions during the run to test responses. Temporary emotional changes and slow permanent disposition changes occur concurrently inside the staged run.
+5. Press **Keep experience & finish** to retain his learned personality, expectations, memories, action preferences, and observations in the primary Tavi save. Later experiences start from that changed Tavi.
+6. Alternatively, press **Discard without learning** to restore the starting state. Either way, the trial's measurements are archived in **Research → Compare** with a committed/discarded label.
 
-Editable source lives in `src/`:
+Replaying from the same seed is not guaranteed bit-for-bit deterministic because the simulation uses real browser time and frame scheduling for some behaviors. Run repeated trials and compare baselines. Avoid assuming model outputs are evidence of biological or psychological causation.
 
-- `src/world.js`: map layout, 36 world POIs, walkability, A* pathfinding.
-- `src/visuals.js`: original pixel-art renderer, sprite layering, mini-map.
-- `src/app.js`: persistent state, autonomy, user interactions and local Ollama advisory requests.
-- `src/style.css` and `src/index.template.html`: responsive layout.
-- `src/tavi-sprite-base64.txt`: original Tavi pixel sprite as text for portable builds.
+## Persistence and recovery
 
-Build a standalone game page using **Python 3**:
+The primary browser save retains the key **`tavi-world-windows-living-valley-v1`**. This preserves saved memories, artwork, goals, world visits, previous personality state, and optional Ollama settings. Older saves automatically gain a compatible development profile. Existing hunger state is retired without reintroducing survival mechanics.
 
-```sh
-python tools/build.py
-```
+- Active experience: `tavi-world-isolated-trial-v1` (resumable on reload, not yet committed).
+- Observation notebook: `tavi-world-observation-notebook-v1` (bounded run archive and CSV/JSON export).
+- Last pre-commit recovery snapshot: `tavi-world-pre-lifelong-learning-v1`.
 
-Run smoke tests if Playwright and Chromium are available:
+**Important:** Browser data can be cleared. Export backups regularly and before long-term studies. Offline simulations are reconstructed only in bounded steps when a game window is reopened; Tavi does not literally run while the page is closed.
 
-```sh
-python tests/test_smoke.py
-```
+## Optional Ollama integration
 
-The `legacy/` folder in the ZIP keeps the prior game and its art as a source reference, without replacing old player memories. The distributed game itself has no external image requests.
+The engine remains fully autonomous without an LLM. The local Ollama bridge is prepared for an installed model named `tavi`, and a validated model response may suggest a destination and a short reflection during ordinary simulation. During controlled experiments, Ollama suggestions are suspended for reproducibility. The model cannot execute commands, write files, change world geometry or approve irreversible world changes. Updated advisory context can include learned traits and past experience summaries. **Live Ollama operation has not yet been verified on your machine.**
 
-## Controls
+## Source and verification
 
-Tap/click a landmark to suggest an activity; tap/click ground to ask Tavi to walk there. WASD or arrow keys briefly take manual control, and **M** opens the full-map view. The **Following** button toggles a free camera that you can drag. Use **Journal** to show or hide the adventure panel, then the grouped Explore / Stories / Tavi tabs to navigate. Autonomy is active by default and can be paused.
+- `src/world.js`: connected overworld, 12 regions, 36 activities, collision and A* pathfinding.
+- `src/visuals.js`: pixel-art renderer, creature sprite and minimap.
+- `src/app.js`: learned identity, activity reinforcement, persistent state, simulation conditions, experiment lifecycle and audit log.
+- `src/index.template.html`, `src/style.css`: research-focused UI.
+- `tools/build.py`: generates standalone `game/index.html` with embedded scripts/assets.
+- `tests/test_smoke.py`: startup, migration, movement and mobile UI tests.
+- `tests/test_sandbox.py`: experimental input effects, graph, persistence, and comparison tests.
+- `tests/test_lifelong.py`: **commit/discard, continued learning, reload, checkpoint recovery and activity-value tests**.
 
-© Tavi World — original project. For development and testing.
+Run `python tools/build.py`, then `python tests/test_smoke.py && python tests/test_sandbox.py && python tests/test_lifelong.py` with Chromium/Playwright installed. See [Learning Model](docs/LEARNING-MODEL.md) and [QA results](docs/QA-RESULTS.md).
+
+**Not yet verified:** native Windows launch on a real PC, live local Ollama integration, or long-duration physical iPhone/iPad Safari testing.
