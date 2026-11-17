@@ -134,7 +134,8 @@ function drawTavi(g,x,y,state,now){
  g.restore();
 }
 function draw(view,state,cam,ui,now){const g=view.getContext('2d');if(!g)return;
- const w=view.width,h=view.height;g.imageSmoothingEnabled=false;
+ const zoom=Math.max(.6,Math.min(2.4,Number(ui?.zoom)||1));
+ const w=view.width/zoom,h=view.height/zoom;g.setTransform(zoom,0,0,zoom,0,0);g.imageSmoothingEnabled=false;
  g.clearRect(0,0,w,h);p(g,0,0,w,h,'#273f45');
  const x0=Math.floor(cam.x/TILE)-1,y0=Math.floor(cam.y/TILE)-1,x1=Math.ceil((cam.x+w)/TILE)+1,y1=Math.ceil((cam.y+h)/TILE)+1;
  for(let ty=Math.max(0,y0);ty<Math.min(M.H,y1);ty++)for(let tx=Math.max(0,x0);tx<Math.min(M.W,x1);tx++){
