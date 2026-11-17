@@ -414,18 +414,62 @@ function localTalkReply(text){
  if(/hello|hi|hey|good morning|good evening/.test(q))return 'Hello! I am thinking about '+favorite+'. What would you like to explore together?';
  return latest?'That gives me something to think about. I recently studied '+latest.concept+'. '+latest.question:'I am curious about that. What makes it important to you?';
 }
+// Ollama is an advisory service. The proxy's response and the model's nested
+// response must both be validated before they can influence Tavi's decisions.
+// In particular, do not JSON.parse an empty/"undefined" model completion.
+function parseOllamaReply(value){
+ let current=value;
+ for(let depth=0;depth<4;depth++){
+  if(typeof current==='string'){
+   let raw=current.replace(/<think>[\s\S]*?<\/think>/gi,'').trim();
+   raw=raw.replace(/^\s*```(?:json)?\s*/i,'').replace(/\s*```\s*$/,'').trim();
+   if(!raw||/^(undefined|null|none|nan)$/i.test(raw))throw Error('Ollama returned an empty or undefined reply. Check that the selected model exists and responds.');
+   try{current=JSON.parse(raw)}catch(e){
+    const first=raw.indexOf('{'),last=raw.lastIndexOf('}');
+    if(first<0||last<=first)throw Error('Ollama returned text instead of JSON. Test the model in Ollama and try again.');
+    try{current=JSON.parse(raw.slice(first,last+1))}
+    catch(err){throw Error('Ollama returned malformed JSON. Try again or use a model that supports structured output.');}
+   }
+   continue;
+  }
+  if(!current||typeof current!=='object'||Array.isArray(current))throw Error('Ollama did not return a valid JSON object.');
+  if(typeof current.response==='string'||(current.response&&typeof current.response==='object')){current=current.response;continue}
+  if(typeof current.message?.content==='string'){current=current.message.content;continue}
+  return current;
+ }
+ throw Error('Ollama response contained too many nested wrappers.');
+}
+async function readOllamaResponse(res){
+ if(!res)throw Error('No response from the local Ollama bridge.');
+ let payload;
+ if(typeof res.text==='function'){
+  const raw=await res.text();
+  if(!raw||!raw.trim())throw Error('The local Ollama bridge returned an empty response (HTTP '+res.status+'). Close older launchers and restart START-TAVI-WORLD.bat.');
+  try{payload=JSON.parse(raw)}catch(e){
+   if(!res.ok)throw Error('Local Ollama bridge failed (HTTP '+res.status+') and returned non-JSON data.');
+   throw Error('Local Ollama bridge returned non-JSON data. Reopen START-TAVI-WORLD.bat and refresh the page.');
+  }
+ }else if(typeof res.json==='function'){
+  try{payload=await res.json()}catch(e){throw Error('Local Ollama bridge returned invalid JSON. Restart START-TAVI-WORLD.bat.');}
+ }else throw Error('Local Ollama response cannot be read.');
+ if(!res.ok){
+  const detail=typeof payload?.error==='string'?payload.error.slice(0,140):'Check that Ollama is running and the model name is correct.';
+  throw Error('Ollama connection failed (HTTP '+res.status+'): '+detail);
+ }
+ return parseOllamaReply(payload);
+}
 async function requestOllamaConversation(item,reply){
  const ai=state.brain.ai;if(!ai.enabled||lab.active)return;
  try{
   const context={lastMessages:state.conversation.slice(-8).map(v=>({role:v.role,text:v.text.slice(0,300)})),modeledEmotions:state.emotions,development:state.development.traits,knownBooks:state.learning.knowledge.slice(-4).map(k=>({book:k.book,note:k.note,kind:k.kind,source:k.source})),lastMemories:state.memories.slice(0,4).map(m=>m.text.slice(0,140)),suggestionDecision:reply};
   const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),28000);let res;
   try{res=await fetch('/api/brain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:ai.model,instruction:'You are Tavi, a fictional autonomous creature. Answer the user in first person using the supplied actual conversation and memories. Keep under 350 characters. Do not pretend to have real emotions or consciousness. If there was a suggestion decision, honor it exactly and do not issue commands. Return JSON only: {"reply":"short response"}.',context}),signal:ctrl.signal})}finally{clearTimeout(timer)}
-  if(!res.ok)throw Error('Ollama unavailable');let data=await res.json();if(typeof data.response==='string')data=JSON.parse(data.response.replace(/```(?:json)?/g,'').trim());
+  const data=await readOllamaResponse(res);
   if(typeof data.reply==='string'&&data.reply.trim()&&item===state.conversation.find(v=>v.id===item.id)){
    const spoken=data.reply.trim().slice(0,350);if(reply&&reply.accepted&&!/\b(going|try|visit|heading|explor)/i.test(spoken))return;
    item.text=spoken;item.source='ollama';save();if(tab==='talk')sidebar();
   }
- }catch(e){/* Scripted reply remains useful when offline. */}
+ }catch(e){ai.lastResult='Conversation used local fallback: '+String(e.message||e).slice(0,145);save();if(tab==='talk')sidebar();}
 }
 function talkToTavi(text){
  const clean=String(text||'').trim().slice(0,420);if(!clean)return null;
@@ -1001,9 +1045,7 @@ async function pollAI(force=false){const a=state.brain.ai;
    instruction:'You are Tavi, a curious fictional creature in an original pixel-art world. Think gently about your memories, needs, goals and interests. Reply with JSON ONLY containing {"area":integer,"obj":integer,"thought":"a first-person imaginative sentence under 180 characters"}. Select exactly one available area and obj from options. No commands, tools, code, external actions, claims of consciousness, or permanent edits.'};
   const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),43000);
   let res;try{res=await fetch('/api/brain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctrl.signal})}finally{clearTimeout(timer)}
-  if(!res.ok)throw Error('Ollama server unavailable (HTTP '+res.status+')');
-  const data=await res.json();let parsed=data;
-  if(typeof data.response==='string')parsed=JSON.parse(data.response.replace(/```(?:json)?/g,'').trim());
+  const parsed=await readOllamaResponse(res);
   if(!Number.isInteger(parsed.area)||!Number.isInteger(parsed.obj)||!M.props.some(p=>p.area===parsed.area&&p.obj===parsed.obj))throw Error('Model suggested an unknown landmark');
   a.pending={area:parsed.area,obj:parsed.obj};
   if(typeof parsed.thought==='string'&&parsed.thought.trim()){
