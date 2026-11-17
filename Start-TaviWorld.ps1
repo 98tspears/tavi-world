@@ -111,28 +111,55 @@ try {
       # Restricted local-only proxy for Ollama. The browser never gets filesystem or shell access.
       if ($context.Request.Url.AbsolutePath -eq '/api/brain') {
         $context.Response.ContentType = 'application/json; charset=utf-8'
-        if ($context.Request.HttpMethod -ne 'POST' -or $context.Request.ContentLength64 -gt 16384 -or $context.Request.ContentLength64 -lt 0) {
-          $context.Response.StatusCode = 400
-          $context.Response.Close()
-          continue
+        $context.Response.Headers.Set('Cache-Control','no-store')
+        $origin = [string]$context.Request.Headers['Origin']
+        if ($origin -and $origin -cne 'http://localhost:8765') {
+          $context.Response.StatusCode = 403
+          $errorBytes = [Text.Encoding]::UTF8.GetBytes('{"error":"Only this Tavi World browser page can contact the local model"}')
+          $context.Response.ContentLength64 = $errorBytes.Length
+          $context.Response.OutputStream.Write($errorBytes,0,$errorBytes.Length)
+          $context.Response.Close();continue
         }
-        $reader = New-Object IO.StreamReader($context.Request.InputStream, [Text.Encoding]::UTF8)
-        $body = $reader.ReadToEnd()
-        $req = $body | ConvertFrom-Json
-        $model = [string]$req.model
-        if ($model -notmatch '^[a-zA-Z0-9._:/-]{1,70}$') { $context.Response.StatusCode = 400; $context.Response.Close(); continue }
-        $prompt = [string]$req.instruction + "`nContext: " + ($req.context | ConvertTo-Json -Depth 8 -Compress)
-        if ($prompt.Length -gt 13000) { $context.Response.StatusCode = 400; $context.Response.Close(); continue }
-        $json = @{model=$model; prompt=$prompt; stream=$false; format='json'; options=@{temperature=0.7; num_predict=220}} | ConvertTo-Json -Depth 6 -Compress
+        if ($context.Request.HttpMethod -ne 'POST' -or $context.Request.ContentLength64 -gt 16384 -or $context.Request.ContentLength64 -le 0 -or [string]$context.Request.ContentType -notmatch '^application/json\b') {
+          $context.Response.StatusCode = 400
+          $errorBytes = [Text.Encoding]::UTF8.GetBytes('{"error":"Expected a small JSON POST request"}')
+          $context.Response.ContentLength64 = $errorBytes.Length
+          $context.Response.OutputStream.Write($errorBytes,0,$errorBytes.Length)
+          $context.Response.Close();continue
+        }
         try {
-          $reply = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/generate' -Method Post -Body $json -ContentType 'application/json' -TimeoutSec 40
-          $result = @{response=[string]$reply.response} | ConvertTo-Json -Compress
-          $bytes = [Text.Encoding]::UTF8.GetBytes($result)
-          $context.Response.ContentLength64 = $bytes.Length
-          $context.Response.OutputStream.Write($bytes,0,$bytes.Length)
+          $reader = New-Object IO.StreamReader($context.Request.InputStream, [Text.Encoding]::UTF8)
+          $body = $reader.ReadToEnd()
+          $req = $body | ConvertFrom-Json -ErrorAction Stop
+          $model = [string]$req.model
+          if ($model -notmatch '^[a-zA-Z0-9._:/-]{1,70}$') { throw 'Invalid Ollama model name. Choose a name shown by ollama list.' }
+          $prompt = [string]$req.instruction + "`nContext: " + ($req.context | ConvertTo-Json -Depth 8 -Compress)
+          if ($prompt.Length -gt 13000) { throw 'Prompt exceeded the local bridge limit.' }
+          $json = @{model=$model; prompt=$prompt; stream=$false; format='json'; options=@{temperature=0.5; num_predict=350}} | ConvertTo-Json -Depth 6 -Compress
+          try {
+            $reply = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/generate' -Method Post -Body $json -ContentType 'application/json' -TimeoutSec 40 -ErrorAction Stop
+            $answer = [string]$reply.response
+            if ([string]::IsNullOrWhiteSpace($answer) -or $answer.Trim() -eq 'undefined') { throw 'Ollama returned an empty completion. Check the selected model and try again.' }
+            $result = @{response=$answer} | ConvertTo-Json -Compress -Depth 5
+            $bytes = [Text.Encoding]::UTF8.GetBytes($result)
+            $context.Response.ContentLength64 = $bytes.Length
+            $context.Response.OutputStream.Write($bytes,0,$bytes.Length)
+          } catch {
+            $context.Response.StatusCode = 503
+            $reason=[string]$_.Exception.Message
+            if ($reason.Length -gt 145) { $reason=$reason.Substring(0,145) }
+            $error = @{error=('Ollama model unavailable or failed: '+$reason)} | ConvertTo-Json -Compress
+            $bytes = [Text.Encoding]::UTF8.GetBytes($error)
+            $context.Response.ContentLength64 = $bytes.Length
+            $context.Response.OutputStream.Write($bytes,0,$bytes.Length)
+          }
         } catch {
-          $context.Response.StatusCode = 503
-          $bytes = [Text.Encoding]::UTF8.GetBytes('{"error":"Ollama not available"}')
+          $context.Response.StatusCode = 400
+          $reason=[string]$_.Exception.Message
+          if($reason.Length -gt 145){$reason=$reason.Substring(0,145)}
+          $error = @{error=('Invalid Tavi model request: '+$reason)} | ConvertTo-Json -Compress
+          $bytes = [Text.Encoding]::UTF8.GetBytes($error)
+          $context.Response.ContentLength64 = $bytes.Length
           $context.Response.OutputStream.Write($bytes,0,$bytes.Length)
         }
         $context.Response.Close()
