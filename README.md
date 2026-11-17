@@ -1,3 +1,9 @@
+# Tavi World — Grounded Autonomy & Natural Conversation Edition
+
+The model no longer receives a scripted placeholder as part of its prompt. Conversations are grounded in relevant saved experiences, traits, goals, research and actions; independently chosen activities retain their generated reasons. See [the release notes](docs/GROUNDED-VOICE-RELEASE.md).
+
+---
+
 # Ollama Windows Bridge Repair (HTTP 500 empty response)
 
 This version repairs the local PowerShell bridge which could report a blank HTTP 500 and fail to explain why. The bridge now logs unexpected exceptions in the launcher, returns a JSON error body, creates the request stream reader explicitly, disables separate reasoning output for Qwen3-like models (`think: false`), and allows first-load latency. The **Test local connection** button now uses a small non-mutating request.
