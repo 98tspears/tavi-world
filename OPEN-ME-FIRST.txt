@@ -1,9 +1,11 @@
-TAVI WORLD — GROUNDED AUTONOMY / NATURAL CONVERSATION EDITION
+TAVI WORLD — COGNITIVE COMMITMENTS EDITION
 
-Close your old launcher, unzip this build to a new folder and run START-TAVI-WORLD.bat. Open http://localhost:8765/ in the same browser as before so Tavi can access his saved history.
+Close previous Tavi launcher windows. Extract this ZIP. Run START-TAVI-WORLD.bat.
+Open http://localhost:8765/ in your existing browser to preserve your local save.
+Export your save under Profile > Settings before upgrading.
 
-Go to Profile > Settings. Keep your working Ollama model and enable advice. Open Connect > Talk and ask about a real memory or goal. When enabled, the initial message is "Considering your question…", then an original Ollama reply. Expand "Context supplied to the model" to review grounding anchors.
+Go to Records > Approvals to view the exact state of each project: pending permission, queued, traveling, working, blocked, or completed with evidence. Approved unfinished work does NOT require a new approval after an interruption. Blocked work can be retried; approved work can be cancelled with a recorded reason.
 
-To test a self-directed action immediately: Profile > Settings > Invite Tavi to choose independently. If the model is unavailable, dialogue falls back to clearly labeled rule-based responses.
+This version also adds a brain-inspired cognitive model (computational, not a human brain) and includes the improved Ollama HTTP 400 handling. It cannot guarantee conversation quality; the Windows Ollama model must be tested on your PC.
 
-The Windows bridge, game save key, map, experiments, books, video studies and read-only web research remain compatible. See docs/GROUNDED-VOICE-RELEASE.md for limitations, safety, and tests.
+See README.md and docs/COMMITMENT-LIFECYCLE.md for details.
