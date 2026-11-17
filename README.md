@@ -1,3 +1,13 @@
+# Ollama Windows Bridge Repair (HTTP 500 empty response)
+
+This version repairs the local PowerShell bridge which could report a blank HTTP 500 and fail to explain why. The bridge now logs unexpected exceptions in the launcher, returns a JSON error body, creates the request stream reader explicitly, disables separate reasoning output for Qwen3-like models (`think: false`), and allows first-load latency. The **Test local connection** button now uses a small non-mutating request.
+
+**Try it:** extract the ZIP, close old launchers, run `START-TAVI-WORLD.bat`, check `ollama list`, set that model name in **Profile → Settings**, then click **Test local connection**. If it fails, open the launcher window and copy its `[TAVI BRIDGE ERROR]` or `[Tavi Ollama connection]` line. You can also run `powershell -ExecutionPolicy Bypass -File .\TEST-OLLAMA-BRIDGE.ps1 -Model tavi` (replace `tavi` with an installed model). See `OLLAMA-BRIDGE-REPAIR.txt`.
+
+**Status:** JavaScript and mocked-browser tests can run here. A live Ollama on Windows has not been verified. The save key and persistent profile are unchanged.
+
+---
+
 # Tavi World — Ollama JSON Connection Repair
 
 This edition keeps the existing continuous overworld, autonomous learning, conversations, book/video learning, read-only web research, and 30% wide zoom. It fixes the local Ollama bridge error often shown as `Unexpected token u, "undefined" is not valid JSON`.
