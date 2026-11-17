@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#122f42"><meta name="description" content="Tavi World: an original, local-first autonomous pixel-art living overworld.">
-<title>Tavi World — Colorful Valley</title>
+<meta name="theme-color" content="#122f42"><meta name="description" content="Tavi World: a local-first autonomous creature simulation and experimental observation sandbox.">
+<title>Tavi World — Living Learning Sandbox</title>
 <style>:root{color-scheme:dark;--navy:#102c30;--ink:#0d2527;--deep:#071b21;--teal:#5a9c81;--mint:#8fc3a7;--cream:#f7e5b5;--gold:#e4c078;--muted:#a9c4b2;--line:#4e7868;--wood:#705a46;--danger:#a34c49;--font:'Trebuchet MS',system-ui,-apple-system,sans-serif}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;width:100%;background:var(--deep);color:#f4edd9;font:15px/1.5 var(--font)}body{background:radial-gradient(ellipse at 12% 8%,#2b6456 0,#102d33 33%,#081b22 70%),#081b22}button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid #779d83;border-radius:9px;background:#305e52;color:#f8e9be;padding:10px 12px;box-shadow:inset 0 1px 0 #ffffff17,0 3px 0 #0b2b26;transition:background .15s,transform .15s}button:hover{background:#4a8266}button:active{transform:translateY(2px);box-shadow:inset 0 1px 0 #ffffff17,0 1px 0 #0b2b26}button:focus-visible{outline:3px solid #f1d393;outline-offset:2px}button.secondary{background:#25474c;color:#d2e4da}button.small{font-size:12px;padding:6px 9px;margin-top:8px}button.danger{background:#66363e;border-color:#ad6c6c}button[disabled]{cursor:default;opacity:.5}
 header{max-width:1680px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:19px 24px 15px}.brand{display:flex;align-items:center;gap:14px}.brand-icon{background:#264e4b;border:2px solid #bfa478;border-radius:13px;width:56px;height:56px;display:grid;place-items:center;font-family:monospace;font-weight:bold;color:#f7df9b;font-size:27px;box-shadow:0 3px 0 #061e22}.eyebrow{font:bold 10px/1.2 ui-monospace,Consolas,monospace;letter-spacing:2.5px;color:#e1bd75;text-transform:uppercase}h1{margin:0;font:bold 31px/1.15 Georgia,serif;letter-spacing:.6px;color:#fff0c0;text-shadow:0 2px 0 #283c39}h1 span{color:#8fe2b3}.subtitle{font-size:12px;letter-spacing:.3px;color:#b9d0bf;margin-top:4px}.top-info{display:flex;gap:13px;align-items:center}.chip{border:1px solid #527a67;background:#183f3d;border-radius:12px;padding:8px 14px;display:flex;gap:8px;align-items:center;min-height:42px;font-size:12px}.chip strong{color:#e9d6a0}.dot{width:8px;height:8px;border-radius:50%;background:#9bdd9d;box-shadow:0 0 12px #92d99f}.chip .dot{flex:none}
@@ -177,39 +177,84 @@ footer{color:#9bc8cb}
  .help-panel{max-width:min(300px,90%)}
  .tip{font-size:10px}
 }
+
+/* Behavioral simulation / observation laboratory */
+:root{--lab-accent:#8fedd2;--lab-amber:#e8c78e;--lab-surface:#112f40}
+.lab-intro{font-size:12px;line-height:1.5;color:#bddfdc;margin:4px 0 12px}
+.lab-banner{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#0d3548;border:1px solid #4e8693;border-radius:12px;padding:11px 12px;margin-bottom:12px}
+.lab-banner strong{color:#fce6bb;font-size:13px}
+.lab-banner small{display:block;color:#a4cbcb;font-size:11px}
+.lab-live{display:inline-block;padding:3px 8px;border-radius:20px;background:#4a9f8d;color:#072d36;font-weight:800;font-size:11px;white-space:nowrap}
+.lab-live.idle{background:#b9cad2;color:#204157}
+.lab-section{border-top:1px solid #3a7080;padding-top:12px;margin-top:11px}
+.lab-title{font:800 11px/1.4 ui-monospace,Consolas,monospace;text-transform:uppercase;letter-spacing:1.1px;color:#ffdba1;margin:2px 0 9px}
+.lab-field{display:block;color:#d7efeb;font-size:12px;margin:8px 0 4px}
+.lab-control{width:100%;border-radius:9px;background:#0b2a3a;color:#ecf3e1;border:1px solid #578d97;padding:9px 10px;min-height:38px}
+.lab-range{background:#16485a;padding:9px 10px 8px;margin:8px 0;border:1px solid #36768a;border-radius:10px}
+.lab-range-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:bold;color:#e7f7ed}
+.lab-range-head output{color:#ffdc8e;font-variant-numeric:tabular-nums}
+.lab-range input{display:block;width:100%;accent-color:#91eacb;cursor:pointer;margin:9px 0 1px}
+.lab-range small{display:block;font-size:10px;color:#a9d1d0;font-weight:400}
+.lab-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:11px}
+.lab-buttons button{font-size:12px;min-width:0;white-space:normal}
+.lab-buttons .full{grid-column:1/-1}
+.lab-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:10px 0}
+.lab-metric{padding:9px;border:1px solid #427b8a;border-radius:10px;background:#123e50}
+.lab-metric span{display:block;font-size:10px;color:#a9d2d1}
+.lab-metric strong{font-size:18px;color:#fff1be;font-variant-numeric:tabular-nums}
+.lab-metric em{font-style:normal;font-size:11px;color:#8fe3c7;margin-left:3px}
+.lab-note{border-left:3px solid #9edac0;background:#0c2f40;padding:9px 11px;font-size:11px;line-height:1.5;color:#c5e3dc;margin:10px 0;border-radius:4px 8px 8px 4px}
+.lab-events{display:flex;flex-direction:column;gap:8px}
+.lab-event{border-left:2px solid #7bceae;background:#10384a;border-radius:3px 9px 9px 3px;padding:8px 11px}
+.lab-event strong{display:block;color:#ffdea3;font-size:12px}
+.lab-event p{margin:4px 0;font-size:12px;color:#e4efec}
+.lab-event time{font:10px ui-monospace,Consolas,monospace;color:#9dc7c9}
+.lab-trace{margin:8px 0;padding:9px;border-radius:8px;background:#0e3040;color:#b5d8d1;font-size:11px;line-height:1.5}
+.study-reason{font-size:11px;color:#a9d7d6;border-top:1px solid #ffffff22;margin-top:9px;padding-top:8px;line-height:1.45}
+.lab-plot{width:100%;height:166px;display:block;border:1px solid #437487;border-radius:10px;background:#0a2b3a;image-rendering:auto;margin-top:9px}
+.lab-empty{padding:15px 10px;color:#accad1;text-align:center;font-size:12px;border:1px dashed #4e7185;border-radius:9px}
+.lab-run{padding:10px;border-radius:10px;background:#113b4c;border:1px solid #4f8090;margin:9px 0}
+.lab-run strong{color:#f5dfad}.lab-run small{display:block;color:#a5cecd;font-size:11px}
+.lab-run .deltas{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.lab-run .deltas span{font-size:10px;background:#235969;padding:4px 6px;border-radius:7px;color:#d7f5e9}
+.lab-stats-label{font-size:10px;color:#b6dcd5;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+@media(max-width:560px){.lab-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.lab-banner{flex-wrap:wrap}.study-reason{font-size:10px}}
+
+/* Lifelong learning readouts and recovery controls */
+.lab-trace{overflow-wrap:anywhere}.lab-run .lab-trace{color:#cef4df;border:1px solid #4a8a7a}
+.lab-run .lab-trace::first-line{font-weight:700}.record.compact .mini-progress i{background:linear-gradient(90deg,#62dfb2,#eacd86)}
 </style>
 </head><body>
 <header>
-  <div class="brand"><div class="brand-icon" aria-hidden="true">✦</div><div><div class="eyebrow">An original living-world adventure</div><h1>Tavi <span>World</span></h1><div class="subtitle">COLORFUL VALLEY · EVERY DAY AN ADVENTURE</div></div></div>
-  <div class="top-info"><div class="chip chip-status"><span class="dot"></span><span><strong>Living world</strong><br><span id="statusText">Initializing world…</span></span></div><div class="chip"><strong id="clock">--:--</strong></div></div>
+  <div class="brand"><div class="brand-icon" aria-hidden="true">✦</div><div><div class="eyebrow">Persistent artificial-life research sandbox</div><h1>Tavi <span>World</span></h1><div class="subtitle">LIFELONG SIMULATION · EXPERIENCE · LEARN · EVOLVE</div></div></div>
+  <div class="top-info"><div class="chip chip-status"><span class="dot"></span><span><strong>Autonomy engine</strong><br><span id="statusText">Initializing world…</span></span></div><div class="chip"><strong id="clock">--:--</strong></div></div>
 </header>
 <main class="page">
  <section>
   <div class="panel play-panel">
-   <div class="game-top"><div class="region-row"><div class="region-marker" aria-hidden="true">⌂</div><div><div class="location-overline">CURRENT LOCATION</div><h2 id="areaTitle">Tavi’s Valley</h2><div id="areaDesc">A world without scene transitions</div></div></div><div class="chip visited-chip"><span>✦</span><div><strong id="exploredCount">1/12</strong><br><small>places discovered</small></div></div></div>
+   <div class="game-top"><div class="region-row"><div class="region-marker" aria-hidden="true">⌂</div><div><div class="location-overline">OBSERVATION SITE</div><h2 id="areaTitle">Tavi’s Valley</h2><div id="areaDesc">A world without scene transitions</div></div></div><div class="chip visited-chip"><span>✦</span><div><strong id="exploredCount">1/12</strong><br><small>known locations</small></div></div></div>
    <div class="world-stage">
     <canvas id="game" class="game-canvas" width="960" height="600" aria-label="Continuous pixel art overworld, click or tap to explore"></canvas>
-    <div class="location-badge">✧ ONE CONNECTED WORLD</div>
-    <div class="mini-map" role="button" tabindex="0" title="Open full overworld map"><div class="mini-map-caption">VALLEY MAP <span>✚</span></div><canvas id="minimap" width="178" height="136" aria-label="Minimap"></canvas><div class="mini-map-caption" style="margin-top:4px;margin-bottom:0"><span id="miniLabel">Tavi House</span><span>OPEN MAP</span></div></div>
-    <aside id="helpPanel" class="help-panel" hidden><h3>Explore the living valley</h3><p>Click or tap a landmark to suggest a visit. Tap open ground to guide Tavi along the paths.</p><p><kbd>W A S D</kbd> or <kbd>← ↑ → ↓</kbd> briefly take manual control. Tavi resumes thinking when you stop.</p><p><kbd>M</kbd> shows the full map. Use ◎ Follow to switch between a following camera and a draggable view.</p><p>Tavi rests when tired, follows his curiosity, forms memories and makes art. He can enjoy meals, but he doesn’t need food to survive.</p><p>Open the Journal for goals, questions, memories, settings and save backups.</p></aside>
+    <div class="location-badge">✧ CONTINUOUS SIMULATION ENVIRONMENT</div>
+    <div class="mini-map" role="button" tabindex="0" title="Open full overworld map"><div class="mini-map-caption">SITE MAP <span>✚</span></div><canvas id="minimap" width="178" height="136" aria-label="Minimap"></canvas><div class="mini-map-caption" style="margin-top:4px;margin-bottom:0"><span id="miniLabel">Tavi House</span><span>OPEN MAP</span></div></div>
+    <aside id="helpPanel" class="help-panel" hidden><h3>Explore the living valley</h3><p>The map is Tavi’s continuous simulation environment. Observe his independent movements or suggest a location for a controlled trial.</p><p><kbd>W A S D</kbd> or <kbd>← ↑ → ↓</kbd> can reposition Tavi between observations. Tavi resumes independent action when you stop.</p><p><kbd>M</kbd> shows the full map. Use ◎ Follow to switch between a following camera and a draggable view.</p><p>Tavi rests when tired, follows his curiosity, forms memories and makes art. He may enjoy food, but has no survival hunger mechanic.</p><p>Use the Research Lab to change conditions, inspect logged decisions and compare trials. Tavi retains what he learns when you keep each experience.</p></aside>
    </div>
-   <div class="game-bottom"><div class="control-group"><button id="visitNext" class="primary-action" title="Ask Tavi to choose another independent adventure">✦ New adventure</button><button id="pause" title="Pause or resume Tavi’s independent actions">⏸ Pause</button><button id="follow" title="Follow Tavi or drag to explore">◎ Follow</button><button id="mapButton" title="View the full connected valley">▣ Map</button><button id="journalToggle" class="journal-toggle" aria-controls="journalPanel" aria-expanded="true" title="Show or hide the adventure journal">▤ Journal</button><button id="help" class="icon-button secondary" title="How to play" aria-label="How to play">?</button></div></div>
+   <div class="game-bottom"><div class="control-group"><button id="visitNext" class="primary-action" title="Ask Tavi to reconsider his next action">◈ Reconsider</button><button id="pause" title="Pause or resume Tavi’s independent actions">⏸ Pause</button><button id="follow" title="Follow Tavi or drag to explore">◎ Follow</button><button id="mapButton" title="View the full connected valley">▣ Map</button><button id="journalToggle" class="journal-toggle" aria-controls="journalPanel" aria-expanded="true" title="Show or hide simulation laboratory">▤ Research Lab</button><button id="help" class="icon-button secondary" title="Simulation guide" aria-label="Simulation guide">?</button></div></div>
    <div class="meter-row">
     <div class="stat"><div class="stat-head"><span><span class="stat-glyph">☀</span> Energy</span><strong id="value-energy">82%</strong></div><div class="stat-track"><b id="meter-energy" style="width:82%"></b></div></div>
     <div class="stat"><div class="stat-head"><span><span class="stat-glyph">♥</span> Happiness</span><strong id="value-happiness">74%</strong></div><div class="stat-track"><b id="meter-happiness" style="width:74%"></b></div></div>
     <div class="stat"><div class="stat-head"><span><span class="stat-glyph">✧</span> Curiosity</span><strong id="value-curiosity">67%</strong></div><div class="stat-track"><b id="meter-curiosity" style="width:67%"></b></div></div>
    </div>
   </div>
-  <div class="panel living-card"><div class="portrait-wrap"><canvas id="taviPortrait" width="80" height="80" role="img" aria-label="Portrait of Tavi"></canvas></div><div class="thought-content"><div class="thought-header"><h3>TAVI’S LITTLE WORLD</h3><span id="moodLabel" class="mood-pill">✦ Curious</span></div><div id="thought">I have so much to discover…</div><div class="thought-meta"><span id="activeIntent">Planning an adventure</span><span class="meta-dot">•</span><span id="journalCount">A world of memories</span></div><div id="welcome"></div></div></div>
-  <p class="tip">✧ Tavi walks, chooses work, makes art and remembers. <kbd>M</kbd> for the map; <kbd>WASD</kbd> to move manually. Optional Ollama integration is in Settings.</p>
+  <div class="panel living-card"><div class="portrait-wrap"><canvas id="taviPortrait" width="80" height="80" role="img" aria-label="Portrait of Tavi"></canvas></div><div class="thought-content"><div class="thought-header"><h3>TAVI · LIVE OBSERVATION</h3><span id="moodLabel" class="mood-pill">✦ Curious</span></div><div id="thought">I have so much to discover…</div><div class="thought-meta"><span id="activeIntent">Forming a decision</span><span class="meta-dot">•</span><span id="journalCount">Observation history</span></div><div id="welcome"></div><div class="study-reason" id="labReason">Decision trace will appear here when Tavi chooses an action.</div></div></div>
+  <p class="tip">Local simulated behavior: environmental inputs influence decisions and emotion-state variables. These are **model states**, not evidence of feelings or consciousness. Completed experiences can alter Tavi’s lifelong profile and future decisions. Optional Ollama remains separate.</p>
  </section>
- <aside class="panel side-panel" id="journalPanel" aria-label="Adventure journal"><div class="side-heading"><div><div class="eyebrow">YOUR ADVENTURE COMPANION</div><h2>Adventure Journal</h2></div><button id="closeJournal" class="icon-button secondary" title="Close journal" aria-label="Close journal">✕</button></div><div id="journalGroups" class="journal-groups" role="tablist" aria-label="Journal category"></div><div id="tabs" class="tabs" role="tablist" aria-label="Journal pages"></div><section id="sidebarContent" aria-live="polite"></section><div class="journal-footer">✦ Tavi’s discoveries live here, always yours to keep.</div></aside>
+ <aside class="panel side-panel" id="journalPanel" aria-label="Research laboratory"><div class="side-heading"><div><div class="eyebrow">SIMULATION / DATA</div><h2>Behavior Lab</h2></div><button id="closeJournal" class="icon-button secondary" title="Close laboratory" aria-label="Close laboratory">✕</button></div><div id="journalGroups" class="journal-groups" role="tablist" aria-label="Research category"></div><div id="tabs" class="tabs" role="tablist" aria-label="Lab pages"></div><section id="sidebarContent" aria-live="polite"></section><div class="journal-footer">◇ Persistent experiences · Recoverable checkpoints · Transparent learning rules.</div></aside>
 </main>
 <div id="drawerScrim" hidden aria-hidden="true"></div>
-<div class="map-overlay" id="mapOverlay" hidden role="dialog" aria-modal="true" aria-label="The full overworld map"><div class="map-inner"><div class="map-head"><div><div class="eyebrow">One valley · 12 destinations</div><h2>The Living Overworld</h2></div><button id="closeMap">✕ Close</button></div><canvas id="bigMapCanvas" width="712" height="544" aria-label="Full connected Tavi World map"></canvas><div class="map-legend"><span><i class="home"></i> Village / landmarks</span><span><i class="forests"></i> Wild places</span><span><i class="shore"></i> Shoreline</span></div><p class="map-hint">Tap near a landmark to suggest Tavi visit it. This does not load another scene; he'll find his way across the overworld.</p></div></div>
+<div class="map-overlay" id="mapOverlay" hidden role="dialog" aria-modal="true" aria-label="Observation environment map"><div class="map-inner"><div class="map-head"><div><div class="eyebrow">One continuous simulation · 12 locations</div><h2>Observation Environment</h2></div><button id="closeMap">✕ Close</button></div><canvas id="bigMapCanvas" width="712" height="544" aria-label="Full connected Tavi World map"></canvas><div class="map-legend"><span><i class="home"></i> Village / landmarks</span><span><i class="forests"></i> Wild places</span><span><i class="shore"></i> Shoreline</span></div><p class="map-hint">Choose a landmark to suggest an environmental interaction. Tavi uses the same continuous world and navigation system.</p></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
-<div id="startupSplash"><div class="loading-star">✦</div><h2>Growing Tavi’s world…</h2><p>Preparing the connected valley, Tavi’s memories, and his next adventure.</p></div>
-<footer>Original retro creature world · No Pokémon or Nintendo assets · Local-first save · Optional private Ollama · Export backups regularly</footer>
+<div id="startupSplash"><div class="loading-star">✦</div><h2>Starting Tavi simulation…</h2><p>Preparing the environment, persistent state, and observation instruments.</p></div>
+<footer>Original creature-simulation sandbox · Rule-based emotion model · Living experiments · Local data · Optional private Ollama</footer>
 <script>window.TaviSprite={image:new Image()};window.TaviSprite.image.src='data:image/png;base64,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';</script>
 <script>
 window.addEventListener('error',function(e){
@@ -675,7 +720,7 @@ function minimap(view,state,opts={}){const g=view.getContext('2d');if(!g)return;
 window.TaviVisuals={TILE,draw,minimap,makeTile};
 })();
 </script>
-<script>/* Tavi World — local-first autonomous living overworld. No mandatory cloud services. */
+<script>/* Tavi World — isolated, local-first autonomous behavioral simulation sandbox. */
 (()=>{'use strict';
 const M=window.TaviWorld,V=window.TaviVisuals,KEY='tavi-world-windows-living-valley-v1',LEGACY_BACKUP_KEY='tavi-world-legacy-save-before-overworld-v1',NEEDS_BACKUP_KEY='tavi-world-save-before-nonsurvival-v1';
 const INTERESTS=['cozy','stories','food','art','craft','nature','music','science','time','mystery','gardening'];
@@ -690,8 +735,68 @@ const initial=()=>({version:1,seed:78341,area:0,x:400,y:350,paused:false,clock:D
  interests:Object.fromEntries(INTERESTS.map(v=>[v,20])),memories:[],journal:[],art:[],goals:[],questions:[],approvals:[],decorations:[],
  thought:'There is an entire valley outside. I want to see what is growing today!',lastAction:'',lastSave:Date.now(),
  brain:{mode:'idle',target:null,work:0,completedAt:0,completedActivity:'',decisionAt:0,day:0,explored:{},recent:[],discoveries:[],lastReflection:0,ai:{enabled:false,model:'tavi',lastCall:0,lastResult:'Not connected',pending:null,history:[]}},
- world:{x:29.5,y:28.5,moving:false,lastDx:0,lastDy:1,steps:0,visited:{},walked:0,awareness:{},lastSeen:0},offlineSummary:''});
-let state,warning='',tab='world',selected=null,hovered=null,freeCamera=false,showMap=false,showGrid=false,showSigns=false;
+ world:{x:29.5,y:28.5,moving:false,lastDx:0,lastDy:1,steps:0,visited:{},walked:0,awareness:{},lastSeen:0},development:initialDevelopment(),offlineSummary:''});
+
+// Long-term plasticity: stable learned dispositions rather than transient emotion scores.
+// These values are explicitly synthetic model parameters, not measurements of consciousness.
+const TRAITS={openness:'Openness to novelty',resilience:'Resilience',trust:'Social trust',agency:'Self-direction',focus:'Sustained focus',sensoryTolerance:'Sensory tolerance'};
+function initialDevelopment(){return {traits:{openness:54,resilience:50,trust:50,agency:58,focus:52,sensoryTolerance:50},expectations:{safety:65,novelty:40,social:50,noise:20,difficulty:40,choice:80},activityValues:{},activityVisits:{},experienceCount:0,experienceHistory:[],lastLearning:'No experiences recorded yet.',lastExperienceAt:0}}
+function normalizeDevelopment(raw){const base=initialDevelopment();const value=(v,fallback)=>clamp(Number.isFinite(Number(v))?Number(v):fallback);
+ return {traits:Object.fromEntries(Object.keys(base.traits).map(k=>[k,value(raw?.traits?.[k],base.traits[k])])),
+ expectations:Object.fromEntries(Object.keys(base.expectations).map(k=>[k,value(raw?.expectations?.[k],base.expectations[k])])),
+ activityValues:Object.fromEntries(Object.entries(raw?.activityValues||{}).filter(([k,v])=>/^[a-z]{2,25}$/.test(k)&&Number.isFinite(Number(v))).map(([k,v])=>[k,clamp(Number(v))])),
+ activityVisits:Object.fromEntries(Object.entries(raw?.activityVisits||{}).filter(([k,v])=>/^[a-z]{2,25}$/.test(k)).map(([k,v])=>[k,Math.min(100000,Math.max(0,Math.floor(Number(v)||0)))])),
+ experienceCount:Math.max(0,Math.floor(Number(raw?.experienceCount)||0)),
+ experienceHistory:Array.isArray(raw?.experienceHistory)?raw.experienceHistory.slice(0,120).filter(v=>v&&typeof v==='object'):[],
+ lastLearning:typeof raw?.lastLearning==='string'?raw.lastLearning.slice(0,200):base.lastLearning,
+ lastExperienceAt:Number(raw?.lastExperienceAt)||0};}
+function recordExperience(kind,description,context={},when=Date.now()){
+ state.development=normalizeDevelopment(state.development);
+ const d=state.development;
+ d.experienceCount++;
+ d.lastExperienceAt=when;
+ d.lastLearning=String(description).slice(0,200);
+ d.experienceHistory.unshift({id:'xp-'+when.toString(36)+'-'+d.experienceCount,when,kind,description:d.lastLearning,context:deepCopy(context),traits:deepCopy(d.traits)});
+ d.experienceHistory.length=Math.min(d.experienceHistory.length,120);
+ if(lab?.active)trialEvent('learning','Experience integrated',d.lastLearning);
+}
+function learnFromConditions(dt){
+ const d=state.development,tr=d.traits,ex=d.expectations,c=effectiveFactors();
+ // Expectations absorb repeated observations; unanticipated situations remain more impactful.
+ for(const k of Object.keys(ex))ex[k]=clamp(ex[k]+(c[k]-ex[k])*Math.min(.015,dt*.00065));
+ const targets={
+  openness:50+(c.novelty-50)*.36+(c.safety-50)*.12+(c.choice-50)*.12,
+  resilience:50+(c.safety-50)*.20+(c.choice-50)*.17+(c.difficulty-50)*.07-(c.noise-50)*.14,
+  trust:50+(c.social-50)*.42+(c.safety-50)*.11,
+  agency:50+(c.choice-50)*.45-(c.difficulty-50)*.08,
+  focus:50+(c.difficulty-50)*.25+(c.safety-50)*.13-(c.noise-50)*.31,
+  sensoryTolerance:50+(c.safety-50)*.21+(c.noise-50)*.12-(c.difficulty-50)*.08
+ };
+ const rate=Math.min(.02,dt*.00095); // slow bounded learning: circumstances change Tavi over time
+ for(const k of Object.keys(targets))tr[k]=clamp(tr[k]+(clamp(targets[k],12,88)-tr[k])*rate);
+}
+function learnFromActivity(prop){
+ const d=state.development,tr=d.traits,activity=prop.activity;
+ const c=lab.active?effectiveFactors():NEUTRAL;
+ // Transparent bounded reinforcement, not a claim about genuine subjective reward.
+ let simulatedReward=58+(c.safety-50)*.14+(c.social-50)*.08+(c.choice-50)*.13-(c.noise-30)*.18;
+ if(['reading','tinkering','drawing'].includes(activity))simulatedReward+=(c.difficulty-50)*.12;
+ if(activity==='resting'||activity==='sleeping')simulatedReward+=(50-c.safety)*.18;
+ if(activity==='listening'||activity==='playing')simulatedReward+=(c.social-50)*.13;
+ if(activity==='observing')simulatedReward+=(c.novelty-50)*.14;
+ const value=clamp(simulatedReward,5,95),prev=d.activityValues[activity]??50;
+ d.activityValues[activity]=clamp(prev*.79+value*.21);
+ d.activityVisits[activity]=(d.activityVisits[activity]||0)+1;
+ const add=(k,n)=>tr[k]=clamp(tr[k]+n);
+ if(['observing','reading','drawing','tinkering'].includes(activity))add('openness',.20);
+ if(['drawing','reading','tinkering','gardening'].includes(activity))add('focus',.24);
+ if(['listening','playing','eating'].includes(activity))add('trust',.17);
+ if(['sleeping','resting'].includes(activity))add('resilience',.20);
+ if(['observing','tinkering'].includes(activity))add('agency',.14);
+ recordExperience('activity',`At ${prop.name}, I assigned a model reward of ${Math.round(value)}/100 to ${activity}; future choices will reflect this experience.`,{activity,interest:prop.interest,modelReward:value,place:M.regions[prop.area]?.name||'Valley'});
+}
+
+let state,warning='',tab='conditions',selected=null,hovered=null,freeCamera=false,showMap=false,showGrid=false,showSigns=false;
 const loadState=()=>{
  const fresh=initial();let raw=null;
  try{raw=localStorage.getItem(KEY)}catch(e){warning='Browser storage unavailable. Export backups to keep progress.'}
@@ -711,7 +816,7 @@ const loadState=()=>{
   const region=M.regions[mapArea(old.area)]||M.regions[0];
   const origin=M.nearestWalkable(region.x,region.y+11);
   const merged={...fresh,...old,area:mapArea(old.area),stats:{...fresh.stats,...old.stats},emotions:{...fresh.emotions,...old.emotions},
-   interests:{...fresh.interests,...old.interests},
+   interests:{...fresh.interests,...old.interests},development:normalizeDevelopment(old.development),
    memories:Array.isArray(old.memories)?old.memories:fresh.memories,
    journal:Array.isArray(old.journal)?old.journal:fresh.journal,
    art:Array.isArray(old.art)?old.art:fresh.art,
@@ -733,10 +838,124 @@ const loadState=()=>{
  }catch(e){warning='Your existing save could not be read. A new world was opened without deleting the original browser data.';console.error('Tavi save load:',e);return fresh}
 };
 state=loadState();
+// Controlled experiences are staged in their own slot and become permanent only when committed; completed changes persist in the everyday save.
+const LAB_NOTEBOOK_KEY='tavi-world-observation-notebook-v1',LAB_SESSION_KEY='tavi-world-isolated-trial-v1',PRE_COMMIT_BACKUP_KEY='tavi-world-pre-lifelong-learning-v1';
+const FACTORS=[
+ {id:'safety',label:'Environmental safety',hint:'High: predictable and reassuring · Low: uncertainty'},
+ {id:'novelty',label:'Novelty',hint:'New places, unfamiliar situations and discoveries'},
+ {id:'social',label:'Social warmth',hint:'Friendly contact and support versus isolation'},
+ {id:'noise',label:'Sensory noise',hint:'Calm ambience versus distracting, loud stimulation'},
+ {id:'difficulty',label:'Task difficulty',hint:'Easy routines versus demanding challenges'},
+ {id:'choice',label:'Freedom of choice',hint:'Self-direction versus restricted options'}
+];
+const NEUTRAL={safety:65,novelty:40,social:50,noise:20,difficulty:40,choice:80};
+const PRESETS={neutral:{...NEUTRAL},quiet:{safety:92,novelty:20,social:45,noise:5,difficulty:20,choice:90},friendly:{safety:85,novelty:40,social:95,noise:20,difficulty:25,choice:90},surprise:{safety:35,novelty:95,social:35,noise:78,difficulty:55,choice:65},challenge:{safety:65,novelty:75,social:40,noise:35,difficulty:92,choice:70},restriction:{safety:42,novelty:30,social:25,noise:30,difficulty:65,choice:10}};
+function deepCopy(obj){return JSON.parse(JSON.stringify(obj))}
+function normalizeCustom(input){if(!Array.isArray(input))return [];return input.slice(0,8).filter(v=>v&&typeof v==='object'&&FACTORS.some(f=>f.id===v.channel)).map((v,i)=>({id:String(v.id||'custom-'+i).slice(0,60),name:String(v.name||'Extra factor').slice(0,42),channel:v.channel,value:clamp(Number(v.value)||0),strength:clamp(Number(v.strength)||0)}))}
+function effectiveFactors(){const c=normalizeFactors(lab.active?.conditions||lab.conditions);for(const x of (lab.active?.custom||lab.custom||[])){c[x.channel]=clamp(c[x.channel]+(x.value-50)*x.strength/100)}return c}
+function loadNotebook(){try{const raw=JSON.parse(localStorage.getItem(LAB_NOTEBOOK_KEY)||'{}');return {runs:Array.isArray(raw.runs)?raw.runs.slice(0,16):[],custom:normalizeCustom(raw.custom),conditions:normalizeFactors(raw.conditions||NEUTRAL),speed:[1,3,6].includes(raw.speed)?raw.speed:1,preset:typeof raw.preset==='string'&&PRESETS[raw.preset]?raw.preset:'neutral',name:typeof raw.name==='string'?raw.name.slice(0,64):'Observation trial'};}catch(e){return {runs:[],custom:[],conditions:{...NEUTRAL},speed:1,preset:'neutral',name:'Observation trial'}}}
+function normalizeFactors(v){const next={};for(const f of FACTORS)next[f.id]=clamp(Number.isFinite(Number(v?.[f.id]))?Number(v[f.id]):NEUTRAL[f.id]);return next}
+const lab={...loadNotebook(),active:null,lastReason:'No decision evaluated yet.'};
+try{const saved=JSON.parse(localStorage.getItem(LAB_SESSION_KEY)||'null');if(saved?.trial?.baseline?.version===1&&saved?.state?.version===1&&saved.state.world&&Array.isArray(saved.trial.samples)){lab.active=saved.trial;lab.active.conditions=normalizeFactors(lab.active.conditions);lab.active.custom=normalizeCustom(lab.active.custom);state=saved.state;state.development=normalizeDevelopment(state.development);state.clock=Date.now();state.brain.ai.enabled=false;state.brain.mode='idle';state.brain.target=null;state.brain.work=0;lab.lastReason=lab.active.lastReason||lab.lastReason;}}
+catch(e){console.warn('Could not reopen isolated trial',e)}
+function persistNotebook(){try{localStorage.setItem(LAB_NOTEBOOK_KEY,JSON.stringify({runs:lab.runs.slice(0,16),conditions:lab.conditions,custom:lab.custom,speed:lab.speed,preset:lab.preset,name:lab.name}))}catch(e){warning='Observation notebook could not be saved. Export results.'}}
+function statePoint(){return {energy:+state.stats.energy.toFixed(2),happiness:+state.stats.happiness.toFixed(2),curiosity:+state.stats.curiosity.toFixed(2),joy:+state.emotions.joy.toFixed(2),excitement:+state.emotions.excitement.toFixed(2),nervousness:+state.emotions.nervousness.toFixed(2),calm:+state.emotions.calm.toFixed(2),frustration:+state.emotions.frustration.toFixed(2),confidence:+state.emotions.confidence.toFixed(2),boredom:+state.emotions.boredom.toFixed(2)}}
+function trialEvent(kind,title,text){if(!lab.active)return;const a=lab.active;a.events.unshift({t:Math.round(a.elapsed),kind,title,text,time:Date.now()});a.events.length=Math.min(a.events.length,240)}
+function trialSample(){if(!lab.active)return;const a=lab.active;a.samples.push({t:Math.round(a.elapsed*10)/10,...statePoint()});a.samples.length=Math.min(a.samples.length,1200);a.lastSample=a.elapsed}
+function trialReason(prop,topScores){const c=effectiveFactors(),s=state.stats;
+ const rationale=[];if(s.energy<42)rationale.push('lower energy favors rest');if(s.curiosity<42)rationale.push('curiosity favors investigation');
+ if(c.safety<40)rationale.push('uncertainty favors familiar places');
+ const tr=state.development.traits;
+ if(tr.openness>62)rationale.push('learned openness favors discovery');
+ if(tr.trust>62)rationale.push('accumulated trust encourages social contact');
+ if(tr.focus>62)rationale.push('learned focus supports extended tasks');
+ if(tr.agency<40)rationale.push('past limits on choice reduce novel initiative');if(c.novelty>68)rationale.push('novelty increases exploration preference');
+ if(c.social>70)rationale.push('social warmth favors playful and listening activities');if(c.noise>65)rationale.push('noise favors quieter activities');
+ if(c.difficulty>70)rationale.push('challenging tasks favor study and tinkering');if(c.choice<35)rationale.push('limited freedom discourages novelty-seeking');
+ const scoreSummary=topScores.slice(0,3).map(v=>v.prop.name+' ('+v.score.toFixed(1)+')').join(' · ');
+ return 'Rule-based choice: '+prop.name+'. '+(rationale.length?rationale.join('; '):'baseline interests, novelty, needs and route distance')+'. Top model scores: '+scoreSummary+'.';}
+function updateTrialFactors(next,source='Manual change'){lab.conditions=normalizeFactors(next);persistNotebook();if(lab.active){lab.active.conditions={...lab.conditions};trialEvent('stimulus','Conditions changed',source+': '+FACTORS.map(f=>f.label+' '+lab.conditions[f.id]).join(', '));save();}}
+function changeCustomFactors(next,description){lab.custom=normalizeCustom(next);persistNotebook();if(lab.active){lab.active.custom=deepCopy(lab.custom);trialEvent('custom-variable','Custom variables changed',description+'. Effective conditions: '+JSON.stringify(effectiveFactors()));save()}}
+function beginTrial(){if(lab.active){toast('End the current trial before starting another.');return}
+ save();const baseline=deepCopy(state);state=deepCopy(baseline);state.paused=false;state.brain.mode='idle';state.brain.target=null;state.brain.work=0;state.brain.ai.enabled=false;
+ lab.active={id:'trial-'+Date.now().toString(36),name:($('trialName')?.value||lab.name||'Untitled trial').trim().slice(0,64)||'Untitled trial',baseline,seed:baseline.seed,conditions:{...lab.conditions},custom:deepCopy(lab.custom),preset:lab.preset,speed:lab.speed,started:Date.now(),elapsed:0,lastSample:0,lastLearningAt:0,samples:[],events:[],decisions:0,actions:0,lastReason:'Ready to observe',note:''};
+ lab.lastReason='Trial started from a copied state. Waiting for Tavi’s next autonomous choice.';trialSample();trialEvent('system','Isolated trial started','Tavi’s starting self was checkpointed. Keep the experience to commit his learning; Ollama advice is paused for controlled conditions.');
+ runtime.path=[];runtime.index=0;runtime.nextDecision=0;renderStatus();sidebar();save();toast('Learning experience started')
+}
+function endTrial(mode='commit'){
+ if(!lab.active)return;
+ const t=lab.active,committed=mode!=='discard';trialSample();
+ const starting=normalizeDevelopment(t.baseline.development),ending=normalizeDevelopment(state.development);
+ const traitChanges=Object.fromEntries(Object.keys(TRAITS).map(k=>[k,+(ending.traits[k]-starting.traits[k]).toFixed(2)]));
+ const summary={id:t.id,name:t.name,preset:t.preset,seed:t.seed,started:t.started,ended:Date.now(),elapsed:Math.round(t.elapsed),conditions:{...t.conditions},custom:deepCopy(t.custom||[]),begin:t.samples[0],end:t.samples[t.samples.length-1],samples:t.samples,events:t.events,decisions:t.decisions,actions:t.actions,committed,traitChanges,experiencesGained:ending.experienceCount-starting.experienceCount};
+ if(committed){
+  // Back up the everyday self before altering its long-term identity. This snapshot
+  // intentionally remains separate from the laboratory notebook and live session.
+  try{localStorage.setItem(PRE_COMMIT_BACKUP_KEY,JSON.stringify({at:Date.now(),name:t.name,state:t.baseline}))}
+  catch(e){warning='Could not create pre-learning checkpoint. Export a full backup.';console.warn(e)}
+  state.development=ending;
+  state.brain.ai.enabled=!!t.baseline?.brain?.ai?.enabled;
+  state.brain.ai.pending=null;
+  state.brain.mode='idle';state.brain.target=null;state.brain.work=0;
+  state.world.moving=false;
+  recordExperience('milestone','Tavi retained the effects of “'+t.name+'” in his ongoing developmental history.',{trial:t.id,seconds:t.elapsed});
+  journal('I remember the experience “'+t.name+'”. What I learned will influence my future choices.','development');
+ }else state=deepCopy(t.baseline);
+ lab.runs.unshift(summary);lab.runs.length=Math.min(lab.runs.length,16);
+ state.clock=Date.now();lab.active=null;
+ runtime.path=[];runtime.index=0;runtime.nextDecision=Date.now()+1400;persistNotebook();
+ // Only discard the active trial file after successful primary persistence.
+ const saved=save();if(saved){try{localStorage.removeItem(LAB_SESSION_KEY)}catch(e){}}
+ renderStatus();sidebar();toast(committed?'Learning retained in Tavi’s permanent profile.':'Trial discarded; previous Tavi restored.')
+}
+function discardTrial(){if(!lab.active)return;if(confirm('Discard this experiment without changing Tavi? Its measurement record will remain available for comparison.'))endTrial('discard')}
+function restoreLearningBackup(){if(lab.active)return toast('End the current experiment before restoring a checkpoint.');
+ try{const snapshot=JSON.parse(localStorage.getItem(PRE_COMMIT_BACKUP_KEY)||'null');if(!snapshot?.state?.version)throw Error('No pre-experiment checkpoint found.');
+  if(!confirm('Restore Tavi to the checkpoint before the last committed experiment? Please export the current save first.'))return;
+  const current=JSON.stringify(state);localStorage.setItem(KEY,JSON.stringify(snapshot.state));state=loadState();runtime.path=[];runtime.index=0;runtime.nextDecision=0;save();
+  // Make the previous checkpoint a one-step undo toggle rather than silently deleting it.
+  localStorage.setItem(PRE_COMMIT_BACKUP_KEY,JSON.stringify({at:Date.now(),name:'Checkpoint before restore',state:JSON.parse(current)}));
+  sidebar();toast('Tavi restored from the pre-experiment checkpoint.');
+ }catch(e){toast('Restore unavailable: '+e.message)}
+}
+function repeatTrial(){if(!lab.active){toast('Start a trial first');return}const name=lab.active.name,baseline=deepCopy(lab.active.baseline);state=deepCopy(baseline);state.paused=false;state.brain.mode='idle';state.brain.target=null;state.brain.work=0;state.brain.ai.enabled=false;
+ lab.active={id:'trial-'+Date.now().toString(36),name,baseline,seed:baseline.seed,conditions:{...lab.conditions},custom:deepCopy(lab.custom),preset:lab.preset,speed:lab.speed,started:Date.now(),elapsed:0,lastSample:0,lastLearningAt:0,samples:[],events:[],decisions:0,actions:0,lastReason:'Replayed from the same starting snapshot'};trialSample();trialEvent('system','Run restarted','The starting state and random seed were restored. Exact time-based replay is not guaranteed.');runtime.path=[];runtime.index=0;runtime.nextDecision=0;save();sidebar();toast('Restarted from the same starting state')}
+function labTick(dt){const a=lab.active;if(!a||state.paused)return;a.elapsed+=dt;const c=effectiveFactors(),s=state.stats,e=state.emotions;
+ const n=k=>(c[k]-50)/50,safe=n('safety'),nov=n('novelty'),soc=n('social'),noise=n('noise'),diff=n('difficulty'),freedom=n('choice');
+ learnFromConditions(dt);
+ const tr=state.development.traits,ex=state.development.expectations;
+ // Trait-dependent reactions: the same situation can affect Tavi differently after learning.
+ const noveltyAmplifier=1+(tr.openness-50)/150;
+ const regulation=1+(tr.resilience-50)/100;
+ const threatSurprise=Math.max(0,(ex.safety-c.safety)/100);
+ // Transparent, inspectable heuristics; these variables represent simulated states, not felt emotions.
+ e.joy=clamp(e.joy+dt*(.12*soc+.05*safe+.08*freedom-.07*noise));
+ e.excitement=clamp(e.excitement+dt*(.17*nov*noveltyAmplifier+.08*diff-.04*noise));
+ e.curiosity=clamp(e.curiosity+dt*(.11*nov+.05*diff+.06*freedom-.04*noise));
+ e.calm=clamp(e.calm+dt*(.17*safe-.17*noise-.05*diff));
+ e.nervousness=clamp(e.nervousness+dt*((-.15*safe+.13*noise+.05*diff-.05*soc)/regulation+.035*threatSurprise));
+ e.frustration=clamp(e.frustration+dt*(-.09*safe+.10*diff-.13*freedom+.06*noise));
+ e.confidence=clamp(e.confidence+dt*(.10*freedom+.06*safe+.04*soc-.06*diff));
+ e.boredom=clamp(e.boredom+dt*(-.13*nov-.06*soc+.02*noise));
+ s.happiness=clamp(s.happiness+dt*(.07*soc+.06*safe+.06*freedom-.04*noise));
+ s.curiosity=clamp(s.curiosity+dt*(.09*nov+.04*diff-.05*noise));
+ if(a.elapsed-a.lastSample>=5)trialSample();
+ if(a.elapsed-(a.lastLearningAt||0)>=30){
+  a.lastLearningAt=a.elapsed;
+  const strongest=FACTORS.map(f=>({name:f.label,value:c[f.id],delta:Math.abs(c[f.id]-50)})).sort((u,v)=>v.delta-u.delta)[0];
+  recordExperience('situation',`Repeated exposure to ${strongest.name.toLowerCase()} (${Math.round(strongest.value)}/100) adjusted my expectations and behavior.`,{trial:a.id,seconds:Math.round(a.elapsed),factors:{...c}});
+ }
+}
+function exportNotebook(format='json'){
+ const rows=lab.active?[...lab.runs,{id:lab.active.id,name:lab.active.name,status:'in progress',conditions:lab.active.conditions,custom:lab.active.custom,seed:lab.active.seed,elapsed:lab.active.elapsed,samples:lab.active.samples,events:lab.active.events}]:lab.runs;
+ let content,filename,mime;if(format==='csv'){const header='trial_id,trial_name,seconds,energy,happiness,curiosity,joy,excitement,nervousness,calm,frustration,confidence,boredom';const esc=v=>'"'+String(v??'').replace(/"/g,'""')+'"';content=[header,...rows.flatMap(run=>(run.samples||[]).map(s=>[run.id,run.name,s.t,...['energy','happiness','curiosity','joy','excitement','nervousness','calm','frustration','confidence','boredom'].map(k=>s[k])].map(esc).join(',')))].join('\n');filename='Tavi-Observations.csv';mime='text/csv'}
+ else{content=JSON.stringify({format:'tavi-observation-notebook-v1',exportedAt:new Date().toISOString(),model:'rule-based-heuristic',notice:'Simulated emotion states are not evidence of consciousness or real emotion.',runs:rows},null,2);filename='Tavi-Observation-Notebook.json';mime='application/json'}
+ const a=el('a');const url=URL.createObjectURL(new Blob([content],{type:mime}));a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),2500)
+}
 const runtime={path:[],index:0,keys:new Set(),lastFrame:0,lastNeeds:0,lastAutosave:0,lastUI:0,lastSidebar:0,nextDecision:0,
  camera:{x:0,y:0,panX:0,panY:0},drag:null,lastMouse:{x:0,y:0},aiBusy:false};
 const canStore=()=>{try{return !!window.localStorage}catch(e){return false}};
-function save(){try{state.lastSave=Date.now();localStorage.setItem(KEY,JSON.stringify(state));if(warning.startsWith('Save failed'))warning='';return true}
+function save(){try{state.lastSave=Date.now();if(lab.active)localStorage.setItem(LAB_SESSION_KEY,JSON.stringify({state,trial:lab.active}));else localStorage.setItem(KEY,JSON.stringify(state));if(warning.startsWith('Save failed'))warning='';return true}
  catch(e){warning='Save failed. Use Settings → Export backup to protect progress.';console.warn(e);return false}}
 function rng(){state.seed=(Math.imul(state.seed,1664525)+1013904223)>>>0;return state.seed/4294967296}
 function chance(n){return rng()<n}
@@ -761,6 +980,7 @@ function makeArt(when=Date.now()){
 }
 function actionResult(prop,when=Date.now(),quiet=false){const {activity,interest,name}=prop;
  state.interests[interest]=clamp((state.interests[interest]||0)+2);
+ learnFromActivity(prop);
  const s=state.stats,e=state.emotions;
  s.energy=clamp(s.energy+(activity==='sleeping'?31:activity==='resting'?17:-4));
  // Eating is a pleasant optional activity, not a survival requirement or hunger-management loop.
@@ -806,12 +1026,30 @@ function activityScore(prop){
  n-=Math.min(23,distance*.13);
  if(state.brain.recent.includes(prop.id))n-=36;
  if(state.brain.ai.pending?.area===prop.area&&state.brain.ai.pending.obj===prop.obj)n+=75;
+ // Learned dispositions affect everyday decisions as well as experimental runs.
+ const traits=state.development.traits;
+ if(['observing','drawing','tinkering'].includes(prop.activity))n+=(traits.openness-50)*.23;
+ if(['reading','drawing','tinkering'].includes(prop.activity))n+=(traits.focus-50)*.19;
+ if(['listening','playing','eating'].includes(prop.activity))n+=(traits.trust-50)*.22;
+ if(r===0)n+=(traits.agency-50)*.17;
+ if(['sleeping','resting'].includes(prop.activity))n-=(traits.resilience-50)*.08;
+ n+=((state.development.activityValues[prop.activity]??50)-50)*.38;
+ if(lab.active){const c=effectiveFactors();
+  if(c.safety<45&&['resting','sleeping','reading'].includes(prop.activity))n+=(45-c.safety)*.36;
+  if(c.novelty>50&&['observing','exploring','drawing'].includes(prop.activity))n+=(c.novelty-50)*.3+(state.brain.explored[prop.id]||0?0:7);
+  if(c.social>50&&['listening','playing','eating'].includes(prop.activity))n+=(c.social-50)*.25;
+  if(c.noise>50&&['listening','reading','resting'].includes(prop.activity))n+=(c.noise-50)*.23;
+  if(c.difficulty>50&&['tinkering','reading','observing'].includes(prop.activity))n+=(c.difficulty-50)*.26;
+  if(c.choice<50&&state.brain.explored[prop.id]===undefined)n-=(50-c.choice)*.25;
+ }
+
  return n+(rng()-.5)*15;
 }
 function chooseIntent(){if(state.paused||state.brain.target)return;
- let best=null,bestScore=-Infinity;
- for(const prop of M.props){const s=activityScore(prop);if(s>bestScore){bestScore=s;best=prop}}
+ let best=null,bestScore=-Infinity;const rankings=[];
+ for(const prop of M.props){const score=activityScore(prop);if(lab.active)rankings.push({prop,score});if(score>bestScore){bestScore=score;best=prop}}
  if(!best)return;
+ if(lab.active){rankings.sort((a,b)=>b.score-a.score);lab.active.decisions++;lab.lastReason=trialReason(best,rankings);lab.active.lastReason=lab.lastReason;trialEvent('decision','Model selected '+best.name,lab.lastReason)}
  state.brain.ai.pending=null;
  setDestination(best,'autonomous');
 }
@@ -848,7 +1086,7 @@ function arrival(){const b=state.brain,t=b.target;
 }
 function finishActivity(){const b=state.brain,t=b.target;if(!t)return;
  const prop=M.props.find(p=>p.id===t.id);
- if(prop){actionResult(prop);b.recent=[prop.id,...b.recent.filter(x=>x!==prop.id)].slice(0,6);
+ if(prop){actionResult(prop);if(lab.active){lab.active.actions++;trialEvent('action','Activity completed',prop.name+' · '+prop.activity+' · interest '+prop.interest)}b.recent=[prop.id,...b.recent.filter(x=>x!==prop.id)].slice(0,6);
   b.explored[prop.id]=(b.explored[prop.id]||0)+1;
   if(b.explored[prop.id]===1){const msg='I reached '+prop.name+' for the first time in '+M.regions[prop.area].name+'.';
    b.discoveries.unshift({id:uid('d'),text:msg,area:prop.area,interest:prop.interest,time:Date.now()});
@@ -857,7 +1095,7 @@ function finishActivity(){const b=state.brain,t=b.target;if(!t)return;
  b.completedAt=Date.now();b.completedActivity=t.activity;b.target=null;b.mode='idle';b.work=0;
  runtime.nextDecision=Date.now()+1000;reflection();save();sidebar();
 }
-function simulateOffline(){const now=Date.now(),elapsed=Math.floor((now-(state.clock||now))/1000);if(elapsed<75)return;
+function simulateOffline(){if(lab.active){state.clock=Date.now();return}const now=Date.now(),elapsed=Math.floor((now-(state.clock||now))/1000);if(elapsed<75)return;
  const simulated=Math.min(6*3600,elapsed),events=Math.min(65,Math.floor(simulated/225));
  if(!state.paused){
   for(let i=0;i<events;i++){
@@ -880,7 +1118,7 @@ function needsTick(dt){const s=state.stats,e=state.emotions;
  if(s.energy<20)e.frustration=clamp(e.frustration+dt*.03);
 }
 function update(dt){if(state.paused)return;
- needsTick(dt);const b=state.brain,w=state.world;
+ needsTick(dt);labTick(dt);const b=state.brain,w=state.world;
  const keys=runtime.keys;
  let manualX=(keys.has('ArrowRight')||keys.has('d')?1:0)-(keys.has('ArrowLeft')||keys.has('a')?1:0);
  let manualY=(keys.has('ArrowDown')||keys.has('s')?1:0)-(keys.has('ArrowUp')||keys.has('w')?1:0);
@@ -929,18 +1167,20 @@ function renderStatus(){const s=state.stats;
  $('areaTitle').textContent=M.regions[state.area]?.name||'Living Valley';
  $('areaDesc').textContent=M.regions[state.area]?.desc||'';
  $('thought').textContent=state.thought;
- $('statusText').textContent=warning||(state.paused?'Autonomy paused':state.brain.mode==='working'?'Practicing '+state.brain.target?.activity:state.brain.mode==='travel'?'Traveling to '+state.brain.target?.name:'Choosing what matters next');
+ $('statusText').textContent=warning||(lab.active?(state.paused?'Trial paused':'Isolated trial · '+Math.floor(lab.active.elapsed)+'s'):(state.paused?'Autonomy paused':state.brain.mode==='working'?'Practicing '+state.brain.target?.activity:state.brain.mode==='travel'?'Traveling to '+state.brain.target?.name:'Choosing what matters next'));
  $('pause').textContent=state.paused?'▶ Resume':'⏸ Pause';
  $('follow').textContent=freeCamera?'◎ Follow':'◎ Following';
  $('clock').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
  const attrs=[['energy',s.energy],['happiness',s.happiness],['curiosity',s.curiosity]];
  for(const [k,n] of attrs){const bar=$('meter-'+k),v=$('value-'+k);if(bar)bar.style.width=clamp(n)+'%';if(v)v.textContent=Math.round(n)+'%'}
  $('exploredCount').textContent=Object.keys(state.world.visited||{}).length+'/12';
- $('journalCount').textContent=state.journal.length+' journal entries';
+ $('journalCount').textContent=(lab.active?'Trial: '+lab.active.decisions+' decisions':'Primary Tavi')+' · '+state.journal.length+' records';
  $('moodLabel').textContent=moodSummary();
- $('activeIntent').textContent=state.paused?'Resting in place':state.brain.mode==='travel'&&state.brain.target?'Traveling to '+state.brain.target.name:state.brain.mode==='working'&&state.brain.target?'Enjoying '+state.brain.target.activity:'Dreaming up the next adventure';
+ $('activeIntent').textContent=state.paused?'Autonomy paused':state.brain.mode==='travel'&&state.brain.target?'Traveling to '+state.brain.target.name:state.brain.mode==='working'&&state.brain.target?'Enjoying '+state.brain.target.activity:'Evaluating the next autonomous action';
  drawPortrait();
  $('miniLabel').textContent=M.regions[state.area]?.name||'Valley';
+ const reason=$('labReason');if(reason)reason.textContent=lab.active?(lab.active.lastReason||lab.lastReason):'No isolated trial running. Start a trial in the Behavior Lab to inspect decision scores and observe reactions.';
+ const elapsed=$('labElapsed');if(elapsed&&lab.active)elapsed.textContent=lab.active.elapsed.toFixed(1)+' simulated seconds';
 }
 function moodSummary(){
  const e=state.emotions,s=state.stats;
@@ -965,11 +1205,83 @@ function card(host,title,content,meta=''){const wrap=el('article');wrap.classNam
  if(meta){const foot=el('small',meta);wrap.append(foot)}host.append(wrap);return wrap}
 function heading(host,title,desc=''){const h=el('h3',title);host.append(h);if(desc)host.append(el('p',desc));}
 const NAV_GROUPS=[
- {id:'explore',label:'Explore',icon:'◈',tabs:[['world','World'],['goals','Goals'],['questions','Questions'],['approvals','Approvals']]},
- {id:'stories',label:'Stories',icon:'✎',tabs:[['journal','Journal'],['memories','Memories'],['art','Artwork']]},
- {id:'tavi',label:'Tavi',icon:'✦',tabs:[['personality','Personality'],['settings','Settings']]}
+ {id:'lab',label:'Research',icon:'◇',tabs:[['conditions','Conditions'],['observations','Observations'],['compare','Compare']]},
+ {id:'records',label:'Records',icon:'▤',tabs:[['journal','History'],['memories','Memories'],['goals','Goals'],['art','Artwork'],['questions','Questions'],['approvals','Approvals']]},
+ {id:'tavi',label:'Profile',icon:'✧',tabs:[['development','Development'],['personality','Model States'],['world','Locations'],['settings','Settings']]}
 ];
-let navGroup='explore',journalOpen=window.innerWidth>940,lastCompact=window.innerWidth<=940;
+let navGroup='lab',journalOpen=window.innerWidth>940,lastCompact=window.innerWidth<=940;
+function renderConditions(host){
+ heading(host,'Experimental conditions','Design a situation. Tavi learns from it; when you finish, his evolving profile is saved permanently by default.');
+ const status=el('div');status.className='lab-banner';const msg=el('div');const strong=el('strong',lab.active?'Experience in progress':'Ready for a learning experience');const small=el('small',lab.active?'Saved as an in-progress session · '+Math.floor(lab.active.elapsed)+'s simulated':'Begins from Tavi’s current learned self');msg.append(strong,small);const pill=el('span',lab.active?'LIVE':'STANDBY');pill.className='lab-live '+(lab.active?'':'idle');status.append(msg,pill);host.append(status);
+ const caption=el('p','Six controllable factors affect mood, learning, future preferences and decisions. Tavi gradually adapts, retains experiences and starts later sessions as his changed self. These are model parameters, not measurements of consciousness.');caption.className='lab-intro';host.append(caption);
+ const label=el('label','Trial label');label.className='lab-field';label.htmlFor='trialName';host.append(label);
+ const name=el('input');name.id='trialName';name.className='lab-control';name.maxLength=64;name.placeholder='e.g. Novelty under uncertainty';name.value=lab.active?.name||lab.name||'Observation '+(lab.runs.length+1);name.disabled=!!lab.active;name.oninput=()=>{lab.name=name.value.slice(0,64);persistNotebook()};host.append(name);
+ const presetLabel=el('label','Situations / presets');presetLabel.htmlFor='labPreset';presetLabel.className='lab-field';host.append(presetLabel);
+ const preset=el('select');preset.id='labPreset';preset.className='lab-control';const choices={neutral:'Baseline environment',quiet:'Quiet safe space',friendly:'Friendly encounter',surprise:'Unexpected disruption',challenge:'Complex new puzzle',restriction:'Reduced freedom'};
+ for(const [id,label] of Object.entries(choices)){const o=el('option',label);o.value=id;preset.append(o)}preset.value=lab.preset;
+ preset.onchange=()=>{lab.preset=preset.value;updateTrialFactors(PRESETS[preset.value],choices[preset.value]);sidebar();toast('Scenario set: '+choices[preset.value])};host.append(preset);
+ const block=el('div');block.className='lab-section';const blockHeading=el('div','ENVIRONMENTAL VARIABLES');blockHeading.className='lab-title';block.append(blockHeading);
+ for(const item of FACTORS){const div=el('div');div.className='lab-range';const h=el('div');h.className='lab-range-head';const n=el('span',item.label);const output=el('output',String(lab.conditions[item.id]));h.append(n,output);
+  const input=el('input');input.type='range';input.min='0';input.max='100';input.step='5';input.value=String(lab.conditions[item.id]);input.id='lab-'+item.id;input.setAttribute('aria-label',item.label);
+  input.oninput=()=>{output.textContent=input.value};input.onchange=()=>{lab.preset='neutral';updateTrialFactors({...lab.conditions,[item.id]:Number(input.value)},item.label);preset.value='neutral';toast(item.label+' set to '+input.value)};
+  const helper=el('small',item.hint);div.append(h,input,helper);block.append(div)}host.append(block);
+ const customBlock=el('details');customBlock.className='lab-section';const summary=el('summary','＋ Custom model variables ('+lab.custom.length+'/8)');summary.className='lab-title';customBlock.append(summary);
+ const explanation=el('p','You can define a named factor and link it to a known model mechanism. A custom value above 50 increases that mechanism and below 50 decreases it; strength controls the size of that effect. Free-text names alone are not interpreted by Tavi.');explanation.className='lab-intro';customBlock.append(explanation);
+ for(const v of lab.custom){const div=el('div');div.className='lab-range';const hdr=el('div');hdr.className='lab-range-head';hdr.append(el('span',v.name));hdr.append(el('output',String(v.value)));div.append(hdr);div.append(el('small','Linked to '+FACTORS.find(f=>f.id===v.channel).label+' · '+v.strength+'% strength'));
+ const slider=el('input');slider.type='range';slider.min='0';slider.max='100';slider.step='5';slider.value=String(v.value);slider.setAttribute('aria-label',v.name);slider.oninput=()=>{hdr.querySelector('output').textContent=slider.value};slider.onchange=()=>{changeCustomFactors(lab.custom.map(x=>x.id===v.id?{...x,value:Number(slider.value)}:x),'Adjusted '+v.name);};div.append(slider);
+ const remove=el('button','Remove factor');remove.className='secondary small';remove.onclick=()=>{changeCustomFactors(lab.custom.filter(x=>x.id!==v.id),'Removed '+v.name);sidebar()};div.append(remove);customBlock.append(div)
+ }
+ if(lab.custom.length<8){const field=el('label','Variable name');field.className='lab-field';customBlock.append(field);const nameBox=el('input');nameBox.className='lab-control';nameBox.maxLength=42;nameBox.placeholder='e.g. Crowding';customBlock.append(nameBox);
+ const linkLabel=el('label','Underlying model mechanism');linkLabel.className='lab-field';customBlock.append(linkLabel);const channel=el('select');channel.className='lab-control';for(const f of FACTORS){const o=el('option',f.label);o.value=f.id;channel.append(o)}customBlock.append(channel);
+ const strLabel=el('label','Impact strength');strLabel.className='lab-field';customBlock.append(strLabel);const str=el('select');str.className='lab-control';for(const n of [25,50,75,100]){const o=el('option',n+'%');o.value=String(n);str.append(o)}str.value='50';customBlock.append(str);
+ const add=el('button','Add variable');add.className='secondary small';add.onclick=()=>{const name=nameBox.value.trim().slice(0,42);if(!name)return toast('Enter a variable name first.');const next={id:'custom-'+Date.now().toString(36),name,channel:channel.value,value:50,strength:Number(str.value)};changeCustomFactors([...lab.custom,next],'Created '+name);sidebar();toast('Added '+name+' to experiment model')};customBlock.append(add)
+ }
+ host.append(customBlock);
+ const speedLabel=el('label','Simulation time scale');speedLabel.className='lab-field';speedLabel.htmlFor='labSpeed';host.append(speedLabel);
+ const speed=el('select');speed.id='labSpeed';speed.className='lab-control';for(const value of [1,3,6]){const option=el('option',value+'× simulation speed');option.value=value;speed.append(option)}speed.value=String(lab.speed);speed.onchange=()=>{lab.speed=Number(speed.value);if(lab.active){lab.active.speed=lab.speed;trialEvent('system','Simulation speed changed',lab.speed+'×');save()}persistNotebook()};host.append(speed);
+ const actions=el('div');actions.className='lab-buttons';
+ const start=el('button',lab.active?'✓ Keep experience & finish':'▶ Start experience');start.id='labTrialButton';start.onclick=()=>lab.active?endTrial():beginTrial();actions.append(start);
+ const restart=el('button','↺ Reset this experience');restart.id='labRestart';restart.className='secondary';restart.disabled=!lab.active;restart.onclick=repeatTrial;actions.append(restart);
+ if(lab.active){const discard=el('button','Discard without learning');discard.className='secondary full';discard.id='labDiscard';discard.onclick=discardTrial;actions.append(discard)}
+ const trace=el('button','View observation timeline');trace.className='secondary full';trace.onclick=()=>{tab='observations';sidebar()};actions.append(trace);host.append(actions);
+ if(lab.active){const noteLabel=el('label','Researcher note (annotates a trial; does not change the model)');noteLabel.className='lab-field';noteLabel.htmlFor='labNote';host.append(noteLabel);
+  const noteInput=el('textarea');noteInput.id='labNote';noteInput.className='lab-control';noteInput.rows=2;noteInput.maxLength=300;noteInput.placeholder='Describe the situation or your observation…';host.append(noteInput);
+  const record=el('button','＋ Add timeline note');record.className='secondary small';record.onclick=()=>{const note=noteInput.value.trim().slice(0,300);if(!note)return;trialEvent('note','Researcher note',note);save();noteInput.value='';toast('Note recorded in trial timeline')};host.append(record);
+ }
+ const foot=el('div','Your current Tavi is checkpointed before the trial. During the experience a separate session save is used, and “Keep experience & finish” merges the learned self into Tavi’s permanent history. Discard is optional. Ollama advice is paused during controlled conditions.');foot.className='lab-note';host.append(foot);
+}
+function drawObservationChart(c,run){if(!c)return;const g=c.getContext('2d'),data=run?.samples||[],w=c.width,h=c.height;g.clearRect(0,0,w,h);g.fillStyle='#0b2b3b';g.fillRect(0,0,w,h);
+ for(let j=0;j<=4;j++){const y=8+(h-21)*j/4;g.strokeStyle='#31576b';g.lineWidth=1;g.beginPath();g.moveTo(27,y);g.lineTo(w-8,y);g.stroke();g.fillStyle='#aacbd3';g.font='10px monospace';g.fillText(String(100-j*25),2,y+3)}
+ if(data.length<2){g.fillStyle='#c7e3de';g.font='12px sans-serif';g.fillText('Collecting samples…',w/2-45,h/2);return}
+ const keys=[['joy','#ffb28e'],['curiosity','#88e2d0'],['nervousness','#e4a4d6'],['calm','#a6c9f6']],maxT=Math.max(1,data[data.length-1].t);
+ for(const [key,color] of keys){g.strokeStyle=color;g.lineWidth=2;g.beginPath();data.forEach((pt,i)=>{const x=27+(w-39)*pt.t/maxT,y=8+(h-21)*(1-(pt[key]||0)/100);if(i===0)g.moveTo(x,y);else g.lineTo(x,y)});g.stroke()}
+ g.fillStyle='#e5e6e1';g.font='10px sans-serif';g.fillText('joy · curiosity · nervousness · calm',48,h-1)
+}
+function drawRunMetrics(host,run){const last=run?.samples?.[run.samples.length-1];const first=run?.samples?.[0];if(!last||!first)return;
+ const group=el('div');group.className='lab-metrics';for(const [key,label] of [['joy','Joy'],['nervousness','Nervousness'],['curiosity','Curiosity'],['calm','Calm'],['frustration','Frustration'],['confidence','Confidence']]){
+ const box=el('div');box.className='lab-metric';box.append(el('span',label));box.append(el('strong',String(Math.round(last[key]))));const v=last[key]-first[key];box.append(el('em',(v>=0?'+':'')+v.toFixed(1)));group.append(box)}host.append(group)
+}
+function renderObservations(host){heading(host,'Observation timeline','Live simulated states, learned dispositions and decision traces. Samples are collected every 5 simulated seconds; experiences become lasting after you keep the run.');const a=lab.active;
+ if(!a){const none=el('div','No active trial. Open Conditions to start one from a protected baseline. Previous experiments are in Compare.');none.className='lab-empty';host.append(none);return}
+ const info=el('div');info.className='lab-banner';info.append(el('strong',a.name));const clock=el('small',a.elapsed.toFixed(1)+' simulated seconds');clock.id='labElapsed';info.append(clock);host.append(info);
+ drawRunMetrics(host,a);const graph=el('canvas');graph.id='labPlot';graph.className='lab-plot';graph.width=316;graph.height=166;host.append(graph);drawObservationChart(graph,a);
+ const note=el('div','Outputs follow transparent programmed heuristics. A score change after introducing a variable is an output of this model; it does not establish a genuine emotional experience or causal effect in a living being.');note.className='lab-note';host.append(note);
+ const decisions=el('div','Decisions '+a.decisions+' · activities completed '+a.actions+' · recorded samples '+a.samples.length);decisions.className='lab-trace';host.append(decisions);
+ const title=el('div','RECENT EVENTS');title.className='lab-title';host.append(title);const events=el('div');events.className='lab-events';
+ for(const v of a.events.slice(0,65)){const item=el('div');item.className='lab-event';item.append(el('strong',v.title));item.append(el('p',v.text));const time=el('time','T + '+v.t+'s · '+v.kind);item.append(time);events.append(item)}host.append(events);
+ const actions=el('div');actions.className='lab-buttons';const end=el('button','✓ Keep experience & finish');end.onclick=()=>endTrial();actions.append(end);const csv=el('button','Export CSV');csv.className='secondary';csv.onclick=()=>exportNotebook('csv');actions.append(csv);host.append(actions)
+}
+function renderComparison(host){heading(host,'Compare experiences','Compare how conditions changed Tavi’s temporary reactions and long-term learned traits. Each committed run changes the next baseline.');
+ const actions=el('div');actions.className='lab-buttons';const json=el('button','Export JSON notebook');json.className='secondary';json.onclick=()=>exportNotebook('json');const csv=el('button','Export CSV samples');csv.className='secondary';csv.onclick=()=>exportNotebook('csv');actions.append(json,csv);host.append(actions);
+ if(!lab.runs.length){const empty=el('div','No completed runs yet. Start a trial, modify a condition, observe Tavi, and end the trial to add it here.');empty.className='lab-empty';host.append(empty);return}
+ const note=el('div','Committed experiences alter the baseline for later trials. To compare identical starting states, use Reset this experience before committing or restore your checkpoint. Replay is not guaranteed deterministic.');note.className='lab-note';host.append(note);
+ for(const run of lab.runs){const item=el('div');item.className='lab-run';item.append(el('strong',run.name));item.append(el('small',new Date(run.started).toLocaleString()+' · '+run.elapsed+' simulated s · '+run.preset+' · seed '+run.seed));
+ const delta=el('div');delta.className='deltas';for(const k of ['joy','nervousness','calm','curiosity']){const d=(run.end?.[k]||0)-(run.begin?.[k]||0);delta.append(el('span',k+' '+(d>=0?'+':'')+d.toFixed(1)))}item.append(delta);
+ const learned=el('div');learned.className='lab-trace';learned.textContent=(run.committed?'✓ Permanently integrated':'○ Discarded after observation')+' · '+(run.experiencesGained||0)+' learned experiences · '+Object.entries(run.traitChanges||{}).map(([k,v])=>k+' '+(v>=0?'+':'')+v).join(' / ');item.append(learned);
+ const details=el('button','Inspect run');details.className='secondary small';details.onclick=()=>{const current=item.querySelector('canvas');if(current){current.remove();return}const plot=el('canvas');plot.className='lab-plot';plot.width=316;plot.height=166;item.append(plot);drawObservationChart(plot,run)};item.append(details);host.append(item)
+ }
+ const clear=el('button','Clear archived runs');clear.className='danger small';clear.onclick=()=>{if(confirm('Delete all recorded experiment runs from this browser? Export first if you need them. This will not reset Tavi.')){lab.runs=[];persistNotebook();sidebar()}};host.append(clear)
+}
 function sidebar(){
  const group=NAV_GROUPS.find(g=>g.tabs.some(t=>t[0]===tab));if(group)navGroup=group.id;
  const groups=$('journalGroups');groups.replaceChildren();
@@ -978,10 +1290,13 @@ function sidebar(){
  const current=NAV_GROUPS.find(g=>g.id===navGroup)||NAV_GROUPS[0];
  for(const [id,title] of current.tabs){const b=el('button',title);b.className=id===tab?'active':'';b.setAttribute('aria-selected',String(id===tab));b.onclick=()=>{tab=id;sidebar()};tabs.append(b)}
  const host=$('sidebarContent');host.replaceChildren();
- if(tab==='world'){
-  heading(host,'Tavi’s next intention','Tavi independently plans routes, explores, creates and learns.');
+ if(tab==='conditions'){renderConditions(host)
+ }else if(tab==='observations'){renderObservations(host)
+ }else if(tab==='compare'){renderComparison(host)
+ }else if(tab==='world'){
+  heading(host,'Current decision process','Tavi independently plans routes, interacts and updates modeled state.');
   const goal=state.brain.target;
-  card(host,goal?'Heading to '+goal.name:'Thinking about the valley',goal?`Action: ${goal.activity} · ${M.regions[goal.area]?.name||'Valley'}`:'Tavi is choosing from 36 activities across one continuous map.');
+  card(host,goal?'Heading to '+goal.name:'Thinking about the valley',goal?`Action: ${goal.activity} · ${M.regions[goal.area]?.name||'Valley'}`:'Tavi evaluates 36 possible activities in a single spatial environment.');
   heading(host,'Places connected by paths','Choose one to suggest a destination—not to load a separate scene.');
   for(const [i,r] of M.regions.entries()){
    const c=card(host,r.name,r.desc,state.world.visited[r.id]?'Visited':'Undiscovered');
@@ -990,7 +1305,7 @@ function sidebar(){
    };c.append(b)
   }
  }else if(tab==='journal'){
-  heading(host,'Tavi’s journal',state.journal.length+' recorded experiences');
+  heading(host,'Observed history',state.journal.length+' events recorded in the current state');
   for(const v of state.journal.slice(0,75))card(host,v.kind.charAt(0).toUpperCase()+v.kind.slice(1),v.text,dateText(v.time)+' · '+v.area);
  }else if(tab==='memories'){
   heading(host,'Personal memories','Discoveries shape Tavi’s preferences and reflections.');
@@ -1029,8 +1344,23 @@ function sidebar(){
   for(const a of state.art.slice(0,40)){const r=card(host,a.title||'A little painting','Created from colors Tavi chose',dateText(a.time));
    const canvas=el('canvas');canvas.width=208;canvas.height=110;canvas.className='painting';r.append(canvas);paint(canvas,a)
   }
+ }else if(tab==='development'){
+  const dev=state.development;
+  heading(host,'The self Tavi is becoming','Durable learned dispositions, updated by environmental experience and ordinary activities. These are simulated mechanisms.');
+  card(host,dev.experienceCount+' experiences integrated',dev.lastLearning,dateText(dev.lastExperienceAt||Date.now()));
+  for(const [key,label] of Object.entries(TRAITS)){
+   const tile=card(host,label,dev.traits[key].toFixed(1)+'/100');tile.className+=' compact';const meter=el('div');meter.className='mini-progress';const bar=el('i');bar.style.width=dev.traits[key]+'%';meter.append(bar);tile.append(meter);
+  }
+  heading(host,'Learned activity preferences','Rewards recorded from past activities alter which actions Tavi selects later, beyond fixed interests.');
+  const ranked=Object.entries(dev.activityValues).sort((a,b)=>b[1]-a[1]);
+  if(!ranked.length)card(host,'No learned activity preferences yet','They will emerge through repeated autonomous activity and controlled experiences.');
+  for(const [activity,value] of ranked)card(host,activity,value.toFixed(1)+'/100 · practiced '+(dev.activityVisits[activity]||0)+' times');
+  heading(host,'Expectations formed by repetition','Tavi learns what environments tend to be like. Unexpected changes can affect future reactions.');
+  for(const [key,value] of Object.entries(dev.expectations))card(host,key,Math.round(value)+'/100 expected');
+  heading(host,'Experience history','Lasting learning events are stored with the saved identity.');
+  for(const item of dev.experienceHistory.slice(0,30))card(host,item.kind,item.description,dateText(item.when));
  }else if(tab==='personality'){
-  heading(host,'Simulated emotions','These are game-state values, not evidence of consciousness.');
+  heading(host,'Modeled emotional variables','Numerical outputs of predefined rules, not evidence of felt emotion or consciousness.');
   for(const [k,v] of Object.entries(state.emotions)){const c=card(host,k,Math.round(v)+'/100');c.className+=' compact';const m=el('div');m.className='mini-progress';const fill=el('i');fill.style.width=clamp(v)+'%';m.append(fill);c.append(m)}
   heading(host,'Emerging interests','Tavi’s favorite topics influence decisions.');
   for(const [k,v] of Object.entries(state.interests).sort((a,b)=>b[1]-a[1]))card(host,k,Math.round(v)+'/100');
@@ -1046,15 +1376,16 @@ function sidebar(){
    const btn=el('button',title);btn.className='secondary';btn.onclick=func;host.append(btn)
   }
   heading(host,'Local save & backups');
-  card(host,'Saved in this browser',warning||'Save is local to this browser and http://localhost:8765/. Closing the browser pauses live simulation; up to six hours are approximated on reopen.');
+  card(host,'Persistent development and recovery',warning||'Tavi uses the same local save key as before. Active experiments are safely checkpointed; keeping a run integrates learning into the permanent save, and a pre-commit recovery snapshot is saved separately. Closing the page pauses live simulation.');
   const exp=el('button','Export full backup');exp.onclick=exportSave;host.append(exp);
+  const restore=el('button','Restore pre-experience checkpoint');restore.className='secondary';restore.disabled=!!lab.active;restore.onclick=restoreLearningBackup;host.append(restore);
   const upload=el('input');upload.type='file';upload.accept='.json,application/json';upload.className='field';upload.onchange=()=>importSave(upload.files[0]);host.append(upload);
-  const reset=el('button','Reset Tavi World save');reset.className='danger';reset.onclick=()=>{
+  const reset=el('button','Reset everyday Tavi save');reset.className='danger';reset.disabled=!!lab.active;reset.onclick=()=>{
    if(confirm('Reset will replace the current local save. Please export a backup first. Continue?')&&confirm('Really reset all Tavi World memories and progress?')){
     state=initial();runtime.path=[];runtime.index=0;save();sidebar();toast('New Tavi World started')
    }};host.append(reset)
  }
- if(host.children.length===1)host.append(el('p','Nothing to show yet. Tavi will discover new things while exploring.'));
+ if(host.children.length===1)host.append(el('p','No records available yet. Let Tavi run or begin an isolated trial.'));
 }
 function paint(canvas,a){const g=canvas.getContext('2d'),colors=a.palette||['#315a72','#e9d5a3','#8fc4ab','#e8a3a1'];
  let n=(a.seed||13579)>>>0,grow=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296};
@@ -1064,18 +1395,18 @@ function paint(canvas,a){const g=canvas.getContext('2d'),colors=a.palette||['#31
 }
 function exportSave(){const wrapper={format:'tavi-living-valley',version:1,exportedAt:new Date().toISOString(),save:state};
  const blob=new Blob([JSON.stringify(wrapper,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download='Tavi-World-Backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),3000)}
-async function importSave(file){if(!file)return;
+async function importSave(file){if(!file)return;if(lab.active){toast('End the isolated trial before importing a main save.');return}
  try{const data=JSON.parse(await file.text()),next=data.save||data;if(!next||next.version!==1)throw Error('Not a supported Tavi World save');
   if(!confirm('Replace current save with the imported backup? Export your current save first.'))return;
   const raw=JSON.stringify(next);localStorage.setItem(KEY,raw);state=loadState();runtime.path=[];runtime.index=0;save();sidebar();toast('Backup restored successfully')
  }catch(e){toast('Restore failed: '+e.message)}}
 async function pollAI(force=false){const a=state.brain.ai;
- if((!a.enabled&&!force)||runtime.aiBusy||state.paused||document.hidden)return;
+ if(lab.active||(!a.enabled&&!force)||runtime.aiBusy||state.paused||document.hidden)return;
  if(!force&&Date.now()-a.lastCall<100000)return;
  runtime.aiBusy=true;a.lastCall=Date.now();
  try{
   const choices=M.props.map(p=>({area:p.area,obj:p.obj,name:p.name,interest:p.interest,place:M.regions[p.area].name}));
-  const payload={model:a.model,context:{needs:state.stats,emotions:state.emotions,interests:Object.entries(state.interests).sort((x,y)=>y[1]-x[1]).slice(0,6),recentMemories:state.memories.slice(0,8).map(v=>v.text.slice(0,160)),goal:state.goals.find(v=>v.status==='active')||null,currentArea:M.regions[state.area].name,options:choices},
+  const payload={model:a.model,context:{needs:state.stats,emotions:state.emotions,learnedTraits:state.development.traits,lifeExperiences:state.development.experienceHistory.slice(0,6).map(x=>x.description),interests:Object.entries(state.interests).sort((x,y)=>y[1]-x[1]).slice(0,6),recentMemories:state.memories.slice(0,8).map(v=>v.text.slice(0,160)),goal:state.goals.find(v=>v.status==='active')||null,currentArea:M.regions[state.area].name,options:choices},
    instruction:'You are Tavi, a curious fictional creature in an original pixel-art world. Think gently about your memories, needs, goals and interests. Reply with JSON ONLY containing {"area":integer,"obj":integer,"thought":"a first-person imaginative sentence under 180 characters"}. Select exactly one available area and obj from options. No commands, tools, code, external actions, claims of consciousness, or permanent edits.'};
   const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),43000);
   let res;try{res=await fetch('/api/brain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctrl.signal})}finally{clearTimeout(timer)}
@@ -1121,7 +1452,7 @@ function setupInteraction(){const canvas=$('game');
  $('pause').onclick=()=>{state.paused=!state.paused;journal(state.paused?'Autonomy paused by my friend.':'Autonomy resumed by my friend.','system');if(!state.paused)runtime.nextDecision=0;save();renderStatus();sidebar()};
  $('follow').onclick=()=>{freeCamera=!freeCamera;renderStatus();toast(freeCamera?'Drag the map to look around':'Camera now follows Tavi')};
  $('mapButton').onclick=()=>toggleMap();$('closeMap').onclick=()=>toggleMap(false);
- $('visitNext').onclick=()=>{state.brain.target=null;runtime.path=[];runtime.index=0;chooseIntent();toast('Tavi is choosing another adventure')};
+ $('visitNext').onclick=()=>{state.brain.target=null;runtime.path=[];runtime.index=0;chooseIntent();toast('Tavi has evaluated a new action')};
  $('help').onclick=()=>{$('helpPanel').hidden=!$('helpPanel').hidden};
  $('bigMapCanvas').onclick=e=>{const c=e.target,r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*M.W,y=(e.clientY-r.top)/r.height*M.H;
   const nearest=M.regions.reduce((best,p)=>Math.hypot(p.x-x,p.y-y)<Math.hypot(best.x-x,best.y-y)?p:best,M.regions[0]);
@@ -1141,14 +1472,14 @@ function updateJournal(){
  const compact=window.innerWidth<=940;
  $('drawerScrim').hidden=!compact||!journalOpen;
  $('journalToggle').setAttribute('aria-expanded',String(journalOpen));
- $('journalToggle').textContent=journalOpen?'▤ Hide journal':'▤ Journal';
+ $('journalToggle').textContent=journalOpen?'▤ Hide lab':'▤ Research Lab';
 }
 function setJournalOpen(next){journalOpen=!!next;updateJournal();if(journalOpen&&window.innerWidth<=940){$('closeJournal').focus()}}
 function toggleMap(force){showMap=typeof force==='boolean'?force:!showMap;$('mapOverlay').hidden=!showMap;if(showMap){V.minimap($('bigMapCanvas'),state,{showCamera:true,camera:runtime.camera,screen:{w:$('game').width,h:$('game').height}})}}
 function loop(now){const dt=clamp((now-(runtime.lastFrame||now))/1000,0,.075);runtime.lastFrame=now;
- update(dt);if(!runtime.lastPaint||now-runtime.lastPaint>30){drawingCanvas();runtime.lastPaint=now;}
+ update(dt*(lab.active?lab.speed:1));if(!runtime.lastPaint||now-runtime.lastPaint>30){drawingCanvas();runtime.lastPaint=now;}
  if(now-runtime.lastUI>450){renderStatus();runtime.lastUI=now}
- if(now-runtime.lastSidebar>6300&&tab==='world'){sidebar();runtime.lastSidebar=now}
+ if(now-runtime.lastSidebar>5500&&(tab==='world'||tab==='observations')){sidebar();runtime.lastSidebar=now}
  if(now-runtime.lastAutosave>6500){state.clock=Date.now();save();runtime.lastAutosave=now}
  requestAnimationFrame(loop)
 }
@@ -1164,7 +1495,7 @@ function init(){
  runtime.nextDecision=Date.now()+2000;runtime.lastFrame=performance.now();requestAnimationFrame(loop);
  setInterval(()=>pollAI(),11000);
 }
-window.TaviApp={get state(){return state},get camera(){return runtime.camera},get route(){return runtime.path},setDestination,chooseIntent,save,exportSave,debug:{get spawned(){return M.props.length},get visited(){return Object.keys(state.world.visited).length}}};
+window.TaviApp={get state(){return state},get camera(){return runtime.camera},get route(){return runtime.path},get lab(){return lab},setDestination,chooseIntent,save,exportSave,beginTrial,endTrial,discardTrial,repeatTrial,updateTrialFactors,restoreLearningBackup,debug:{get spawned(){return M.props.length},get visited(){return Object.keys(state.world.visited).length}}};
 try{init()}catch(err){console.error('Tavi initialization:',err);const splash=$('startupSplash');if(splash){splash.hidden=false;splash.innerHTML='';const h=el('h2','Tavi encountered an initialization error');const p=el('p',String(err?.stack||err));splash.append(h,p)}}
 })();
 </script>
