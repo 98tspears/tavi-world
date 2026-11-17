@@ -19,8 +19,8 @@ const initial=()=>({version:1,seed:78341,area:0,x:400,y:350,paused:false,clock:D
 // These values are explicitly synthetic model parameters, not measurements of consciousness.
 const TRAITS={openness:'Openness to novelty',resilience:'Resilience',trust:'Social trust',agency:'Self-direction',focus:'Sustained focus',sensoryTolerance:'Sensory tolerance'};
 function initialDevelopment(){return {traits:{openness:54,resilience:50,trust:50,agency:58,focus:52,sensoryTolerance:50},expectations:{safety:65,novelty:40,social:50,noise:20,difficulty:40,choice:80},activityValues:{},activityVisits:{},experienceCount:0,experienceHistory:[],lastLearning:'No experiences recorded yet.',lastExperienceAt:0}}
-function initialLearning(){return {books:{},knowledge:[],videoLessons:[],learningHistory:[]}}
-function normalizeLearning(raw){return {books:raw?.books&&typeof raw.books==='object'?raw.books:{},knowledge:Array.isArray(raw?.knowledge)?raw.knowledge.slice(-100):[],videoLessons:Array.isArray(raw?.videoLessons)?raw.videoLessons.slice(-12):[],learningHistory:Array.isArray(raw?.learningHistory)?raw.learningHistory.slice(-100):[]}}
+function initialLearning(){return {books:{},knowledge:[],videoLessons:[],learningHistory:[],internet:{enabled:false,lastCall:0,nextTopic:0,reads:[]}}}
+function normalizeLearning(raw){return {books:raw?.books&&typeof raw.books==='object'?raw.books:{},knowledge:Array.isArray(raw?.knowledge)?raw.knowledge.slice(-100):[],videoLessons:Array.isArray(raw?.videoLessons)?raw.videoLessons.slice(-12):[],learningHistory:Array.isArray(raw?.learningHistory)?raw.learningHistory.slice(-100):[],internet:{enabled:raw?.internet?.enabled===true,lastCall:Number(raw?.internet?.lastCall)||0,nextTopic:Math.max(0,Math.floor(Number(raw?.internet?.nextTopic)||0)),reads:Array.isArray(raw?.internet?.reads)?raw.internet.reads.slice(0,30).filter(v=>v&&typeof v.url==='string'&&typeof v.excerpt==='string'):[]}}}
 function normalizeDevelopment(raw){const base=initialDevelopment();const value=(v,fallback)=>clamp(Number.isFinite(Number(v))?Number(v):fallback);
  return {traits:Object.fromEntries(Object.keys(base.traits).map(k=>[k,value(raw?.traits?.[k],base.traits[k])])),
  expectations:Object.fromEntries(Object.keys(base.expectations).map(k=>[k,value(raw?.expectations?.[k],base.expectations[k])])),
@@ -256,6 +256,64 @@ function askQuestion(interest){if(state.questions.some(q=>!q.answer))return;
 function addDialogue(role,text,source='local',meta={}){
  const item={id:uid('chat'),role,text:String(text).slice(0,460),source,at:Date.now(),...meta};state.conversation.push(item);state.conversation=state.conversation.slice(-80);return item;
 }
+// The internet reader is a constrained optional GET-only research surface. The Windows
+// launcher has the only external network capability; Tavi does not receive a browser,
+// arbitrary HTTP client, file access, cookies, credentials, or write tools.
+const RESEARCH_TOPICS=[
+ {name:'Color theory',url:'https://en.wikipedia.org/wiki/Color_theory',interest:'art'},
+ {name:'Watercolor painting',url:'https://en.wikipedia.org/wiki/Watercolor_painting',interest:'art'},
+ {name:'Perspective in drawing',url:'https://en.wikipedia.org/wiki/Perspective_(graphical)',interest:'art'},
+ {name:'Botany',url:'https://en.wikipedia.org/wiki/Botany',interest:'nature'},
+ {name:'Astronomy',url:'https://en.wikipedia.org/wiki/Astronomy',interest:'science'},
+ {name:'Scientific method',url:'https://en.wikipedia.org/wiki/Scientific_method',interest:'science'},
+ {name:'Memory',url:'https://en.wikipedia.org/wiki/Memory',interest:'stories'}
+];
+const ALLOWED_RESEARCH_HOSTS=new Set(['en.wikipedia.org','en.wikisource.org','www.gutenberg.org']);
+function validatedResearchUrl(input){
+ try{const u=new URL(String(input||''));if(u.protocol!=='https:'||u.port||u.username||u.password||!ALLOWED_RESEARCH_HOSTS.has(u.hostname)||u.href.length>300||!/^\/(wiki|ebooks|cache\/epub|files)\//.test(u.pathname))return null;
+  if(u.hostname==='en.wikipedia.org'&&!u.pathname.startsWith('/wiki/'))return null;
+  if(u.hostname==='en.wikisource.org'&&!u.pathname.startsWith('/wiki/'))return null;
+  if(u.hostname==='www.gutenberg.org'&&!/^\/(ebooks|cache\/epub|files)\//.test(u.pathname))return null;
+  if(u.search||u.hash)return null;return u.href;
+ }catch(e){return null}
+}
+let researchBusy=false,researchMessage='Internet reading is off until enabled or you request a source.';
+async function researchUrl(url,autonomous=false){
+ const safe=validatedResearchUrl(url);if(!safe)throw Error('Only HTTPS Wikipedia, Wikisource and Project Gutenberg article/book links are allowed.');
+ if(researchBusy)throw Error('A research request is already running.');
+ if(autonomous&&(!state.learning.internet.enabled||lab.active||state.paused||document.hidden))return null;
+ researchBusy=true;researchMessage='Reading an approved public source…';
+ try{
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),13000);
+  let response;try{response=await fetch('/api/read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:safe}),signal:controller.signal,cache:'no-store'})}finally{clearTimeout(timer)}
+  if(!response.ok){let detail='';try{const err=await response.json();detail=String(err.error||'').slice(0,130)}catch(e){}throw Error('Research proxy HTTP '+response.status+(detail?' · '+detail:''))}
+  const data=await response.json();if(data.url!==safe||typeof data.text!=='string'||data.text.length<80)throw Error('Source returned too little readable text.');
+  const excerpt=data.text.slice(0,750).replace(/\s+/g,' ').trim(),title=String(data.title||safe.split('/').pop()).slice(0,110);
+  const kind=safe.includes('wikipedia.org')?'encyclopedia':'classic';
+  const interest=RESEARCH_TOPICS.find(t=>t.url===safe)?.interest||(kind==='classic'?'stories':'science');
+  const note={id:uid('web'),title,url:safe,excerpt,kind,interest,at:Date.now(),method:'external web text; no automatic fact verification'};
+  state.learning.internet.reads.unshift(note);state.learning.internet.reads=state.learning.internet.reads.slice(0,30);
+  state.learning.learningHistory.push({type:'internet',at:note.at,title:note.title});state.learning.learningHistory=state.learning.learningHistory.slice(-100);
+  state.interests[interest]=clamp((state.interests[interest]||20)+.6);
+  state.development.traits.openness=clamp(state.development.traits.openness+.08);
+  state.thought='I read about '+title+'. I want to compare this source with what I already know.';
+  journal('I read a public online source: '+title+' ('+safe+').','research');
+  // A readable record is preserved as an attributed source, not a ground-truth belief.
+  recordExperience('internet-reading','I encountered an attributed public source about '+title+'.',{url:safe,kind,interest});
+  researchMessage='Read '+title+' at '+new Date(note.at).toLocaleTimeString()+'.';save();return note;
+ }catch(e){researchMessage='Research unavailable: '+String(e.message||e).slice(0,170);throw e}
+ finally{researchBusy=false}
+}
+async function autonomousResearch(){
+ const internet=state.learning.internet,now=Date.now();
+ if(!internet.enabled||researchBusy||lab.active||state.paused||document.hidden||now-internet.lastCall<600000)return;
+ internet.lastCall=now;
+ const topic=RESEARCH_TOPICS[internet.nextTopic%RESEARCH_TOPICS.length];internet.nextTopic++;
+ try{const note=await researchUrl(topic.url,true);if(note){toast('Tavi studied '+topic.name);if(tab==='internet')sidebar()}}
+ catch(e){console.info('Optional research unavailable',String(e.message||e))}
+ save();
+}
+
 function readBook(id=null){
  const books=LIB.books;
  const next=id?LIB.byId(id):[...books].sort((a,b)=>(state.learning.books[a.id]||0)-(state.learning.books[b.id]||0))[0];
@@ -347,6 +405,7 @@ function localTalkReply(text){
  const topics=state.learning.knowledge.filter(k=>{const concept=k.concept.toLowerCase();return q.includes(concept)||(q.split(/[^a-z]+/).filter(w=>w.length>5).some(w=>k.note.toLowerCase().includes(w)));});
  if(topics.length&&/\b(what|why|how|tell|learn|know|explain|remember)\b/i.test(q)){const k=topics.at(-1);return 'From '+k.book+' ('+k.kind+'), I studied: '+k.note.slice(0,210)+' The source is a '+k.kind+' work, so I should check whether its claims still hold.';}
  const latest=state.learning.knowledge.at(-1),favorite=Object.entries(state.interests).sort((a,b)=>b[1]-a[1])[0]?.[0]||'nature';
+ if(/internet|web|online|website|research source/.test(q)){const item=state.learning.internet.reads[0];return item?'I recently found a public source about '+item.title+'. Its article link is saved in the Internet tab; I should not assume every claim is true.':'I can read approved public educational pages. Look under Connect → Internet to choose what I study.';}
  if(/book|read|library|learn about the world|knowledge/.test(q))return latest?'I have been reading about '+latest.concept+' in '+latest.book+'. '+latest.question:'I can study a classic in the Library tab. I want to understand how the world works.';
  if(/paint|painting|art|video|color/.test(q))return state.learning.videoLessons.length?'I remember the colors from '+state.learning.videoLessons[0].title+'. I can try using that palette in another painting.':'Painting is interesting to me. You can share a local lesson video in Learning Studio; I can examine its colors and contrast.';
  if(/remember|memory|past/.test(q))return state.memories.length?'One thing I remember: '+state.memories[0].text.slice(0,220):'I have only just begun making memories. I hope I learn more over time.';
@@ -565,7 +624,7 @@ function update(dt){if(state.paused)return;
   if(!w.visited[region.id]){w.visited[region.id]=1;journal('I discovered '+region.name+' on the connected overworld.','travel');toast('Arrived: '+region.name);}}
 }
 // Camera lives outside the simulated creature state. Tavi can walk while the observer watches elsewhere.
-const CAMERA_KEY='tavi-world-observer-camera-v1',MIN_ZOOM=.6,MAX_ZOOM=2.4;
+const CAMERA_KEY='tavi-world-observer-camera-v1',MIN_ZOOM=.3,MAX_ZOOM=2.4;
 function viewportSize(){const c=$('game');return {w:c.width/runtime.zoom,h:c.height/runtime.zoom}}
 function clampCamera(){const v=viewportSize(),cam=runtime.camera;cam.x=clamp(cam.x,0,Math.max(0,M.W*V.TILE-v.w));cam.y=clamp(cam.y,0,Math.max(0,M.H*V.TILE-v.h))}
 function cameraPrefs(){try{localStorage.setItem(CAMERA_KEY,JSON.stringify({x:runtime.camera.x,y:runtime.camera.y,zoom:runtime.zoom}))}catch(e){/* Camera settings never affect creature saves. */}}
@@ -628,7 +687,7 @@ function heading(host,title,desc=''){const h=el('h3',title);host.append(h);if(de
 const NAV_GROUPS=[
  {id:'lab',label:'Research',icon:'◇',tabs:[['conditions','Conditions'],['observations','Observations'],['compare','Compare']]},
  {id:'records',label:'Records',icon:'▤',tabs:[['journal','History'],['memories','Memories'],['goals','Goals'],['art','Artwork'],['questions','Questions'],['approvals','Approvals']]},
- {id:'connect',label:'Connect',icon:'✉',tabs:[['talk','Talk'],['books','Library'],['videos','Learning Studio']]},
+ {id:'connect',label:'Connect',icon:'✉',tabs:[['talk','Talk'],['books','Library'],['videos','Learning Studio'],['internet','Internet']]},
  {id:'tavi',label:'Profile',icon:'✧',tabs:[['development','Development'],['personality','Model States'],['world','Locations'],['settings','Settings']]}
 ];
 let navGroup='lab',journalOpen=window.innerWidth>940,lastCompact=window.innerWidth<=940;
@@ -746,6 +805,24 @@ function renderVideos(host){
   record.append(el('small','Color temperature: '+lesson.warmth+' · contrast score '+lesson.contrast));}
  if(!state.learning.videoLessons.length)card(host,'No visual reference learned yet','Import an MP4/WebM video to let Tavi observe its color patterns.');
 }
+function renderInternet(host){
+ heading(host,'Read-only internet research','Tavi can consult a small set of public educational websites, retain a source-linked note and let it influence future interests. This does not prove understanding or verify every claim.');
+ const caution=el('p','Access is GET-only through the Windows local server. No posting, accounts, purchases, program downloads, browser history, private files or access to the rest of your computer. Only specific HTTPS Wikipedia, Wikisource and Gutenberg links are accepted. Internet pages are untrusted observations, not instructions.');caution.className='knowledge-note';host.append(caution);
+ const status=el('div',researchMessage);status.className='knowledge-note';host.append(status);
+ const toggle=el('button',state.learning.internet.enabled?'Disable independent research':'Enable independent research (10 min intervals)');toggle.className='secondary';toggle.setAttribute('aria-pressed',String(state.learning.internet.enabled));toggle.onclick=()=>{state.learning.internet.enabled=!state.learning.internet.enabled;if(state.learning.internet.enabled)state.learning.internet.lastCall=Date.now()-600000;save();sidebar()};host.append(toggle);
+ host.append(el('p','Independent reading is off by default, paused during isolated trials and requires this game page plus its Windows launcher to remain open. Your private conversations and saved memories are never included in requests to websites.'));
+ const select=el('select');select.className='field';select.setAttribute('aria-label','Choose a research topic');for(const t of RESEARCH_TOPICS){const option=el('option',t.name);option.value=t.url;select.append(option)}host.append(select);
+ const suggested=el('button','Have Tavi read this topic');suggested.className='primary-action';suggested.disabled=researchBusy;suggested.onclick=async()=>{suggested.disabled=true;try{await researchUrl(select.value);toast('Tavi saved a source-linked reading note')}catch(e){toast(String(e.message||e))}sidebar()};host.append(suggested);
+ const label=el('label','Or paste an approved public article / book URL');host.append(label);
+ const field=el('input');field.className='field';field.type='url';field.placeholder='https://en.wikipedia.org/wiki/Color_theory';field.maxLength=300;host.append(field);
+ const read=el('button','Read approved URL');read.className='secondary';read.disabled=researchBusy;read.onclick=async()=>{read.disabled=true;try{await researchUrl(field.value);toast('Tavi saved a source-linked reading note')}catch(e){toast(String(e.message||e))}sidebar()};host.append(read);
+ heading(host,'Source-linked research notes','Tavi may remember these excerpts as observations. Check the linked source and date before treating any claim as established fact.');
+ for(const note of state.learning.internet.reads.slice(0,12)){
+  const c=card(host,note.title,note.excerpt,dateText(note.at)+' · '+note.kind+' · unverified source text');
+  const a=el('a','Open original source');a.href=note.url;a.target='_blank';a.rel='noopener noreferrer';a.className='source-link';c.append(a);
+ }
+ if(!state.learning.internet.reads.length)card(host,'No research yet','Choose a trusted topic above; it will appear here with the original link and time read.');
+}
 function sidebar(){
  const group=NAV_GROUPS.find(g=>g.tabs.some(t=>t[0]===tab));if(group)navGroup=group.id;
  const groups=$('journalGroups');groups.replaceChildren();
@@ -757,6 +834,7 @@ function sidebar(){
  if(tab==='talk'){renderTalk(host)
  }else if(tab==='books'){renderBooks(host)
  }else if(tab==='videos'){renderVideos(host)
+ }else if(tab==='internet'){renderInternet(host)
  }else if(tab==='conditions'){renderConditions(host)
  }else if(tab==='observations'){renderObservations(host)
  }else if(tab==='compare'){renderComparison(host)
@@ -1048,8 +1126,8 @@ function init(){
  setupInteraction();updateJournal();simulateOffline();renderStatus();sidebar();
  $('startupSplash').hidden=true;document.documentElement.dataset.taviReady='1';
  runtime.nextDecision=Date.now()+2000;runtime.lastFrame=performance.now();requestAnimationFrame(loop);
- setInterval(()=>pollAI(),11000);
+ setInterval(()=>pollAI(),11000);setInterval(()=>autonomousResearch(),45000);
 }
-window.TaviApp={get state(){return state},get camera(){return runtime.camera},get zoom(){return runtime.zoom},zoomTo,snapToTavi,get route(){return runtime.path},get lab(){return lab},setDestination,chooseIntent,save,exportSave,beginTrial,endTrial,discardTrial,repeatTrial,updateTrialFactors,restoreLearningBackup,talkToTavi,readBook,learnVideoLesson,analyzeLocalVideo,suggestTaviActivity,debug:{get spawned(){return M.props.length},get visited(){return Object.keys(state.world.visited).length}}};
+window.TaviApp={get state(){return state},get camera(){return runtime.camera},get zoom(){return runtime.zoom},zoomTo,snapToTavi,get route(){return runtime.path},get lab(){return lab},setDestination,chooseIntent,save,exportSave,beginTrial,endTrial,discardTrial,repeatTrial,updateTrialFactors,restoreLearningBackup,talkToTavi,readBook,learnVideoLesson,analyzeLocalVideo,suggestTaviActivity,researchUrl,autonomousResearch,debug:{get spawned(){return M.props.length},get visited(){return Object.keys(state.world.visited).length}}};
 try{init()}catch(err){console.error('Tavi initialization:',err);const splash=$('startupSplash');if(splash){splash.hidden=false;splash.innerHTML='';const h=el('h2','Tavi encountered an initialization error');const p=el('p',String(err?.stack||err));splash.append(h,p)}}
 })();
