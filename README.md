@@ -1,3 +1,68 @@
+# Tavi World — Detailed Continuous Pixel Overworld
+
+**This is an actual runnable visual update.** It restores the unobstructed continuous pixel-map renderer (before the stitched illustrated location overlays) and improves the *native tiles and sprites* while preserving the simulation engine.
+
+## What's different in the graphics
+
+- Original connected 178×136 world grid, 12 locations and 36 activity points. **No separate scenes, region textures, large illustrated panels, or baked-in characters.**
+- Native **32×32 pixel textures** replacing the earlier 16px textures, with 24 deterministic variations for each terrain material, including grass, forest, meadow, trails, sand, stone, cave, wooden planks, walls, glass, water and rugs.
+- Coherent multi-tile color patches in the biome renderer instead of random bright/dark checkerboard squares. This only changes which terrain tile is *drawn*, not the collision or pathfinding grid.
+- Eight layered, shaded native pixel-tree variants with bark, branches, leaf clusters and subtle blossom highlights.
+- 800+ seeded, world-anchored decorative elements (small shrubs, ferns, rock clusters, flowers, reeds, mushrooms, seashells and crystals). They are intentionally small non-solid visual details and do not change player movement.
+- Pixel-accurate shoreline foam, dirt/grass transitions, stone veining, richer planks, warm window pixels and location-specific architectural trim.
+- Improved object-level highlights on drawing equipment, bookshelves, fireplace, bed, telescope, flowers and workshop machinery.
+- The same single moving Tavi sprite, centered by the *Find Tavi* button and free camera, without any painted duplicate.
+
+The character sprite and persistent simulation systems are retained. The new visual code lives in `src/detail-art.js` and hooks into `src/visuals.js`, with no asset downloads.
+
+## Browser evidence
+
+- `docs/forest-before-after.png`, `docs/house-before-after.png`: side-by-side rendered comparison against the original low-detail continuous tiles.
+- `docs/detailed-forest-test.png`, `docs/detailed-home-test.png`, `docs/detailed-shore-test.png`, `docs/detailed-studio-test.png`: actual Chromium browser screenshots.
+- `docs/continuous-overworld-wide.png`: a 30% zoom showing the one connected world.
+
+## Installing without losing Tavi
+
+1. In the current Tavi World, **export your full saved state** from Profile → Settings as a safety backup.
+2. Extract this ZIP to a new directory. Do not run directly from inside the ZIP.
+3. Close previous Tavi World PowerShell launcher windows, then double-click `START-TAVI-WORLD.bat` in the extracted folder.
+4. Use the same browser and `http://localhost:8765/` as before. Saves remain under `tavi-world-windows-living-valley-v1` with compatible data.
+5. Keep your local Ollama running for model-powered conversation. `OPEN-TAVI-WITHOUT-SERVER.bat` is only a visual/offline preview and has a separate browser-storage origin.
+
+## Verification and limitations
+
+Browser regression tests pass for all 36 navigation routes, zoom and free camera, legacy saves, commitments/mural completion, grounded dialogue, Ollama HTTP 400 handling, learning and video/book features. The native Windows launcher and live Ollama on your PC cannot be exercised here. The renderer remains procedural pixel art rather than the hand-painted AI-generated art previews; this is deliberate to maintain one cohesive map. Decorative scenery is non-colliding, while original POI collision shapes and routes are unchanged.
+
+---
+
+# Tavi World — Detailed Art Preview (owner review)
+
+This preview increases the **existing** overworld's pixel-art detail without replacing the simulation engine, world coordinates, persistent save key, Ollama bridge, cognitive learning, or commitment system. It is a **visual approval candidate**, not a finalized change merged into the GitHub main branch.
+
+### Artwork updated
+
+- Layered tree canopies with individual leaf clusters, branch texture, trunk knots, small blossoms and improved shade/highlight contrast.
+- Grass, forest, meadow, flowers, paths, sand, water, stone and wooden floors gained biome-specific pixel detailing.
+- Water edges include foam/shoreline transitions and lighter ripples; grass and dirt edge transitions are more readable.
+- Tavi House, studio and library interiors have trim, rugs, lamps, hanging plants and smaller architectural features.
+- Existing artwork, props, Tavi sprites, paths and collision logic are unchanged in behavior.
+
+### Actual Chromium previews
+
+- `docs/detailed-forest-test.png`, `docs/detailed-home-test.png`, `docs/detailed-shore-test.png` — full application browser screenshots.
+- `docs/detailed-forest-closeup.png` and `docs/detailed-home-closeup.png` — crops of the actual browser screenshots.
+- `docs/comparison-forest.png` and `docs/comparison-home.png` — before/after image comparisons from Chromium.
+
+### Verified
+
+On the bundled game page in headless Chromium, without a running Ollama model, these checks pass: `test_smoke.py`, `test_commitments.py`, `test_cognition_mural.py`, `test_camera.py`, `test_grounded_voice.py`, and `test_visual_detail.py` (no JavaScript errors). The browser test uses a test-only in-memory storage stand-in because local HTTP serving is blocked by the testing environment. Native Windows launch, iPhone Safari and live Ollama still need user-device verification.
+
+### Launch
+
+Export the current save before trying a different build. Extract this ZIP to a separate folder, then run `START-TAVI-WORLD.bat` on Windows. Keep using the same browser and `http://localhost:8765/` to access the existing save. Close older local server launchers first.
+
+---
+
 # Tavi World — Cognitive Commitments Edition
 
 **New:** Tavi now treats human approval as a durable, unfinished commitment with planning, execution status, interruptions, blocked states, recovery, and completion evidence. Approval alone does not complete artwork or any future project. Duplicate open requests reuse their previous approval; repeatable work can be proposed again **after completion**. See [Commitment lifecycle](docs/COMMITMENT-LIFECYCLE.md).
