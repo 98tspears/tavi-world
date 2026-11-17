@@ -1,4 +1,7 @@
 $ErrorActionPreference = 'Stop'
+# Windows PowerShell 5.1 does not always load System.Net.Http automatically.
+# Load it before the server starts so read-only research can use HttpClient.
+Add-Type -AssemblyName System.Net.Http -ErrorAction Stop
 $root = Join-Path $PSScriptRoot 'game'
 $port = 8765
 $listener = New-Object System.Net.HttpListener
@@ -88,11 +91,11 @@ try {
         if (($target.Host -ceq 'en.wikipedia.org' -or $target.Host -ceq 'en.wikisource.org') -and $path -notmatch '^/wiki/') {
           $context.Response.StatusCode = 403; $context.Response.Close(); continue
         }
-        $handler = New-Object System.Net.Http.HttpClientHandler
+        $handler = [System.Net.Http.HttpClientHandler]::new()
         $handler.AllowAutoRedirect = $false
         $handler.UseCookies = $false
         $handler.AutomaticDecompression = [Net.DecompressionMethods]::GZip -bor [Net.DecompressionMethods]::Deflate
-        $client = New-Object System.Net.Http.HttpClient($handler)
+        $client = [System.Net.Http.HttpClient]::new($handler)
         $client.Timeout = [TimeSpan]::FromSeconds(10)
         $client.DefaultRequestHeaders.UserAgent.ParseAdd('TaviWorld-ReadOnlyResearch/1.0 (local sandbox; learning excerpts)')
         $stream = $null
