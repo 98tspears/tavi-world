@@ -25,6 +25,32 @@ function Send-TaviJson {
   $Response.ContentLength64 = $bytes.Length
   $Response.OutputStream.Write($bytes,0,$bytes.Length)
 }
+# PowerShell's HTTP exception hides the upstream Ollama JSON error unless read.
+# Only return a short diagnostic; never log the prompt or Tavi's private memories.
+function Get-TaviOllamaFailure {
+  param([object]$Failure)
+  $status=0
+  $detail=''
+  try {
+    if ($Failure.Exception.Response) {
+      $status=[int]$Failure.Exception.Response.StatusCode
+      $stream=$Failure.Exception.Response.GetResponseStream()
+      if ($stream) {
+        $reader=[System.IO.StreamReader]::new($stream,[Text.Encoding]::UTF8)
+        try { $detail=$reader.ReadToEnd() } finally { $reader.Dispose() }
+      }
+    }
+  } catch {}
+  if ([string]::IsNullOrWhiteSpace($detail)) { $detail=[string]$Failure.ErrorDetails.Message }
+  if ([string]::IsNullOrWhiteSpace($detail)) { $detail=[string]$Failure.Exception.Message }
+  try {
+    $obj=ConvertFrom-Json -InputObject $detail -ErrorAction Stop
+    if ($obj.error) { $detail=[string]$obj.error }
+  } catch {}
+  $detail=[regex]::Replace($detail,'[\r\n\t]+',' ').Trim()
+  if ($detail.Length -gt 300) { $detail=$detail.Substring(0,300) }
+  return @{status=$status;detail=$detail}
+}
 try {
   while ($listener.IsListening) {
     $context = $listener.GetContext()
@@ -154,13 +180,27 @@ try {
           # small generation can otherwise be consumed by reasoning, leaving
           # a blank response field. No thinking trace is sent to the browser.
           $payload = @{model=$model; prompt=$prompt; stream=$false; think=$false; format='json'; options=@{temperature=0.5;num_predict=512}} | ConvertTo-Json -Depth 6 -Compress
+          $upstreamFailure=$null
           try {
             $reply = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/generate' -Method Post -Body $payload -ContentType 'application/json' -TimeoutSec 80 -ErrorAction Stop
           } catch {
-            $detail=[string]$_.Exception.Message
-            if ($detail.Length -gt 180) { $detail=$detail.Substring(0,180) }
-            Write-Host ('[Tavi Ollama connection] ' + $detail) -ForegroundColor Yellow
-            Send-TaviJson $context.Response 503 @{error=('Could not get an Ollama reply. Check that Ollama is running, the model is installed, and the model has finished loading. '+$detail);code='OLLAMA_UNAVAILABLE'}
+            $upstreamFailure=Get-TaviOllamaFailure $_
+            # An older or different Ollama model may reject the optional think
+            # field with HTTP 400. Retry ONCE without it, preserving JSON mode.
+            if ($upstreamFailure.status -eq 400) {
+              Write-Host ('[Tavi Ollama HTTP 400] '+$upstreamFailure.detail+'. Retrying without optional think field.') -ForegroundColor Yellow
+              $compatPayload = @{model=$model;prompt=$prompt;stream=$false;format='json';options=@{temperature=0.5;num_predict=512}} | ConvertTo-Json -Depth 6 -Compress
+              try {
+                $reply = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/generate' -Method Post -Body $compatPayload -ContentType 'application/json' -TimeoutSec 80 -ErrorAction Stop
+                $upstreamFailure=$null
+              } catch { $upstreamFailure=Get-TaviOllamaFailure $_ }
+            }
+          }
+          if ($upstreamFailure) {
+            $code=if ($upstreamFailure.status -eq 400) {'OLLAMA_BAD_REQUEST'} else {'OLLAMA_UNAVAILABLE'}
+            $message=if ($upstreamFailure.status -eq 400) {'Ollama rejected this model request (HTTP 400): '+$upstreamFailure.detail} else {'Could not get an Ollama reply: '+$upstreamFailure.detail}
+            Write-Host ('[Tavi Ollama connection] '+$message) -ForegroundColor Yellow
+            Send-TaviJson $context.Response 502 @{error=$message;code=$code}
             continue
           }
           $answer=[string]$reply.response
