@@ -1,0 +1,959 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#102c30"><meta name="description" content="Tavi World: an original, local-first autonomous pixel-art living overworld.">
+<title>Tavi World — The Living Overworld</title>
+<style>:root{color-scheme:dark;--navy:#102c30;--ink:#0d2527;--deep:#071b21;--teal:#5a9c81;--mint:#8fc3a7;--cream:#f7e5b5;--gold:#e4c078;--muted:#a9c4b2;--line:#4e7868;--wood:#705a46;--danger:#a34c49;--font:'Trebuchet MS',system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;width:100%;background:var(--deep);color:#f4edd9;font:15px/1.5 var(--font)}body{background:radial-gradient(ellipse at 12% 8%,#2b6456 0,#102d33 33%,#081b22 70%),#081b22}button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid #779d83;border-radius:9px;background:#305e52;color:#f8e9be;padding:10px 12px;box-shadow:inset 0 1px 0 #ffffff17,0 3px 0 #0b2b26;transition:background .15s,transform .15s}button:hover{background:#4a8266}button:active{transform:translateY(2px);box-shadow:inset 0 1px 0 #ffffff17,0 1px 0 #0b2b26}button:focus-visible{outline:3px solid #f1d393;outline-offset:2px}button.secondary{background:#25474c;color:#d2e4da}button.small{font-size:12px;padding:6px 9px;margin-top:8px}button.danger{background:#66363e;border-color:#ad6c6c}button[disabled]{cursor:default;opacity:.5}
+header{max-width:1680px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:19px 24px 15px}.brand{display:flex;align-items:center;gap:14px}.brand-icon{background:#264e4b;border:2px solid #bfa478;border-radius:13px;width:56px;height:56px;display:grid;place-items:center;font-family:monospace;font-weight:bold;color:#f7df9b;font-size:27px;box-shadow:0 3px 0 #061e22}.eyebrow{font:bold 10px/1.2 ui-monospace,Consolas,monospace;letter-spacing:2.5px;color:#e1bd75;text-transform:uppercase}h1{margin:0;font:bold 31px/1.15 Georgia,serif;letter-spacing:.6px;color:#fff0c0;text-shadow:0 2px 0 #283c39}h1 span{color:#8fe2b3}.subtitle{font-size:12px;letter-spacing:.3px;color:#b9d0bf;margin-top:4px}.top-info{display:flex;gap:13px;align-items:center}.chip{border:1px solid #527a67;background:#183f3d;border-radius:12px;padding:8px 14px;display:flex;gap:8px;align-items:center;min-height:42px;font-size:12px}.chip strong{color:#e9d6a0}.dot{width:8px;height:8px;border-radius:50%;background:#9bdd9d;box-shadow:0 0 12px #92d99f}.chip .dot{flex:none}
+.page{max-width:1680px;margin:0 auto;padding:0 19px 28px;display:grid;grid-template-columns:minmax(0,1fr) 350px;align-items:start;gap:18px}.panel{border:1px solid #486c60;border-radius:15px;background:linear-gradient(170deg,#21473f,#152f33);box-shadow:0 8px 0 #06181d70,0 14px 35px #02101380;overflow:hidden}.play-panel{padding:13px}.game-top{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:2px 5px 12px}.region-marker{background:#bca46c;width:34px;height:34px;box-shadow:inset 0 0 0 5px #55473d;border:1px solid #f5dda0;border-radius:7px;display:grid;place-items:center;color:#223e35;font-size:16px;font-weight:bold}.region-row{display:flex;gap:11px;align-items:center}h2{font:700 20px/1.3 Georgia,serif;margin:0;color:#f3ddad}#areaDesc{font-size:12px;color:#b9d0c2;margin-top:2px}.world-stage{position:relative;border:5px solid #33493d;outline:2px solid #b39460;background:#284752;overflow:hidden;box-shadow:inset 0 0 0 5px #071f24}.world-stage::after{content:'';position:absolute;inset:0;pointer-events:none;border:1px solid #ffffff33;box-shadow:inset 0 0 55px #0d2a2a55}.game-canvas{display:block;width:100%;height:auto;aspect-ratio:8/5;image-rendering:pixelated;cursor:crosshair;touch-action:none;user-select:none; -webkit-user-select:none}.mini-map{position:absolute;right:14px;top:13px;width:173px;padding:7px;border:2px solid #dfbf78;border-radius:10px;background:#102e33ed;box-shadow:0 5px 0 #031c20a9;cursor:pointer;z-index:3}.mini-map canvas{display:block;width:100%;aspect-ratio:178/136;image-rendering:pixelated;border:1px solid #86a987}.mini-map-caption{display:flex;justify-content:space-between;align-items:center;gap:3px;font:700 9px/1.6 ui-monospace,monospace;text-transform:uppercase;color:#f2dfb1;letter-spacing:1px;margin-bottom:4px}.mini-map-caption span{color:#9acac4}.location-badge{position:absolute;left:15px;top:14px;background:#102e36ce;border-left:3px solid #e5c581;padding:6px 9px;font-size:11px;color:#d9eee0;z-index:2;pointer-events:none;max-width:48%}.game-bottom{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:12px 2px 1px}.control-group{display:flex;flex-wrap:wrap;gap:8px}.control-group button{font-weight:700;font-size:12px}.world-hint{font-size:11px;color:#a5cbbb;max-width:280px;text-align:right}.meter-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding-top:14px}.stat{padding:10px 11px;border:1px solid #447365;border-radius:9px;background:linear-gradient(135deg,#20443b,#1b3d3c)}.stat-head{display:flex;justify-content:space-between;font-size:11px;font-weight:700;gap:6px}.stat-head span{color:#b7cdbd}.stat-head strong{color:#fff1c9}.stat-track{height:8px;background:#0e2b2e;border-radius:3px;border:1px solid #365e53;margin-top:8px;overflow:hidden}.stat-track b{height:100%;background:#a0d78e;display:block;transition:width .3s}.stat:nth-child(2) .stat-track b{background:#dfbf7f}.stat:nth-child(3) .stat-track b{background:#e5abac}.stat:nth-child(4) .stat-track b{background:#91b9e1}
+.living-card{padding:18px 20px;margin-top:17px;display:grid;grid-template-columns:auto 1fr;gap:13px;position:relative}.living-card:before{content:'✧';width:38px;height:38px;background:#3c624c;border:1px solid #b1aa68;color:#f7e3ad;border-radius:9px;display:grid;place-items:center;font-size:23px}.living-card h3{font:bold 12px/1.5 ui-monospace,Consolas,monospace;letter-spacing:2px;text-transform:uppercase;color:#e7ca91;margin:0 0 5px}.living-card #thought{font:italic 18px/1.45 Georgia,serif;color:#fcf0c8}.living-card #welcome{font-size:12px;color:#a8cdbd;margin-top:7px}.living-card .small-note{font:11px ui-monospace,Consolas,monospace;color:#99beb0;margin-top:8px}.tip{font-size:12px;color:#a7c2b0;padding:12px 5px 0;margin:0}.tip kbd{background:#30574a;padding:2px 4px;border-radius:3px;border:1px solid #64836b;color:#e8d8ac}
+.side-panel{padding:15px;min-height:660px}.side-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:11px}.side-heading small{font:10px ui-monospace,monospace;color:#b4c9be}.tabs{display:flex;gap:6px;overflow:auto;scrollbar-width:thin;scrollbar-color:#548776 transparent;padding:3px 2px 11px;margin-bottom:8px;border-bottom:1px solid #487364}.tabs button{white-space:nowrap;border-radius:7px;padding:7px 11px;font-size:11px;background:#254a46;color:#cfe5cf}.tabs button.active{background:#b89b63;border-color:#e9d5a1;color:#152e2b;box-shadow:inset 0 1px 0 #fbf1c8;font-weight:800}#sidebarContent{height:min(72vh,810px);min-height:440px;overflow-y:auto;overflow-x:hidden;scrollbar-color:#4a7f65 #14342f;padding:2px 4px 10px}#sidebarContent h3{font:bold 15px/1.4 Georgia,serif;color:#f8e5b8;margin:17px 0 5px}#sidebarContent>p{color:#b6cdbe;font-size:12px;margin:5px 0 11px}.record{background:#173a37;border:1px solid #426e60;border-radius:10px;padding:10px 11px;margin:8px 0}.record strong{display:block;color:#edd5a0;font-size:13px;line-height:1.3}.record p{font-size:12px;color:#d0dfd0;line-height:1.52;margin:5px 0}.record small{font-size:10px;color:#96b4ad;display:block;margin-top:4px}.record.compact{padding:8px 10px}.mini-progress{height:6px;border-radius:3px;background:#0c2425;margin-top:8px;overflow:hidden}.mini-progress i{height:100%;display:block;background:#a9cb8b}.record button+button{margin-left:7px}.field,textarea{width:100%;background:#0e2e2b;color:#f3e8ce;border:1px solid #5e8775;border-radius:7px;padding:9px;margin:8px 0;resize:vertical}.field:focus,textarea:focus{outline:2px solid #c6b477}.painting{width:100%;height:110px;image-rendering:pixelated;border:2px solid #ac8656;margin-top:8px}
+#toast{pointer-events:none;position:fixed;bottom:22px;left:50%;transform:translate(-50%,15px);opacity:0;max-width:90vw;z-index:90;padding:12px 19px;font-size:13px;font-weight:700;background:#eddbaf;color:#1d3f33;border:3px solid #7a6644;box-shadow:0 5px 0 #132f30;transition:opacity .25s,transform .25s;border-radius:9px;text-align:center}#toast.show{opacity:1;transform:translate(-50%,0)}
+.map-overlay{position:fixed;inset:0;background:#05161ce9;z-index:55;display:grid;place-items:center;padding:20px;backdrop-filter:blur(4px)}.map-inner{max-width:850px;width:100%;padding:18px;border:2px solid #ab8d66;border-radius:15px;background:linear-gradient(155deg,#284e47,#132f38);box-shadow:0 20px 70px #000b}.map-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;gap:12px}.map-inner canvas{width:100%;aspect-ratio:178/136;image-rendering:pixelated;border:3px solid #e2d1a4;cursor:crosshair;background:#4a8767;max-height:65vh}.map-hint{font-size:12px;color:#d0dac8;margin:10px 0 0}.map-legend{display:flex;flex-wrap:wrap;gap:9px;margin-top:9px;font-size:11px;color:#d9e3ce}.map-legend i{display:inline-block;width:8px;height:8px;margin-right:4px;border:1px solid #162c32}.map-legend .home{background:#e8bf83}.map-legend .forests{background:#7fbe8b}.map-legend .shore{background:#9fdaed}
+.help-panel{position:absolute;left:18px;bottom:17px;z-index:5;max-width:320px;background:#102e33ef;border:2px solid #bea97b;border-radius:8px;padding:13px;font-size:12px;box-shadow:0 8px 20px #0008}.help-panel h3{font:700 15px Georgia,serif;color:#f1dfa5;margin:0 0 5px}.help-panel p{margin:5px 0;color:#dfebd8}.help-panel kbd{background:#34534d;border-radius:3px;padding:2px 5px}#startupSplash{position:fixed;inset:0;background:#092429ef;z-index:95;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:30px;color:#f4e3ad;text-align:center}#startupSplash h2{margin-bottom:12px}#startupSplash p{max-width:700px;white-space:pre-wrap;color:#fff0d0;font-size:13px}#startupSplash .loading-star{font-size:50px;animation:turn 3s linear infinite}@keyframes turn{to{transform:rotate(360deg)}}[hidden]{display:none!important}
+footer{text-align:center;font-size:11px;letter-spacing:.3px;color:#9ab8a8;padding:10px 18px 32px}
+@media(max-width:1180px){.page{grid-template-columns:minmax(0,1fr) 290px;gap:12px}.side-panel{padding:10px}.mini-map{width:130px}.world-hint{display:none}.game-bottom{justify-content:flex-start}}
+@media(max-width:940px){.page{grid-template-columns:1fr;max-width:940px}.side-panel{min-height:0}#sidebarContent{min-height:300px;max-height:500px}.mini-map{width:160px}.top-info{display:none}}
+@media(max-width:560px){header{padding:10px 10px 13px}.brand{gap:9px}.brand-icon{width:42px;height:42px;font-size:21px}h1{font-size:25px}.subtitle{font-size:10px}.page{padding:0 6px 14px;gap:10px}.play-panel{padding:8px}.game-top{padding:2px 4px 10px}.region-marker{width:27px;height:27px;font-size:12px}.game-top h2{font-size:16px}.mini-map{width:100px;top:7px;right:7px;padding:4px;border-width:1px}.mini-map-caption{font-size:8px}.location-badge{top:7px;left:7px;font-size:9px;padding:3px 5px}.world-stage{border-width:3px;outline-width:1px}.game-bottom{padding:10px 0 0}.control-group{gap:4px}.control-group button{padding:7px 8px;font-size:10px}.meter-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding-top:10px}.stat{padding:6px 8px}.stat-track{margin-top:6px}.living-card{padding:13px 14px;margin-top:11px;gap:9px}.living-card:before{width:30px;height:30px;font-size:17px}.living-card #thought{font-size:15px}.side-panel{padding:9px}.help-panel{left:7px;bottom:7px;max-width:260px;font-size:11px}.tip{font-size:11px;padding:10px 3px 0}.map-inner{padding:10px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head><body>
+<header>
+  <div class="brand"><div class="brand-icon" aria-hidden="true">✦</div><div><div class="eyebrow">A little world, a life of its own</div><h1>Tavi <span>World</span></h1><div class="subtitle">THE LIVING OVERWORLD · ONE CONNECTED VALLEY</div></div></div>
+  <div class="top-info"><div class="chip"><span class="dot"></span><span><strong>Autonomy</strong><br><span id="statusText">Initializing world…</span></span></div><div class="chip"><strong id="clock">--:--</strong></div></div>
+</header>
+<main class="page">
+ <section>
+  <div class="panel play-panel">
+   <div class="game-top"><div class="region-row"><div class="region-marker" aria-hidden="true">⌂</div><div><h2 id="areaTitle">Tavi’s Valley</h2><div id="areaDesc">A world without scene transitions</div></div></div><div class="chip"><span>✦</span><div><strong id="exploredCount">1/12</strong><br><small>places visited</small></div></div></div>
+   <div class="world-stage">
+    <canvas id="game" class="game-canvas" width="960" height="600" aria-label="Continuous pixel art overworld, click or tap to explore"></canvas>
+    <div class="location-badge">✧ A living world · Tavi chooses his path</div>
+    <div class="mini-map" role="button" tabindex="0" title="Open full overworld map"><div class="mini-map-caption">VALLEY MAP <span>✚</span></div><canvas id="minimap" width="178" height="136" aria-label="Minimap"></canvas><div class="mini-map-caption" style="margin-top:4px;margin-bottom:0"><span id="miniLabel">Tavi House</span><span>OPEN MAP</span></div></div>
+    <aside id="helpPanel" class="help-panel" hidden><h3>Explore the living valley</h3><p>Click or tap a landmark to suggest a visit. Tap open ground to guide Tavi along the paths.</p><p><kbd>W A S D</kbd> or <kbd>← ↑ → ↓</kbd> briefly take manual control. Tavi resumes thinking when you stop.</p><p><kbd>M</kbd> shows the full map. Use ◎ Follow to switch between a following camera and a draggable view.</p><p>Tavi has his own needs, growing interests, goals and memories. His choices continue while the game is open.</p></aside>
+   </div>
+   <div class="game-bottom"><div class="control-group"><button id="pause" title="Pause or resume Tavi's independent actions">⏸ Pause Tavi</button><button id="visitNext" title="Ask Tavi to choose another goal">✧ Next adventure</button><button id="follow" title="Follow Tavi or drag the world map">◎ Following Tavi</button><button id="mapButton">▣ World map</button><button id="help" class="secondary" title="Controls and help">?</button></div><div class="world-hint">All 12 places exist in one world<br>Touch or click to explore · No scene switching</div></div>
+   <div class="meter-row">
+    <div class="stat"><div class="stat-head"><span>✧ Energy</span><strong id="value-energy">82%</strong></div><div class="stat-track"><b id="meter-energy" style="width:82%"></b></div></div>
+    <div class="stat"><div class="stat-head"><span>♧ Satisfied</span><strong id="value-hunger">80%</strong></div><div class="stat-track"><b id="meter-hunger" style="width:80%"></b></div></div>
+    <div class="stat"><div class="stat-head"><span>♥ Happiness</span><strong id="value-happiness">74%</strong></div><div class="stat-track"><b id="meter-happiness" style="width:74%"></b></div></div>
+    <div class="stat"><div class="stat-head"><span>✦ Curiosity</span><strong id="value-curiosity">67%</strong></div><div class="stat-track"><b id="meter-curiosity" style="width:67%"></b></div></div>
+   </div>
+  </div>
+  <div class="panel living-card"><div><h3>Tavi’s thoughts</h3><div id="thought">I have so much to discover…</div><div id="welcome"></div><div class="small-note"><span id="journalCount">A world of memories</span> · Save stays in your browser</div></div></div>
+  <p class="tip">✧ Tavi walks, chooses work, makes art and remembers. <kbd>M</kbd> for the map; <kbd>WASD</kbd> to move manually. Optional Ollama integration is in Settings.</p>
+ </section>
+ <aside class="panel side-panel"><div class="side-heading"><h2>Adventure Journal</h2><small>LIVE WORLD LOG</small></div><div id="tabs" class="tabs" role="tablist" aria-label="Tavi World sections"></div><section id="sidebarContent" aria-live="polite"></section></aside>
+</main>
+<div class="map-overlay" id="mapOverlay" hidden role="dialog" aria-modal="true" aria-label="The full overworld map"><div class="map-inner"><div class="map-head"><div><div class="eyebrow">One valley · 12 destinations</div><h2>The Living Overworld</h2></div><button id="closeMap">✕ Close</button></div><canvas id="bigMapCanvas" width="712" height="544" aria-label="Full connected Tavi World map"></canvas><div class="map-legend"><span><i class="home"></i> Village / landmarks</span><span><i class="forests"></i> Wild places</span><span><i class="shore"></i> Shoreline</span></div><p class="map-hint">Tap near a landmark to suggest Tavi visit it. This does not load another scene; he'll find his way across the overworld.</p></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="startupSplash"><div class="loading-star">✦</div><h2>Growing Tavi’s world…</h2><p>Preparing the connected valley, Tavi’s memories, and his next adventure.</p></div>
+<footer>Original retro creature world · No Pokémon or Nintendo assets · Local-first save · Optional private Ollama · Export backups regularly</footer>
+<script>window.TaviSprite={image:new Image()};window.TaviSprite.image.src='data:image/png;base64,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';</script>
+<script>
+window.addEventListener('error',function(e){
+ if(document.documentElement.dataset.taviReady==='1')return;
+ const splash=document.getElementById('startupSplash');
+ if(splash){splash.hidden=false;splash.innerHTML='';const h=document.createElement('h2');h.textContent='Tavi World could not start';const p=document.createElement('p');p.textContent=(e&&e.message||'An unknown loading problem occurred')+' · '+(e&&e.filename||'inline script')+':'+(e&&e.lineno||'?');splash.append(h,p);}
+});
+window.addEventListener('unhandledrejection',function(e){if(document.documentElement.dataset.taviReady==='1')return;const splash=document.getElementById('startupSplash');if(splash){splash.hidden=false;splash.textContent='A startup error occurred: '+String(e.reason?.message||e.reason)}});
+</script>
+<script>/* Tavi World original continuous overworld — no room/scene switching. */
+(()=>{'use strict';
+const W=178,H=136, T={GRASS:0,TRAIL:1,FOREST:2,MEADOW:3,GARDEN:4,SAND:5,WATER:6,SHALLOW:7,STONE:8,CAVE:9,FLOOR:10,WALL:11,GLASS:12,FLOWERS:13,BRIDGE:14,DIRT:15,PLANK:16,RUG:17,NIGHT:18,CLIFF:19,FARM:20};
+const regions=[
+ {id:'house',name:'Tavi House',x:27,y:24,kind:'village',color:'#e8bf83',desc:'The hearth of Tavi’s world'},
+ {id:'bedroom',name:'Bedroom Loft',x:34,y:21,kind:'village',color:'#e8bf83',desc:'Rest and dream in Tavi’s home'},
+ {id:'studio',name:'Art Studio',x:68,y:23,kind:'village',color:'#e7aaa0',desc:'A place for color and creativity'},
+ {id:'library',name:'Library & Study',x:110,y:24,kind:'village',color:'#d3be84',desc:'Stories, ideas, and research'},
+ {id:'observatory',name:'Observatory',x:152,y:24,kind:'highland',color:'#9eb6f6',desc:'Watch the stars from the hill'},
+ {id:'garden',name:'Discovery Garden',x:26,y:64,kind:'garden',color:'#9ace89',desc:'Care for flowers and old stones'},
+ {id:'greenhouse',name:'Greenhouse',x:68,y:64,kind:'garden',color:'#b5e9ce',desc:'A sanctuary for tiny plants'},
+ {id:'meadow',name:'Firefly Meadow',x:110,y:64,kind:'meadow',color:'#eed18c',desc:'Follow butterflies and melodies'},
+ {id:'forest',name:'Whisperwood Forest',x:152,y:64,kind:'forest',color:'#7fbe8b',desc:'Listen to the oldest trees'},
+ {id:'shore',name:'Sunlit Shore',x:26,y:106,kind:'shore',color:'#9fdaed',desc:'Shells, tide pools, and soft surf'},
+ {id:'workshop',name:'Inventor Workshop',x:68,y:106,kind:'village',color:'#c7ac8a',desc:'Build delightful little machines'},
+ {id:'cave',name:'Crystal Cave',x:110,y:106,kind:'cave',color:'#9abbd7',desc:'Ancient crystals and mysteries'}
+];
+// Preserve the original 36 locations and their interests, relocated into a continuous landscape.
+const specs={
+ house:[['Fireplace','resting','cozy',-7,0,'hearth'],['Kitchen','eating','food',0,2,'kitchen'],['Bookshelf','reading','stories',-7,-5,'shelf']],
+ bedroom:[['Soft bed','sleeping','cozy',0,1,'bed'],['Dream journal','reading','stories',3,3,'journal'],['Star mobile','observing','time',1,-4,'mobile']],
+ studio:[['Easel','drawing','art',-4,0,'easel'],['Paint shelf','tinkering','craft',4,-4,'paint'],['Gallery wall','observing','art',1,-5,'frame']],
+ greenhouse:[['Seedling beds','gardening','gardening',-4,2,'seedling'],['Watering station','gardening','nature',4,3,'watering'],['Plant samples','observing','science',2,-4,'samples']],
+ garden:[['Mysterious stones','observing','mystery',-6,-1,'runestones'],['Flower patch','gardening','nature',5,0,'flowerbed'],['Little pond','playing','nature',0,5,'pond']],
+ observatory:[['Telescope','observing','science',-5,1,'telescope'],['Star charts','reading','time',4,2,'starChart'],['Moon clock','tinkering','time',0,-5,'clock']],
+ cave:[['Blue crystal','observing','mystery',-7,-2,'crystal'],['Echo chamber','listening','music',6,1,'echo'],['Mineral table','tinkering','science',0,4,'minerals']],
+ library:[['Research desk','reading','science',-5,2,'desk'],['Story shelf','reading','stories',5,-5,'shelf'],['Idea board','tinkering','craft',0,-5,'board']],
+ forest:[['Ancient oak','observing','nature',-7,-3,'ancientTree'],['Birdsong grove','listening','music',6,-2,'birds'],['Mossy ruins','observing','mystery',0,5,'ruins']],
+ shore:[['Tide pools','observing','science',-6,2,'tidepool'],['Shell collection','tinkering','craft',6,2,'shells'],['Driftwood seat','resting','cozy',0,-4,'bench']],
+ meadow:[['Butterfly trail','observing','nature',-6,-2,'butterfly'],['Music stones','listening','music',6,1,'musicStone'],['Wildflower canvas','drawing','art',0,-3,'easel']],
+ workshop:[['Workbench','tinkering','craft',-5,1,'workbench'],['Clockwork device','tinkering','science',5,1,'machine'],['Idea sketches','drawing','art',0,-5,'sketch']]
+};
+const hash=(x,y,s=0)=>{let n=Math.imul((x|0)^ (s*137),374761393)+Math.imul((y|0)+s*97,668265263);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967296};
+const index=(x,y)=>y*W+x;
+const inBounds=(x,y)=>x>=0&&y>=0&&x<W&&y<H;
+const grid=new Uint8Array(W*H);const obstacles=new Uint8Array(W*H);
+const structures=[];const props=[];const trees=[];const decor=[];
+const setTile=(x,y,v)=>{x=Math.round(x);y=Math.round(y);if(inBounds(x,y))grid[index(x,y)]=v};
+const block=(x,y,b=true)=>{x=Math.round(x);y=Math.round(y);if(inBounds(x,y))obstacles[index(x,y)]=b?1:0};
+const get=(x,y)=>inBounds(x|0,y|0)?grid[index(x|0,y|0)]:T.WATER;
+function biome(x,y){
+ if(y>91&&x<46)return 'shore';
+ if(x>130&&y>42&&y<103)return 'forest';
+ if(x>90&&x<130&&y>44&&y<92)return 'meadow';
+ if(x>88&&x<132&&y>92)return 'cave';
+ if(x<47&&y>43&&y<92)return 'garden';
+ if(x>132&&y<43)return 'highland';
+ if(x>131&&y>100)return 'lagoon';
+ return 'village';
+}
+// Deterministic natural ground variation, with a river and beach along the southern coast.
+for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+ const b=biome(x,y),r=hash(x,y,19),noise=Math.sin(x*.19+y*.13)*2.5+Math.sin(y*.24-x*.11)*1.5;
+ let type=T.GRASS;
+ if(b==='forest')type=r>.28?T.FOREST:T.GRASS;
+ if(b==='meadow')type=r>.55?T.FLOWERS:T.MEADOW;
+ if(b==='garden')type=r>.72?T.FLOWERS:T.GARDEN;
+ if(b==='highland')type=r>.73?T.STONE:T.NIGHT;
+ if(b==='cave')type=r>.31?T.CAVE:T.STONE;
+ if(b==='shore'){
+   const coast=18+Math.sin(y*.24)*3+Math.sin(y*.09)*4;
+   if(x<coast-3)type=T.WATER;
+   else if(x<coast+1)type=T.SHALLOW;
+   else if(x<coast+18+noise)type=T.SAND;
+   else type=T.GRASS;
+ }
+ if(b==='lagoon'){
+   const d=Math.hypot((x-153)*.85,(y-117)*1.2);
+   if(d<9+noise)type=T.WATER;else if(d<13+noise)type=T.SAND;else type=T.FOREST;
+ }
+ if(b==='village'&&r>.87)type=T.MEADOW;
+ grid[index(x,y)]=type;
+ if(type===T.WATER)obstacles[index(x,y)]=1;
+}
+function road(x1,y1,x2,y2,width=2){
+ const n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1))*4;
+ for(let i=0;i<=n;i++){
+   const t=i/n,x=x1+(x2-x1)*t,y=y1+(y2-y1)*t;
+   const bend=Math.sin(t*Math.PI)*Math.sin(t*7+hash(x1,y1)*8)*1.4;
+   const ox=Math.abs(y2-y1)>Math.abs(x2-x1)?bend:0;
+   const oy=Math.abs(y2-y1)<=Math.abs(x2-x1)?bend:0;
+   for(let dy=-width;dy<=width;dy++)for(let dx=-width;dx<=width;dx++){
+    if(dx*dx+dy*dy>width*width+.4)continue;
+    const xx=Math.round(x+ox+dx),yy=Math.round(y+oy+dy);
+    setTile(xx,yy,biome(xx,yy)==='shore'&&get(xx,yy)===T.WATER?T.BRIDGE:T.TRAIL);block(xx,yy,false);
+   }
+ }
+}
+// Shared main roads. Every district belongs to the same walkable graph.
+const links=[
+ [[27,36],[68,36]],[[68,36],[110,36]],[[110,36],[152,36]],
+ [[27,36],[27,80]],[[68,36],[68,80]],[[110,36],[110,80]],[[152,36],[152,80]],
+ [[27,80],[68,80]],[[68,80],[110,80]],[[110,80],[152,80]],
+ [[27,80],[27,118]],[[68,80],[68,118]],[[110,80],[110,118]],[[152,80],[152,118]],
+ [[27,118],[68,118]],[[68,118],[110,118]],[[110,118],[152,118]],
+ [[27,118],[24,106]],[[152,80],[151,64]],[[152,118],[152,106]]
+];
+links.forEach(([a,b])=>road(a[0],a[1],b[0],b[1],2));
+// One-room cutaways. Interiors are physically present in the overworld, never separate scenes.
+function building(id,cx,cy,w,h,interior=T.FLOOR){
+ const x=Math.round(cx-w/2),y=Math.round(cy-h/2),doorX=cx|0,doorY=y+h-1;
+ for(let j=y;j<y+h;j++)for(let i=x;i<x+w;i++){
+   const border=i===x||i===x+w-1||j===y||j===y+h-1;
+   const doorway=j===y+h-1&&Math.abs(i-doorX)<=1;
+   setTile(i,j,doorway?T.PLANK:(border?T.WALL:interior));
+   block(i,j,border&&!doorway);
+ }
+ for(let j=y+3;j<y+h-2;j+=5)for(let i=x+3;i<x+w-2;i+=7){if(hash(i,j)>.35)setTile(i,j,T.RUG)}
+ structures.push({id,x,y,w,h,doorX,doorY});
+ return {x,y,w,h,doorX,doorY};
+}
+const home=building('house',29,24,24,20),studio=building('studio',68,24,20,20),library=building('library',110,24,20,20),obs=building('observatory',152,24,20,20,T.STONE),
+ greenhouse=building('greenhouse',68,64,20,20,T.GLASS),workshop=building('workshop',68,106,22,20);
+for(const b of structures){road(b.doorX,b.doorY+1,b.doorX,b.doorY+3,1);}
+// Other districts have clearings around their landmark clusters.
+for(const [cx,cy,radius] of [[26,64,12],[110,64,12],[152,64,12],[26,106,12],[110,106,12]]){
+ for(let y=cy-radius;y<=cy+radius;y++)for(let x=cx-radius;x<=cx+radius;x++){
+  if(!inBounds(x,y)||Math.hypot(x-cx,y-cy)>radius+1)continue;
+  if(get(x,y)===T.WATER&&cx===26)continue;
+  if(hash(x,y,5)>.88)setTile(x,y,T.FLOWERS);
+  block(x,y,false);
+ }
+ const connectY=cy<80?80:118;
+ road(cx,cy+Math.sign(connectY-cy)*8,cx,connectY,1);
+}
+// Small scenic ponds; shore's surf is defined by its coastline.
+function pond(cx,cy,rx,ry){for(let y=cy-ry-1;y<=cy+ry+1;y++)for(let x=cx-rx-1;x<=cx+rx+1;x++){
+ const d=((x-cx)/rx)**2+((y-cy)/ry)**2;
+ if(d<.74){setTile(x,y,T.WATER);block(x,y,true)}else if(d<1.18){setTile(x,y,T.SHALLOW);block(x,y,true)}
+}}
+pond(28,73,4,3);pond(150,111,7,4);pond(18,104,3,2);
+// Activity props: the drawn sprite and its collider share one world coordinate.
+const objects=[];
+regions.forEach((region,area)=>{
+ const rows=specs[region.id]||[];
+ rows.forEach(([name,activity,interest,ox,oy,kind],idx)=>{
+  const x=region.x+ox,y=region.y+oy;
+  const prop={id:region.id+':'+idx,area,obj:idx,name,activity,interest,x,y,kind};
+  objects.push(prop);props.push(prop);
+ });
+});
+const walkable=(x,y)=>{
+ x=Math.floor(x);y=Math.floor(y);
+ if(!inBounds(x,y)||obstacles[index(x,y)])return false;
+ const type=get(x,y);
+ return type!==T.WATER&&type!==T.CLIFF&&type!==T.WALL;
+};
+// Props are individually solid; Tavi stands at a neighboring approach tile.
+for(const prop of props){
+ if(['pond','tidepool','flowerbed','butterfly','musicStone','birds','echo','runestones','mobile','frame','clock','board'].includes(prop.kind))continue;
+ block(prop.x,prop.y,true);
+ if(['ancientTree','shelf','machine','bed','hearth','crystal','kitchen'].includes(prop.kind))block(prop.x,prop.y-1,true);
+}
+// Seeded trees, wildflower clusters, rocks and natural landmarks.
+for(let y=3;y<H-3;y++)for(let x=3;x<W-3;x++){
+ const type=get(x,y),r=hash(x,y,31);
+ const nearRoad=Array.from({length:9},(_,j)=>{const dx=j%3-1,dy=Math.floor(j/3)-1;return get(x+dx,y+dy)===T.TRAIL||get(x+dx,y+dy)===T.BRIDGE}).some(Boolean);
+ const nearHub=regions.some(a=>Math.hypot((a.x-x)*.83,a.y-y)<12);
+ const chance=type===T.FOREST?.075:type===T.GRASS?.013:type===T.GARDEN?.014:type===T.NIGHT?.006:0;
+ if(r<chance&&!nearRoad&&!nearHub&&walkable(x,y)&&walkable(x+1,y)&&walkable(x-1,y)){
+   trees.push({x,y,size:type===T.FOREST?1.05+.32*hash(x,y,7):.75+.25*hash(x,y,6),variant:Math.floor(hash(x,y,8)*4)});
+   block(x,y,true);
+ }else if(r>.974&&type!==T.WATER&&type!==T.TRAIL&&type!==T.FLOOR&&type!==T.WALL&&type!==T.GLASS&&type!==T.BRIDGE&&type!==T.PLANK&&type!==T.RUG){
+   decor.push({x,y,type:r>.992?'flowers':type===T.SAND?'shell':'grass',seed:hash(x,y,3)});
+ }
+}
+// Add footpath links from doors and central hubs. A* can always pass the interior entrance.
+function nearestArea(x,y){let best=0,d=Infinity;for(let i=0;i<regions.length;i++){
+ const r=regions[i],dd=(r.x-x)**2+(r.y-y)**2;
+ if(dd<d){d=dd;best=i;}}
+ return best;
+}
+function nearestWalkable(x,y){x=Math.floor(x);y=Math.floor(y);if(walkable(x,y))return {x,y};for(let r=1;r<16;r++){
+  let best=null,bestDist=Infinity;
+  for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+   const xx=x+dx,yy=y+dy,d=dx*dx+dy*dy;
+   if(d<bestDist&&walkable(xx,yy)){bestDist=d;best={x:xx,y:yy}}}
+  if(best)return best;
+ }return {x:27,y:34}}
+function approach(prop,from){let best=null;let d=Infinity;
+ for(let radius=1;radius<=3;radius++)for(let dy=-radius;dy<=radius;dy++)for(let dx=-radius;dx<=radius;dx++){
+  if(Math.max(Math.abs(dx),Math.abs(dy))!==radius)continue;
+  const x=prop.x+dx,y=prop.y+dy;
+  if(!walkable(x,y))continue;
+  const score=radius*5+(from?Math.hypot(x-from.x,y-from.y):Math.abs(dx)+Math.abs(dy));
+  if(score<d){best={x,y};d=score;}
+ }
+ return best||nearestWalkable(prop.x,prop.y+3);
+}
+// Binary-heap A* with 8-direction movement and no corner cutting.
+function route(start,goal,limit=110000){
+ const sx=Math.floor(start.x),sy=Math.floor(start.y),startP=nearestWalkable(sx,sy),dest=nearestWalkable(goal.x,goal.y);
+ const startI=index(startP.x,startP.y),targetI=index(dest.x,dest.y);
+ if(startI===targetI)return [];
+ const gs=new Float32Array(W*H);gs.fill(Infinity);gs[startI]=0;
+ const parent=new Int32Array(W*H);parent.fill(-1);
+ const closed=new Uint8Array(W*H);
+ const heap=[];
+ const push=(id,f)=>{let i=heap.length;heap.push([id,f]);while(i>0){const p=(i-1)>>1;if(heap[p][1]<=f)break;heap[i]=heap[p];i=p}heap[i]=[id,f]};
+ const pop=()=>{const top=heap[0],last=heap.pop();if(heap.length){let i=0;while(true){let c=2*i+1;if(c>=heap.length)break;if(c+1<heap.length&&heap[c+1][1]<heap[c][1])c++;if(heap[c][1]>=last[1])break;heap[i]=heap[c];i=c;}heap[i]=last;}return top[0]};
+ const heur=(x,y)=>Math.hypot(x-dest.x,y-dest.y);
+ push(startI,heur(startP.x,startP.y));
+ const delta=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]];
+ let visited=0,found=false;
+ while(heap.length&&visited++<limit){const id=pop();if(closed[id])continue;closed[id]=1;if(id===targetI){found=true;break}
+ const x=id%W,y=(id/W)|0;
+ for(const [dx,dy] of delta){const nx=x+dx,ny=y+dy;if(!walkable(nx,ny))continue;
+ if(dx&&dy&&(!walkable(x+dx,y)||!walkable(x,y+dy)))continue;
+ const ni=index(nx,ny),tile=get(nx,ny);
+ const weight=tile===T.TRAIL||tile===T.PLANK||tile===T.FLOOR||tile===T.BRIDGE?1:tile===T.FOREST?1.23:tile===T.SAND?1.12:1.07;
+ const g=gs[id]+(dx&&dy?1.4142:1)*weight;
+ if(g<gs[ni]){gs[ni]=g;parent[ni]=id;push(ni,g+heur(nx,ny)*1.02)}}
+ }
+ if(!found)return [];
+ const result=[];let at=targetI;
+ while(at!==startI&&at!==-1&&result.length<W*H){result.push({x:at%W+.5,y:((at/W)|0)+.5});at=parent[at];}
+ result.reverse();
+ // Compress consecutive straight segments, preserving corner control.
+ const simplified=[];
+ for(let i=0;i<result.length;i++){
+  const p=result[i],prev=result[i-1],next=result[i+1];
+  if(!prev||!next){simplified.push(p);continue}
+  const ax=Math.sign(p.x-prev.x),ay=Math.sign(p.y-prev.y),bx=Math.sign(next.x-p.x),by=Math.sign(next.y-p.y);
+  if(ax!==bx||ay!==by)simplified.push(p);
+ }
+ return simplified;
+}
+function regionAt(x,y){
+ const homeBounds=structures.find(s=>s.id==='house');if(homeBounds&&x>=homeBounds.x&&x<homeBounds.x+homeBounds.w&&y>=homeBounds.y&&y<homeBounds.y+homeBounds.h){return x>32?1:0;}
+ return nearestArea(x,y);
+}
+window.TaviWorld={W,H,T,regions,objects,props,trees,decor,grid,structures,hash,get,walkable,route,nearestWalkable,approach,regionAt,biome};
+})();
+</script>
+<script>/* Original pixel art renderer. 16px native tiles; scale to viewport with nearest-neighbor. */
+(()=>{'use strict';
+const M=window.TaviWorld,T=M.T,TILE=32,S=2;
+const pal={
+ [T.GRASS]:['#4c9453','#438949','#5ba05b','#75ae69','#367b48'],
+ [T.TRAIL]:['#cdb47c','#bb9b65','#e2c993','#a98355','#f3dea4'],
+ [T.FOREST]:['#2b734b','#296a43','#3a8050','#58995b','#1e603e'],
+ [T.MEADOW]:['#68b568','#5baa61','#82c877','#a1d483','#3f9958'],
+ [T.GARDEN]:['#64ab5f','#529e54','#7cbb66','#a0ce7b','#3c8b50'],
+ [T.SAND]:['#e7cb8f','#dfbc7d','#f5daa5','#cdae76','#fae6bc'],
+ [T.WATER]:['#277eae','#1e70a2','#4099c5','#73c6d5','#155e94'],
+ [T.SHALLOW]:['#66b7b6','#54a8ad','#87cfca','#cce9d2','#328d9d'],
+ [T.STONE]:['#8a95a5','#7e8695','#a8b0bc','#c7bdad','#626d87'],
+ [T.CAVE]:['#505f77','#45536c','#6a7890','#8295aa','#35465d'],
+ [T.FLOOR]:['#a67950','#956841','#c6935d','#d7a771','#7e563b'],
+ [T.WALL]:['#675d65','#544950','#8c7d7c','#a39486','#463a48'],
+ [T.GLASS]:['#8abca8','#76b4a4','#9dcfba','#c5e1bd','#4e9a92'],
+ [T.FLOWERS]:['#66aa62','#5aa459','#7aba61','#e3d789','#4d944f'],
+ [T.BRIDGE]:['#b68b64','#9a724f','#d4ad7b','#e1c18f','#785b48'],
+ [T.DIRT]:['#967554','#896444','#ba966d','#c3a278','#76553d'],
+ [T.PLANK]:['#c19a64','#ad814f','#d9af70','#eec88f','#8c683c'],
+ [T.RUG]:['#b2686b','#9e555e','#d38e83','#e2ab98','#844454'],
+ [T.NIGHT]:['#657a85','#586a79','#7b909f','#a5adb7','#49596f'],
+ [T.CLIFF]:['#726b67','#605c62','#9d9084','#c1a891','#4e535a'],
+ [T.FARM]:['#74513e','#674833','#966f4b','#b58f65','#4c352d']
+};
+const c16=()=>{const c=document.createElement('canvas');c.width=16;c.height=16;return c};
+const p=(g,x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)))};
+const pixelPoly=(g,pts,color)=>{g.fillStyle=color;g.beginPath();g.moveTo(pts[0][0],pts[0][1]);pts.slice(1).forEach(q=>g.lineTo(q[0],q[1]));g.closePath();g.fill()};
+function makeTile(type,variant){const c=c16(),g=c.getContext('2d'),colors=pal[type]||pal[T.GRASS],rand=(i,j)=>M.hash(variant*17+i,variant*23+j,type+2);
+ p(g,0,0,16,16,colors[0]);
+ const sprinkle=(n,color,min=1,max=2)=>{for(let i=0;i<n;i++){let x=Math.floor(rand(i,21)*16),y=Math.floor(rand(i,49)*16),size=min+Math.floor(rand(i,51)*(max-min+1));p(g,x,y,size,1+(i%3===0?1:0),color)}};
+ if([T.GRASS,T.FOREST,T.MEADOW,T.GARDEN,T.FLOWERS].includes(type)){
+  for(let i=0;i<12;i++){const x=Math.floor(rand(i,34)*16),y=Math.floor(rand(i,35)*16);p(g,x,y,1,2,colors[1]);p(g,x+1,y-1,1,1,colors[2]);if(i%4===0)p(g,x-2,y,1,1,colors[3])}
+  sprinkle(8,colors[4]);
+  if(type===T.FOREST){for(let i=0;i<4;i++){const x=Math.floor(rand(i,62)*15),y=Math.floor(rand(i,63)*15);p(g,x,y,3,2,'#255c40');p(g,x+1,y,2,1,'#4d8d52')}}
+  if(type===T.FLOWERS||type===T.MEADOW){for(let i=0;i<4;i++){const x=Math.floor(rand(i,84)*14+1),y=Math.floor(rand(i,85)*14+1);const hue=['#f9e2a5','#f4a6ad','#d4ade7','#f2f4d0'][Math.floor(rand(i,86)*4)];p(g,x,y,2,2,hue);p(g,x+1,y+1,1,1,'#faecac')}}
+  if(type===T.GARDEN){p(g,3,8,3,1,'#8fc574');p(g,11,5,2,1,'#8fc574')}
+ }else if([T.TRAIL,T.SAND,T.DIRT,T.FARM].includes(type)){
+  sprinkle(12,colors[1]);sprinkle(7,colors[2]);
+  if(type===T.TRAIL){for(let i=0;i<2;i++){const x=Math.floor(rand(i,63)*14);p(g,x,Math.floor(rand(i,64)*14),4,1,colors[3]);}}
+  if(type===T.SAND){p(g,2,12,4,1,'#f8e8bc');p(g,11,3,2,2,'#d9b278');p(g,7,7,2,1,'#ffeec6')}
+  if(type===T.FARM){for(let y=2;y<16;y+=5){p(g,0,y,16,2,colors[3]);p(g,2,y+2,1,2,colors[1]);}}
+ }else if([T.WATER,T.SHALLOW].includes(type)){
+  for(let y=0;y<16;y+=5){const shift=Math.floor(rand(y,11)*5);p(g,shift,y,8,2,colors[2]);p(g,(shift+10)%16,y+2,5,1,colors[1]);p(g,(shift+5)%16,y+3,3,1,colors[3])}
+ }else if([T.STONE,T.CAVE,T.NIGHT,T.CLIFF].includes(type)){
+  for(let i=0;i<6;i++){const x=Math.floor(rand(i,40)*13),y=Math.floor(rand(i,41)*13);p(g,x,y,3+(i%2),2,colors[i%3+1]);p(g,x,y,1,1,colors[3]);}
+  if(type===T.CAVE){p(g,2,3,3,2,'#39465f');p(g,12,8,2,3,'#8595a1')}
+ }else if([T.FLOOR,T.PLANK,T.BRIDGE,T.RUG,T.GLASS,T.WALL].includes(type)){
+  if(type===T.FLOOR||type===T.PLANK||type===T.BRIDGE){for(let y=0;y<16;y+=5){p(g,0,y,16,1,colors[1]);p(g,(y/5%2)*7, y+2,2,1,colors[2]);p(g,10,y+3,3,1,colors[3]);}p(g,0,15,16,1,colors[4]);}
+  if(type===T.BRIDGE){p(g,1,0,2,16,'#6b513c');p(g,13,0,2,16,'#6b513c')}
+  if(type===T.GLASS){p(g,0,0,16,1,'#c9e7bc');p(g,0,0,1,16,'#c6ebc5');p(g,15,0,1,16,'#4f9a82');p(g,0,15,16,1,'#579a89');p(g,3,3,1,7,'#e0efd1');p(g,7,1,1,14,'#a9d0b5');p(g,9,9,5,2,'#6cae7b')}
+  if(type===T.RUG){p(g,0,0,16,1,'#eec7aa');p(g,0,15,16,1,'#eec7aa');p(g,0,0,1,16,'#eec7aa');p(g,15,0,1,16,'#eec7aa');p(g,4,5,8,2,'#e6ab9a');p(g,6,9,4,3,'#e6ab9a')}
+  if(type===T.WALL){p(g,0,0,16,3,colors[2]);p(g,0,14,16,2,colors[4]);p(g,8,3,1,11,colors[1]);p(g,1,8,14,1,colors[3]);p(g,4,5,3,1,colors[2])}
+ }
+ return c;
+}
+const tiles={};Object.keys(pal).forEach(type=>tiles[type]=Array.from({length:8},(_,v)=>makeTile(Number(type),v)));
+const color=(type)=>pal[type]?.[0]||'#51805e';
+const artCache={};
+function makeSprite(kind){const c=document.createElement('canvas');c.width=80;c.height=80;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+ const B='#3e3a42',wood='#916342',edge='#5b4033',hl='#dbb87c',linen='#f5e8c5',leaf='#4c9e61',light='#fdf5cf',gold='#f0d289';
+ const shadow=()=>{p(g,12,63,55,4,'#213b3670');p(g,18,67,40,2,'#213b3647')};
+ const pl=(x,y,w,h,col)=>p(g,x,y,w,h,col);
+ const book=(x,y)=>{pl(x,y,20,16,'#925f5a');pl(x+2,y+2,7,11,'#f5e9bd');pl(x+11,y+2,7,11,'#efddad');pl(x+9,y,2,15,'#ba8b70');pl(x+3,y+4,5,1,'#c5b695');pl(x+12,y+4,5,1,'#c5b695')};
+ shadow();
+ switch(kind){
+ case 'hearth':pl(14,22,52,39,'#776471');pl(17,20,46,5,'#bd9a88');pl(20,30,40,28,'#3b3e49');pl(23,32,34,23,'#212a37');pl(25,49,28,6,'#6a4c3a');pl(29,39,8,14,'#f9bd53');pl(36,32,8,21,'#f5da7e');pl(43,40,7,13,'#f1a750');pl(19,57,42,5,'#b39c89');break;
+ case 'kitchen':case 'desk':case 'workbench':case 'minerals':case 'samples':case 'sketch':
+   pl(9,42,62,12,edge);pl(9,39,62,7,hl);pl(15,52,7,18,edge);pl(58,52,7,18,edge);pl(16,36,49,4,'#e0b581');
+   if(kind==='kitchen'){pl(20,29,14,10,'#a8bcc0');pl(24,27,9,4,'#dce2d3');pl(48,29,6,10,'#dbb88b');pl(44,25,12,4,'#faf1d3');pl(38,35,7,5,'#db8d81')}
+   else if(kind==='workbench'){pl(17,27,17,12,'#8ca5a7');pl(20,25,10,4,'#ecdfac');pl(45,27,4,12,'#d7c18a');pl(48,22,13,5,'#91afb4');}
+   else if(kind==='minerals'||kind==='samples'){for(let i=0;i<3;i++){pl(20+i*13,25+i%2*4,10,12,['#98bddb','#a3cda3','#ddbd8e'][i]);pl(23+i*13,20+i%2*4,4,7,light)}}
+   else if(kind==='sketch'){pl(20,22,31,17,linen);pl(25,25,16,1,'#bba58b');pl(27,29,14,2,'#9ea2b4');pl(44,32,7,2,'#d39e99')}
+   else {book(24,22);pl(50,19,4,18,'#ceae79');pl(45,16,14,4,'#fff0bd')}break;
+ case 'shelf':pl(18,8,44,56,edge);pl(22,12,36,49,'#433f45');for(let j=0;j<3;j++){for(let i=0;i<7;i++){const hues=['#ad9b76','#9ca3b6','#d8a4a1','#76a891','#d4b88b'];pl(24+i*5,14+j*15,4,12,hues[(i+j)%5]);pl(24+i*5,16+j*15,1,8,'#f6d3a7')}pl(20,27+j*15,40,3,hl)}break;
+ case 'bed':pl(13,26,54,40,'#624b58');pl(17,30,46,31,'#dfcbb8');pl(19,45,42,17,'#76adae');pl(22,32,16,12,'#fff4d9');pl(41,32,17,12,'#fff4d9');pl(14,62,9,7,edge);pl(58,62,9,7,edge);break;
+ case 'journal':case 'starChart':book(31,35);if(kind==='starChart'){pl(27,17,27,19,'#425879');pl(29,19,22,15,'#344662');for(let i=0;i<6;i++)pl(30+(i*7)%20,21+(i*11)%13,2,2,light)}break;
+ case 'mobile':pl(37,9,5,32,gold);pl(12,27,55,3,linen);for(let i=0;i<3;i++){let x=19+i*19;pl(x,29,2,12+i%2*5,'#d8c6a4');pl(x-4,41+i%2*5,10,3,light);pl(x,37+i%2*5,2,11,light)}break;
+ case 'easel':pl(39,16,6,54,edge);pl(22,60,9,9,edge);pl(52,60,9,9,edge);pl(19,19,42,38,wood);pl(23,22,34,31,linen);pl(25,25,30,26,'#83b9bb');pixelPoly(g,[[25,49],[36,37],[45,44],[54,34],[55,50]],'#70a376');pl(32,32,5,4,'#fbde8e');pl(36,53,8,4,hl);break;
+ case 'paint':pl(13,27,54,5,wood);pl(13,50,54,5,wood);for(let i=0;i<6;i++){pl(17+i*8,34,6,16,['#e89da2','#96bfd4','#dec67b','#88bf9f','#b1a2d1','#d6a68a'][i]);pl(18+i*8,31,5,4,'#fbf2d6')}break;
+ case 'frame':pl(14,10,52,55,'#6c503b');pl(19,15,42,45,gold);pl(23,19,34,37,'#547b9b');pl(31,25,10,10,light);pixelPoly(g,[[24,55],[25,42],[35,35],[42,49],[52,39],[56,55]],'#5a9a6b');break;
+ case 'seedling':pl(6,44,68,23,edge);pl(10,40,60,16,'#4c6849');for(let i=0;i<6;i++){let x=15+i*9;pl(x,28+i%2*3,2,16,'#48854e');pl(x-5,30+i%2*3,6,4,'#78b36e');pl(x+1,24+i%2*3,7,5,'#87be69')}break;
+ case 'watering':pl(24,38,30,22,'#5b8f9e');pl(21,41,5,14,'#acd4ce');pl(52,42,17,4,'#b9d5cb');pl(60,47,10,5,'#b9d5cb');pl(32,30,18,6,light);break;
+ case 'runestones':case 'musicStone':case 'ruins':
+  for(let i=0;i<3;i++){let x=10+i*20,y=28+i%2*11;pl(x+3,y+7,13,29,'#687982');pl(x+1,y+9,13,19,'#899d98');pl(x+1,y+7,17,3,'#b5c1aa');pl(x+7,y+13,3,10,'#d4d5a4')}break;
+ case 'flowerbed':for(let i=0;i<7;i++){const x=8+i*9,y=39+(i%2)*8;pl(x,y+4,2,16,'#447e50');pl(x-3,y,7,7,['#edb4b6','#f1d78c','#d9b5e6'][i%3]);pl(x-1,y+2,3,3,light)}break;
+ case 'pond':case 'tidepool':pl(10,43,61,14,'#457991');pl(16,37,49,17,'#58a9c2');pl(23,37,40,4,'#c8e9d4');pl(18,49,18,3,'#b8ddcc');pl(48,45,10,2,'#dbf2d9');break;
+ case 'telescope':pl(39,36,6,28,'#c1ad92');pl(17,60,46,6,edge);pl(23,57,7,12,edge);pl(50,57,7,12,edge);pixelPoly(g,[[15,27],[56,13],[66,25],[27,40]],'#8ebcc5');pl(20,27,39,7,'#d0ece1');pl(15,24,7,18,'#dfba88');break;
+ case 'clock':pl(18,9,44,56,'#705644');pl(22,14,36,42,'#d4c6a3');pl(26,18,28,33,'#455c79');pl(38,25,4,20,light);pl(32,34,18,3,gold);pl(35,56,11,6,edge);break;
+ case 'crystal':case 'echo':
+  pl(13,58,55,9,'#4d5f6d');pixelPoly(g,[[15,59],[23,29],[36,8],[48,34],[55,58]],'#83c7db');pixelPoly(g,[[36,8],[48,34],[55,58],[37,58]],'#b9edf0');pixelPoly(g,[[23,29],[36,8],[37,58],[15,59]],'#608bbd');pl(34,22,3,19,light);break;
+ case 'board':pl(13,12,54,49,edge);pl(18,17,44,39,'#e8d3a6');for(let i=0;i<4;i++){let x=22+(i%2)*20,y=21+Math.floor(i/2)*16;pl(x,y,16,12,['#e9beb8','#a5c8c4','#ecd38b','#b3b4d8'][i]);pl(x+3,y+4,10,1,'#baaa8a')}break;
+ case 'ancientTree':pl(32,25,18,44,wood);pl(25,38,8,24,wood);pl(46,38,8,24,wood);for(const [x,y,w,h,c] of [[15,21,49,26,'#327c4c'],[20,10,44,29,'#398b54'],[6,23,35,24,'#418b54'],[37,18,32,30,'#4b9a57'],[19,11,31,13,'#66b96c']])pl(x,y,w,h,c);for(let i=0;i<10;i++)pl(17+i*4,17+i%3*6,3,3,i%2?'#7ccc76':'#a2d585');break;
+ case 'birds':pl(22,53,37,7,wood);pl(26,40,6,16,wood);pl(32,37,18,10,'#ecc69b');pl(44,40,7,5,'#db8b6e');pl(40,39,2,2,B);pl(25,35,8,7,'#c3d79d');break;
+ case 'shells':for(let i=0;i<5;i++){let x=10+i*12,y=38+(i%2)*6;pl(x,y,10,9,['#f4dcba','#e5b6ac','#c8d6d4','#e9c98b','#d5a5b9'][i]);pl(x+3,y+2,3,5,'#fff1db')}break;
+ case 'bench':pl(13,38,53,11,'#b18a64');pl(17,29,46,9,'#9e7657');pl(17,49,8,15,edge);pl(53,49,8,15,edge);pl(23,33,31,2,'#d9b88c');break;
+ case 'butterfly':for(let i=0;i<4;i++){let x=16+i*14,y=29+i%2*13;pl(x-6,y,7,8,'#f1b4d3');pl(x+1,y,7,8,'#d0b6ee');pl(x,y-1,2,11,edge);pl(x,y+11,1,4,'#72b867')}break;
+ case 'machine':pl(12,51,56,14,edge);for(let j=0;j<2;j++){let x=22+j*27;pl(x,25,20,24,'#b6a078');pl(x+4,29,12,16,'#716e71');pl(x+6,33,8,8,gold);pl(x+8,35,4,4,B)}pl(37,16,6,15,'#b5c1b8');break;
+ default:pl(18,28,46,32,edge);pl(21,32,40,22,hl);break;
+ }
+ return c;
+}
+for(const p0 of M.props){if(!artCache[p0.kind])artCache[p0.kind]=makeSprite(p0.kind)}
+const treeImgs=[];
+for(let variation=0;variation<4;variation++){
+ const c=document.createElement('canvas');c.width=68;c.height=76;const g=c.getContext('2d');
+ const greens=[['#2c7750','#3b8b55','#58a85f','#83c57d'],['#36784b','#498f54','#61a960','#9cc776'],['#316e53','#3c865e','#5ca868','#8bcc83'],['#477e4e','#5b9357','#79ad63','#b1ce79']][variation];
+ p(g,27,37,15,34,'#664b3b');p(g,29,32,9,36,'#9b7650');p(g,21,50,8,19,'#71553b');
+ for(const [x,y,w,h,n] of [[9,25,43,28,0],[22,11,35,30,1],[5,35,39,20,1],[34,28,28,26,0],[17,6,31,26,2],[26,5,19,9,3],[11,27,16,8,3],[41,20,10,6,3]])p(g,x,y,w,h,greens[n]);
+ for(let k=0;k<16;k++){let x=Math.floor(M.hash(k,variation,3)*50)+8,y=Math.floor(M.hash(k,variation,7)*36)+10;p(g,x,y,3,2,greens[(k+2)%4])}
+ treeImgs.push(c);
+}
+function drawSign(g,x,y,text){g.save();g.font='bold 11px ui-monospace, monospace';const width=Math.min(224,g.measureText(text).width+25);p(g,x-width/2,y-32,width,22,'#2b3d3d');p(g,x-width/2+2,y-30,width-4,18,'#f0d8a0');g.textAlign='center';g.textBaseline='middle';g.fillStyle='#463b39';g.fillText(text,x,y-21);g.restore()}
+function drawTavi(g,x,y,state,now){
+ const taviImg=window.TaviSprite?.image;
+ const dx=(state.world?.lastDx||0),dy=(state.world?.lastDy||1);
+ const moving=!!(state.world?.moving),working=state.brain?.mode==='working',activity=state.brain?.target?.activity;
+ let dir=0;if(Math.abs(dx)>Math.abs(dy))dir=dx<0?1:2;else if(dy<-.2)dir=3;
+ const frame=moving?1+Math.floor(now/125)%3:working?Math.floor(now/510)%4:Math.floor(now/1800)%4===0?1:0;
+ const bob=moving?Math.sin(now/120)*2:Math.sin(now/700)*1;
+ g.save();g.imageSmoothingEnabled=false;
+ p(g,x-18,y+3,35,6,'#233b3370');p(g,x-12,y+9,23,2,'#19332844');
+ if(taviImg&&taviImg.complete&&taviImg.naturalWidth){
+  const cellW=taviImg.naturalWidth/4,cellH=taviImg.naturalHeight/4;
+  g.drawImage(taviImg,frame*cellW,dir*cellH,cellW,cellH,x-39,y-67+bob,78,78);
+ }else{
+  p(g,x-20,y-49,40,36,'#d49d63');p(g,x-13,y-18,26,23,'#5fbabd');p(g,x-12,y-43,5,5,'#2e3942');p(g,x+7,y-43,5,5,'#2e3942');
+ }
+ // Small intent marker, no intrusive overlay graphics.
+ if(working){const hue=activity==='sleeping'?'#c9d9f5':activity==='drawing'?'#f7c6d0':'#f1df9d';p(g,x-3,y-80+Math.sin(now/360)*4,7,7,hue)}
+ g.restore();
+}
+function draw(view,state,cam,ui,now){const g=view.getContext('2d');if(!g)return;
+ const w=view.width,h=view.height;g.imageSmoothingEnabled=false;
+ g.clearRect(0,0,w,h);p(g,0,0,w,h,'#273f45');
+ const x0=Math.floor(cam.x/TILE)-1,y0=Math.floor(cam.y/TILE)-1,x1=Math.ceil((cam.x+w)/TILE)+1,y1=Math.ceil((cam.y+h)/TILE)+1;
+ for(let ty=Math.max(0,y0);ty<Math.min(M.H,y1);ty++)for(let tx=Math.max(0,x0);tx<Math.min(M.W,x1);tx++){
+  const type=M.get(tx,ty),v=Math.floor(M.hash(tx,ty,11)*8),sx=Math.round(tx*TILE-cam.x),sy=Math.round(ty*TILE-cam.y);
+  g.drawImage(tiles[type][v],sx,sy,TILE+1,TILE+1);
+ }
+ // Shallow animated edges and individual glints layer atop the tile mosaic.
+ for(let ty=Math.max(0,y0);ty<Math.min(M.H,y1);ty++)for(let tx=Math.max(0,x0);tx<Math.min(M.W,x1);tx++){
+  if(M.get(tx,ty)!==T.WATER&&M.get(tx,ty)!==T.SHALLOW)continue;
+  const sx=Math.round(tx*TILE-cam.x),sy=Math.round(ty*TILE-cam.y),r=M.hash(tx,ty,35);
+  if(r>.6){const ox=Math.floor((now/500+tx*7)%30);p(g,sx+ox,sy+18,11,2,'#c9f0e0a0')}
+ }
+ // Top-down architectural details (walls already belong to the navigable ground).
+ for(const b of M.structures){
+  if((b.x+b.w)*TILE<cam.x-60||b.x*TILE>cam.x+w+60||(b.y+b.h)*TILE<cam.y-60||b.y*TILE>cam.y+h+60)continue;
+  const sx=Math.round(b.x*TILE-cam.x),sy=Math.round(b.y*TILE-cam.y),bw=b.w*TILE;
+  p(g,sx,sy,bw,7,'#c7a078');p(g,sx+8,sy+7,bw-16,6,'#ead19d');
+  for(let i=4;i<b.w-2;i+=5){const xx=sx+i*TILE; p(g,xx,sy+19,39,31,'#493c4d');p(g,xx+5,sy+22,29,24,b.id==='greenhouse'?'#bbdcd0':'#f2d598');p(g,xx+18,sy+22,3,24,'#90644e');p(g,xx+5,sy+33,29,3,'#90644e');}
+  p(g,sx+8,Math.round((b.y+b.h-1)*TILE-cam.y)+13,bw-16,5,'#765b52');
+  const doorX=Math.round(b.doorX*TILE-cam.x),doorY=Math.round(b.doorY*TILE-cam.y);
+  p(g,doorX-18,doorY+5,76,5,'#eacb87');
+  if(b.id==='house'&&state.decorations?.includes('mural')){const mx=sx+Math.round(bw*.29),my=sy+Math.round(b.h*TILE*.16);p(g,mx-21,my-11,43,29,'#704e4c');p(g,mx-18,my-9,37,25,'#e0b88b');p(g,mx-14,my-6,29,18,'#658a87');p(g,mx-9,my+1,7,5,'#f5d491');p(g,mx+5,my-5,4,4,'#f3d898');p(g,mx+9,my+5,6,6,'#e2b3bf');}
+  if(ui.showSigns||Math.hypot(state.world.x-b.doorX,state.world.y-b.doorY)<10)drawSign(g,sx+bw/2,sy+70,M.regions.find(r=>r.id===b.id)?.name||b.id);
+ }
+ const entries=[];
+ for(const decoration of M.decor){const sx=decoration.x*TILE-cam.x,sy=decoration.y*TILE-cam.y;
+  if(sx<-60||sy<-60||sx>w+60||sy>h+60)continue;
+  entries.push({y:decoration.y-.1,kind:'decor',v:decoration,sx,sy})
+ }
+ for(const tree of M.trees){const sx=tree.x*TILE-cam.x,sy=tree.y*TILE-cam.y;
+  if(sx<-135||sy<-170||sx>w+135||sy>h+135)continue;
+  entries.push({y:tree.y+.5,kind:'tree',v:tree,sx,sy})
+ }
+ for(const prop of M.props){const sx=prop.x*TILE-cam.x,sy=prop.y*TILE-cam.y;
+  if(sx<-150||sy<-150||sx>w+150||sy>h+150)continue;
+  entries.push({y:prop.y+.3,kind:'prop',v:prop,sx,sy})
+ }
+ const tx=state.world.x*TILE-cam.x,ty=state.world.y*TILE-cam.y;
+ entries.push({y:state.world.y,kind:'tavi',sx:tx,sy:ty});
+ entries.sort((a,b)=>a.y-b.y);
+ for(const e of entries){const x=Math.round(e.sx),y=Math.round(e.sy);
+  if(e.kind==='decor'){
+   const d=e.v;
+   if(d.type==='flowers'){p(g,x+5,y+8,7,4,'#e8adcb');p(g,x+8,y+6,3,7,'#f9e5ac');p(g,x+11,y+12,4,3,'#b9d594');}
+   else if(d.type==='shell'){p(g,x+14,y+16,10,5,'#e9d6b5');p(g,x+17,y+12,5,6,'#fff3da');}
+   else {p(g,x+8,y+8,3,9,'#2b734c');p(g,x+12,y+6,3,12,'#459755');p(g,x+14,y+10,3,6,'#8cc17a');}
+  }else if(e.kind==='tree'){
+    const t=e.v,dim=Math.round(125*t.size),img=treeImgs[t.variant%treeImgs.length];g.drawImage(img,x-dim/2,y-dim+16,dim,dim);
+  }else if(e.kind==='prop'){
+    const pr=e.v,active=state.brain?.mode==='working'&&state.brain.target?.id===pr.id;
+    const dim=pr.kind==='ancientTree'?128:pr.kind==='flowerbed'?82:94;
+    const im=artCache[pr.kind];g.drawImage(im,x-dim/2,y-dim*.82,dim,dim);
+    if(active){const wobble=Math.floor(now/320)%2;const spark='#fae5a3';p(g,x-12,y-65+(wobble?3:0),4,7,spark);p(g,x+10,y-70+(wobble?0:3),5,5,'#eaf4d3')}
+    if(ui.hovered?.id===pr.id||ui.selected?.id===pr.id){
+      g.strokeStyle='#f7e4a4';g.lineWidth=2;g.strokeRect(x-22,y-19,44,24);
+      drawSign(g,x,y-50,pr.name);
+    }
+  }else drawTavi(g,x,y,state,now);
+ }
+ // Cinematic yet subtle lantern lighting and animated wildlife specks.
+ for(let i=0;i<20;i++){
+  const wx=(i*161+47)%M.W,wy=(i*47+63)%M.H;
+  const sx=wx*TILE-cam.x+Math.sin(now/1250+i*17)*19,sy=wy*TILE-cam.y+Math.cos(now/1100+i)*14;
+  if(sx<0||sy<0||sx>w||sy>h)continue;
+  const evening=new Date().getHours()>=19||new Date().getHours()<6;
+  p(g,sx,sy,evening?4:2,evening?4:2,evening?'#f7e9ae':'#f4dfbb9d');
+ }
+ // Semi-transparent evening tint, not opaque enough to hide tile detail.
+ const hour=new Date().getHours();if(hour>=20||hour<5){p(g,0,0,w,h,'#132b4a34')}
+ if(ui.showGrid){g.strokeStyle='#f5fff227';g.lineWidth=1;for(let tx=x0;tx<=x1;tx++){let sx=Math.round(tx*TILE-cam.x);g.beginPath();g.moveTo(sx,0);g.lineTo(sx,h);g.stroke()}for(let ty=y0;ty<=y1;ty++){let sy=Math.round(ty*TILE-cam.y);g.beginPath();g.moveTo(0,sy);g.lineTo(w,sy);g.stroke()}}
+}
+const miniBg=document.createElement('canvas');miniBg.width=M.W;miniBg.height=M.H;
+const mg=miniBg.getContext('2d');for(let y=0;y<M.H;y++)for(let x=0;x<M.W;x++){mg.fillStyle=color(M.get(x,y));mg.fillRect(x,y,1,1)}
+function minimap(view,state,opts={}){const g=view.getContext('2d');if(!g)return;const w=view.width,h=view.height;g.imageSmoothingEnabled=false;g.clearRect(0,0,w,h);g.drawImage(miniBg,0,0,w,h);
+ const sx=w/M.W,sy=h/M.H;
+ for(let i=0;i<M.regions.length;i++){const r=M.regions[i],x=Math.round(r.x*sx),y=Math.round(r.y*sy);
+ p(g,x-3,y-3,7,7,'#253e40');p(g,x-2,y-2,5,5,r.color);
+ }
+ const wx=Math.round(state.world.x*sx),wy=Math.round(state.world.y*sy);
+ p(g,wx-4,wy-4,9,9,'#24374a');p(g,wx-2,wy-2,5,5,'#fff1aa');
+ if(opts.showCamera){g.strokeStyle='#fff8d2';g.lineWidth=2;g.strokeRect(opts.camera.x/TILE*sx,opts.camera.y/TILE*sy,opts.screen.w/TILE*sx,opts.screen.h/TILE*sy)}
+}
+window.TaviVisuals={TILE,draw,minimap,makeTile};
+})();
+</script>
+<script>/* Tavi World — local-first autonomous living overworld. No mandatory cloud services. */
+(()=>{'use strict';
+const M=window.TaviWorld,V=window.TaviVisuals,KEY='tavi-world-windows-living-valley-v1',LEGACY_BACKUP_KEY='tavi-world-legacy-save-before-overworld-v1';
+const INTERESTS=['cozy','stories','food','art','craft','nature','music','science','time','mystery','gardening'];
+const EMOTIONS=['joy','excitement','curiosity','frustration','confidence','boredom','calm','nervousness'];
+const LEGACY_AREA_MAP=[0,1,2,6,5,4,11,3,8,9,7,10];
+const $=id=>document.getElementById(id),clamp=(v,lo=0,hi=100)=>Math.min(hi,Math.max(lo,v));
+const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
+const dateText=ts=>new Date(ts).toLocaleString();
+const initial=()=>({version:1,seed:78341,area:0,x:400,y:350,paused:false,clock:Date.now(),created:Date.now(),tick:0,
+ stats:{hunger:20,energy:82,happiness:74,curiosity:67},
+ emotions:{joy:60,excitement:40,curiosity:70,frustration:10,confidence:45,boredom:20,calm:70,nervousness:12},
+ interests:Object.fromEntries(INTERESTS.map(v=>[v,20])),memories:[],journal:[],art:[],goals:[],questions:[],approvals:[],decorations:[],
+ thought:'There is an entire valley outside. I want to see what is growing today!',lastAction:'',lastSave:Date.now(),
+ brain:{mode:'idle',target:null,work:0,completedAt:0,completedActivity:'',decisionAt:0,day:0,explored:{},recent:[],discoveries:[],lastReflection:0,ai:{enabled:false,model:'tavi',lastCall:0,lastResult:'Not connected',pending:null,history:[]}},
+ world:{x:29.5,y:28.5,moving:false,lastDx:0,lastDy:1,steps:0,visited:{},walked:0,awareness:{},lastSeen:0},offlineSummary:''});
+let state,warning='',tab='world',selected=null,hovered=null,freeCamera=false,showMap=false,showGrid=false,showSigns=false;
+const loadState=()=>{
+ const fresh=initial();let raw=null;
+ try{raw=localStorage.getItem(KEY)}catch(e){warning='Browser storage unavailable. Export backups to keep progress.'}
+ if(!raw)return fresh;
+ try{
+  const old=JSON.parse(raw);if(!old||typeof old!=='object'||old.version!==1)throw Error('Incompatible save version');
+  const migrated=!old.world;
+  if(migrated){try{if(!localStorage.getItem(LEGACY_BACKUP_KEY))localStorage.setItem(LEGACY_BACKUP_KEY,raw)}catch(e){console.warn('Could not store separate legacy backup',e)}}
+  const mapArea=(a)=>migrated?(LEGACY_AREA_MAP[Number(a)]??0):(Number(a)||0);
+  const explored=migrated?Object.fromEntries(Object.entries(old.brain?.explored||{}).map(([k,v])=>{const m=/^(\d+):(\d+)$/.exec(k);return [m?mapArea(Number(m[1]))+':'+m[2]:k,v]})):{...old.brain?.explored};
+  const recent=migrated?(old.brain?.recent||[]).map(k=>{const m=/^(\d+):(\d+)$/.exec(k);return m?mapArea(Number(m[1]))+':'+m[2]:k}):old.brain?.recent||[];
+  const region=M.regions[mapArea(old.area)]||M.regions[0];
+  const origin=M.nearestWalkable(region.x,region.y+11);
+  const merged={...fresh,...old,area:mapArea(old.area),stats:{...fresh.stats,...old.stats},emotions:{...fresh.emotions,...old.emotions},
+   interests:{...fresh.interests,...old.interests},
+   memories:Array.isArray(old.memories)?old.memories:fresh.memories,
+   journal:Array.isArray(old.journal)?old.journal:fresh.journal,
+   art:Array.isArray(old.art)?old.art:fresh.art,
+   goals:Array.isArray(old.goals)?old.goals:fresh.goals,
+   questions:Array.isArray(old.questions)?old.questions:fresh.questions,
+   approvals:Array.isArray(old.approvals)?old.approvals:fresh.approvals,
+   decorations:Array.isArray(old.decorations)?old.decorations:fresh.decorations,
+   world:migrated?{...fresh.world,x:origin.x+.5,y:origin.y+.5,visited:{[region.id]:1},legacyPos:{x:old.x,y:old.y},sourceVersion:'living-valley-v1'}:
+    {...fresh.world,...old.world,visited:{...fresh.world.visited,...old.world?.visited}},
+   brain:{...fresh.brain,...old.brain,mode:'idle',target:null,work:0,explored,recent:Array.isArray(recent)?recent:[],
+      discoveries:Array.isArray(old.brain?.discoveries)?old.brain.discoveries:[],
+      ai:{...fresh.brain.ai,...old.brain?.ai,history:Array.isArray(old.brain?.ai?.history)?old.brain.ai.history.slice(-40):[]}}};
+  if(migrated){merged.brain.legacyTarget=old.brain?.target||null;merged.world.legacyExplored=old.brain?.explored||{};merged.world.migratedAt=Date.now()}
+  if(!M.walkable(merged.world.x,merged.world.y)){
+    const safe=M.nearestWalkable(merged.world.x,merged.world.y);merged.world.x=safe.x+.5;merged.world.y=safe.y+.5;
+  }
+  return merged;
+ }catch(e){warning='Your existing save could not be read. A new world was opened without deleting the original browser data.';console.error('Tavi save load:',e);return fresh}
+};
+state=loadState();
+const runtime={path:[],index:0,keys:new Set(),lastFrame:0,lastNeeds:0,lastAutosave:0,lastUI:0,lastSidebar:0,nextDecision:0,
+ camera:{x:0,y:0,panX:0,panY:0},drag:null,lastMouse:{x:0,y:0},aiBusy:false};
+const canStore=()=>{try{return !!window.localStorage}catch(e){return false}};
+function save(){try{state.lastSave=Date.now();localStorage.setItem(KEY,JSON.stringify(state));if(warning.startsWith('Save failed'))warning='';return true}
+ catch(e){warning='Save failed. Use Settings → Export backup to protect progress.';console.warn(e);return false}}
+function rng(){state.seed=(Math.imul(state.seed,1664525)+1013904223)>>>0;return state.seed/4294967296}
+function chance(n){return rng()<n}
+function choice(items){return items[Math.min(items.length-1,Math.floor(rng()*items.length))]}
+function uid(prefix){return prefix+'-'+Date.now().toString(36)+'-'+(++state.tick).toString(36)}
+function journal(text,kind='activity',when=Date.now(),area=state.area){state.journal.unshift({id:uid('j'),time:when,area:M.regions[area]?.name||'Tavi World',kind,text});state.journal.length=Math.min(state.journal.length,450)}
+function memory(text,interest,when=Date.now()){state.memories.unshift({id:uid('m'),time:when,area:M.regions[state.area]?.name||'Tavi World',text,interest});state.memories.length=Math.min(state.memories.length,220)}
+function toast(text){const n=$('toast');n.textContent=text;n.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>n.classList.remove('show'),3600)}
+function proposal(){if(state.approvals.some(v=>v.status==='pending'&&v.type==='mural'))return;
+ state.approvals.unshift({id:uid('a'),type:'mural',status:'pending',text:'Paint a permanent star-and-flower mural inside Tavi House',reason:'I have saved so many inspiring memories from our world.',time:Date.now()});journal('I asked permission to paint a mural. I will wait for an answer.','request');toast('Tavi has an approval request')}
+function newGoal(interest){if(state.goals.some(v=>v.status==='active'))return;
+ const title=({art:'Paint a memory of the valley',nature:'Become a friend to the forest',science:'Investigate a curious mystery',stories:'Collect three unforgettable stories',gardening:'Help the valley grow'})[interest]||'Explore the world of '+interest;
+ state.goals.unshift({id:uid('g'),title,interest,steps:['Discover a new '+interest+' place','Practice a '+interest+' activity','Reflect on what I learned'],progress:0,status:'active',time:Date.now()});state.goals.length=Math.min(state.goals.length,40);journal('I set myself a goal: '+title+'.','goal')}
+function askQuestion(interest){if(state.questions.some(q=>!q.answer))return;
+ const prompts={art:'What would you love to see me paint?',science:'What should I try to understand next?',nature:'Which secret of nature fascinates you?',mystery:'Should I investigate the cave again?',stories:'What kind of tale should I imagine?',music:'What should I listen for?',cozy:'Where do you feel most at home?'};
+ const text=prompts[interest]||'What would you like me to discover about '+interest+'?';
+ state.questions.unshift({id:uid('q'),text,interest,time:Date.now(),answer:''});journal('I had a question for my friend: '+text,'question')}
+function makeArt(when=Date.now()){
+ const hues=[['#284e5b','#88d5b9','#f6d68c','#ee9aa0'],['#423e74','#a8b7db','#e7ba84','#9bcf95'],['#315f4d','#91c47f','#f0dfb3','#cf9aac']];
+ const style=choice(hues),title=choice(['Moonlight in Whisperwood','A New Way Home','Little Wonders','The Color of Curiosity','My Secret Garden','The Blue Crystal Dream']);
+ state.art.unshift({id:uid('art'),title,palette:style,seed:state.seed,time:when});state.art.length=Math.min(state.art.length,45);journal('I created a painting called “'+title+'”.','art',when)
+}
+function actionResult(prop,when=Date.now(),quiet=false){const {activity,interest,name}=prop;
+ state.interests[interest]=clamp((state.interests[interest]||0)+2);
+ const s=state.stats,e=state.emotions;
+ s.energy=clamp(s.energy+(activity==='sleeping'?31:activity==='resting'?17:-4));
+ s.hunger=clamp(s.hunger+(activity==='eating'?-29:4));
+ s.happiness=clamp(s.happiness+4);s.curiosity=clamp(s.curiosity+(activity==='observing'||activity==='reading'?12:2));
+ e.joy=clamp(e.joy+3);e.excitement=clamp(e.excitement+(activity==='playing'?8:1));e.curiosity=clamp(e.curiosity+(activity==='observing'?7:2));
+ e.confidence=clamp(e.confidence+1);e.boredom=clamp(e.boredom-8);e.calm=clamp(e.calm+(activity==='resting'||activity==='sleeping'?10:0));e.frustration=clamp(e.frustration-3);
+ const phrases=[`I ${activity==='sleeping'?'had a wonderful dream':`spent time ${activity}`} at the ${name.toLowerCase()}.`,`I think ${interest} is becoming part of who I am.`,`There is something meaningful about ${name.toLowerCase()}. I want to remember it.`];
+ state.thought=choice(phrases);state.lastAction=activity;journal(`I spent time ${activity} at ${name} in ${M.regions[prop.area].name}.`,'activity',when,prop.area);
+ if(chance(.4))memory(`I discovered a new little detail about ${interest} at ${name.toLowerCase()}.`,interest,when);
+ if(activity==='drawing'&&chance(.62))makeArt(when);
+ const goal=state.goals.find(v=>v.status==='active');if(goal&&goal.interest===interest){goal.progress=Math.min(3,goal.progress+1);journal(`I reached step ${goal.progress} of “${goal.title}”.`,'goal',when);
+  if(goal.progress>=3){goal.status='completed';journal(`I completed my goal: ${goal.title}!`,'milestone',when);toast('Tavi completed a goal!')}}
+ if(state.memories.length>8&&state.art.length>=2&&chance(.10))proposal();
+ if(state.tick%7===0&&state.questions.every(q=>q.answer)&&chance(.32))askQuestion(interest);
+ if(!quiet)toast(`${name} · ${activity}`);
+}
+function reflection(when=Date.now()){if(when-(state.brain.lastReflection||0)<110000)return;
+ state.brain.lastReflection=when;
+ const favorites=Object.entries(state.interests).sort((a,b)=>b[1]-a[1]);
+ if(favorites.length&&!state.goals.some(g=>g.status==='active')&&chance(.7))newGoal(favorites[Math.floor(rng()*Math.min(3,favorites.length))][0]);
+ if(state.memories.length&&chance(.48)){
+  const m=choice(state.memories.slice(0,Math.min(16,state.memories.length)));
+  state.thought=`I still remember ${m.text.charAt(0).toLowerCase()+m.text.slice(1)} It might inspire my next adventure.`;
+  journal('I reflected on a memory about '+m.interest+'.','reflection',when);
+ }
+ if(favorites.length&&state.questions.every(q=>q.answer)&&chance(.13))askQuestion(favorites[0][0]);
+}
+function activityScore(prop){
+ const s=state.stats,e=state.emotions,goal=state.goals.find(g=>g.status==='active'),r=state.brain.explored?.[prop.id]||0;
+ const hour=new Date().getHours();let n=12+(state.interests[prop.interest]||0)*.2;
+ if(prop.activity==='sleeping')n+=Math.max(0,64-s.energy)*1.8;
+ if(prop.activity==='resting')n+=Math.max(0,52-s.energy)*1.1;
+ if(prop.activity==='eating')n+=Math.max(0,s.hunger-31)*2;
+ if(prop.activity==='observing'||prop.activity==='reading')n+=Math.max(0,66-s.curiosity)*.45+e.curiosity*.11;
+ if(prop.activity==='drawing')n+=(state.interests.art||0)*.13;
+ if(goal?.interest===prop.interest)n+=38;
+ if(r===0)n+=18;else if(r<3)n+=6;
+ if(hour>=22||hour<6){if(prop.activity==='sleeping')n+=38;if(['gardening','playing'].includes(prop.activity))n-=12;}
+ else if(hour<10){if(['eating','gardening','observing'].includes(prop.activity))n+=9;}
+ else if(hour<17){if(['drawing','tinkering','reading'].includes(prop.activity))n+=8;}
+ else if(['listening','playing','observing'].includes(prop.activity))n+=9;
+ const distance=Math.hypot(prop.x-state.world.x,prop.y-state.world.y);
+ n-=Math.min(23,distance*.13);
+ if(state.brain.recent.includes(prop.id))n-=36;
+ if(state.brain.ai.pending?.area===prop.area&&state.brain.ai.pending.obj===prop.obj)n+=75;
+ return n+(rng()-.5)*15;
+}
+function chooseIntent(){if(state.paused||state.brain.target)return;
+ let best=null,bestScore=-Infinity;
+ for(const prop of M.props){const s=activityScore(prop);if(s>bestScore){bestScore=s;best=prop}}
+ if(!best)return;
+ state.brain.ai.pending=null;
+ setDestination(best,'autonomous');
+}
+function setDestination(prop,reason='autonomous'){
+ if(!prop)return false;
+ const here=state.world,goal=M.approach(prop,here),path=M.route(here,goal);
+ if(!path.length&&Math.hypot(here.x-goal.x,here.y-goal.y)>1.6){
+  journal('I could not find a safe path to '+prop.name.toLowerCase()+'.','navigation');runtime.nextDecision=Date.now()+2000;return false
+ }
+ state.brain.target={id:prop.id,area:prop.area,obj:prop.obj,name:prop.name,activity:prop.activity,interest:prop.interest,
+  x:goal.x+.5,y:goal.y+.5,reason};
+ state.brain.mode='travel';state.brain.work=0;runtime.path=path;runtime.index=0;
+ state.thought=reason==='suggested'?`My friend suggested ${prop.name.toLowerCase()}. I will walk there!`:
+  `I want to ${prop.activity} at ${prop.name.toLowerCase()} in ${M.regions[prop.area].name}.`;
+ runtime.nextDecision=Date.now()+45000;
+ return true;
+}
+function walkTo(x,y){const goal=M.nearestWalkable(x,y),path=M.route(state.world,goal);
+ if(!path.length)return toast('That spot is not reachable. Try a nearby path.');
+ state.brain.target={id:null,area:M.regionAt(x,y),obj:null,name:'a place I noticed',activity:'exploring',interest:'nature',x:goal.x+.5,y:goal.y+.5,reason:'suggested-wander'};
+ state.brain.mode='travel';state.brain.work=0;runtime.path=path;runtime.index=0;
+ state.thought='My friend pointed out somewhere to visit. I wonder what I will see there.';
+ runtime.nextDecision=Date.now()+35000;
+}
+function arrival(){const b=state.brain,t=b.target;
+ state.world.moving=false;runtime.path=[];runtime.index=0;
+ if(!t){b.mode='idle';return}
+ if(t.reason==='suggested-wander'){
+  b.target=null;b.mode='idle';state.thought='What a lovely place to wander. Now, what should I do next?';
+  journal('I explored somewhere my friend pointed out.','travel');runtime.nextDecision=Date.now()+1400;return
+ }
+ b.mode='working';b.work=0;
+ state.thought='I arrived at '+t.name.toLowerCase()+'. I want to learn something from this moment.';
+}
+function finishActivity(){const b=state.brain,t=b.target;if(!t)return;
+ const prop=M.props.find(p=>p.id===t.id);
+ if(prop){actionResult(prop);b.recent=[prop.id,...b.recent.filter(x=>x!==prop.id)].slice(0,6);
+  b.explored[prop.id]=(b.explored[prop.id]||0)+1;
+  if(b.explored[prop.id]===1){const msg='I reached '+prop.name+' for the first time in '+M.regions[prop.area].name+'.';
+   b.discoveries.unshift({id:uid('d'),text:msg,area:prop.area,interest:prop.interest,time:Date.now()});
+   b.discoveries.length=Math.min(b.discoveries.length,120);memory(msg,prop.interest)}
+ }
+ b.completedAt=Date.now();b.completedActivity=t.activity;b.target=null;b.mode='idle';b.work=0;
+ runtime.nextDecision=Date.now()+1000;reflection();save();sidebar();
+}
+function simulateOffline(){const now=Date.now(),elapsed=Math.floor((now-(state.clock||now))/1000);if(elapsed<75)return;
+ const simulated=Math.min(6*3600,elapsed),events=Math.min(65,Math.floor(simulated/225));
+ if(!state.paused){
+  for(let i=0;i<events;i++){
+   // Offline is reconstructed in bounded steps; this is not background processing.
+   const r=M.props[Math.floor(rng()*M.props.length)];
+   state.stats.hunger=clamp(state.stats.hunger+1.3);state.stats.energy=clamp(state.stats.energy-1.1);
+   if(i%2===0&&r){const date=(state.clock||now)+(i+1)*Math.floor(simulated/Math.max(1,events))*1000;
+    state.area=r.area;state.world.x=M.approach(r,state.world).x+.5;state.world.y=M.approach(r,state.world).y+.5;
+    if(i%4===0)actionResult(r,date,true)}
+  }
+  state.brain.target=null;state.brain.mode='idle';state.world.moving=false;runtime.path=[];
+ }
+ state.clock=now;
+ const text=`Welcome back! ${Math.floor(elapsed/60)} minutes passed. ${state.paused?'Tavi’s autonomy was paused.':`Tavi’s memories were updated using up to ${Math.floor(simulated/60)} minutes of bounded offline simulation.`}${elapsed>simulated?' Older time was skipped.':''}`;
+ state.offlineSummary=text;journal(text,'return',now);$('welcome').textContent=text;save();
+}
+function needsTick(dt){const s=state.stats,e=state.emotions;
+ s.hunger=clamp(s.hunger+dt*.025);s.energy=clamp(s.energy-dt*.018);s.curiosity=clamp(s.curiosity-dt*.025);
+ e.boredom=clamp(e.boredom+dt*.026);e.calm=clamp(e.calm+dt*.003);e.joy=clamp(e.joy-dt*.003);
+ if(s.energy<20)e.frustration=clamp(e.frustration+dt*.03);
+}
+function update(dt){if(state.paused)return;
+ needsTick(dt);const b=state.brain,w=state.world;
+ const keys=runtime.keys;
+ let manualX=(keys.has('ArrowRight')||keys.has('d')?1:0)-(keys.has('ArrowLeft')||keys.has('a')?1:0);
+ let manualY=(keys.has('ArrowDown')||keys.has('s')?1:0)-(keys.has('ArrowUp')||keys.has('w')?1:0);
+ if(manualX||manualY){
+  const dist=Math.hypot(manualX,manualY);manualX/=dist;manualY/=dist;
+  const speed=4.4*dt;const nx=w.x+manualX*speed,ny=w.y+manualY*speed;
+  if(M.walkable(nx,ny)){w.x=nx;w.y=ny}else{
+   if(M.walkable(nx,w.y))w.x=nx;if(M.walkable(w.x,ny))w.y=ny;
+  }
+  w.lastDx=manualX;w.lastDy=manualY;w.moving=true;w.walked+=speed;w.steps++;
+  if(b.target){b.target=null;b.mode='idle';runtime.path=[];}
+  runtime.nextDecision=Date.now()+4500;
+ }else if(b.mode==='travel'&&b.target){
+  w.moving=true;
+  if(runtime.index>=runtime.path.length){arrival()}
+  else{
+   const target=runtime.path[runtime.index],dx=target.x-w.x,dy=target.y-w.y,d=Math.hypot(dx,dy),step=3.35*dt;
+   if(d<step+.12){w.x=target.x;w.y=target.y;runtime.index++;if(runtime.index>=runtime.path.length)arrival()}
+   else{const vx=dx/d,vy=dy/d;const next={x:w.x+vx*step,y:w.y+vy*step};
+    if(M.walkable(next.x,next.y)||d<1.2){w.x=next.x;w.y=next.y}else{w.x=target.x;w.y=target.y;runtime.index++}
+    w.lastDx=vx;w.lastDy=vy;w.walked+=step;w.steps++;
+   }
+  }
+ }else if(b.mode==='working'&&b.target){
+  w.moving=false;b.work+=dt;
+  const duration={sleeping:21,resting:12,eating:11,drawing:20,gardening:17,reading:18,tinkering:20,listening:14,observing:13,playing:15}[b.target.activity]||14;
+  if(b.work>=duration)finishActivity();
+ }else{
+  w.moving=false;
+  if(Date.now()>runtime.nextDecision){b.mode='idle';chooseIntent()}
+ }
+ const regionIndex=M.regionAt(w.x,w.y),region=M.regions[regionIndex];
+ if(state.area!==regionIndex){state.area=regionIndex;
+  if(!w.visited[region.id]){w.visited[region.id]=1;journal('I discovered '+region.name+' on the connected overworld.','travel');toast('Arrived: '+region.name);}}
+}
+function drawingCanvas(){const canvas=$('game'),g=canvas.getContext('2d');if(!g)return;
+ const cam=runtime.camera,w=canvas.width,h=canvas.height,world=state.world;
+ if(!freeCamera){const tx=clamp(world.x*V.TILE-w/2,0,M.W*V.TILE-w),ty=clamp(world.y*V.TILE-h/2,0,M.H*V.TILE-h);
+  cam.x+=(tx-cam.x)*.17;cam.y+=(ty-cam.y)*.17;
+ }else{cam.x=clamp(cam.x,0,M.W*V.TILE-w);cam.y=clamp(cam.y,0,M.H*V.TILE-h)}
+ V.draw(canvas,state,cam,{hovered,selected,showGrid,showSigns},performance.now());
+ const mini=$('minimap');V.minimap(mini,state,{showCamera:true,camera:cam,screen:{w,h}});
+ if(showMap)V.minimap($('bigMapCanvas'),state,{showCamera:true,camera:cam,screen:{w,h}});
+}
+function renderStatus(){const s=state.stats;
+ $('areaTitle').textContent=M.regions[state.area]?.name||'Living Valley';
+ $('areaDesc').textContent=M.regions[state.area]?.desc||'';
+ $('thought').textContent=state.thought;
+ $('statusText').textContent=warning||(state.paused?'Autonomy paused':state.brain.mode==='working'?'Practicing '+state.brain.target?.activity:state.brain.mode==='travel'?'Traveling to '+state.brain.target?.name:'Choosing what matters next');
+ $('pause').textContent=state.paused?'▶ Resume Tavi':'⏸ Pause Tavi';
+ $('follow').textContent=freeCamera?'◎ Follow Tavi':'◎ Following Tavi';
+ $('clock').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+ const attrs=[['energy',s.energy],['hunger',100-s.hunger],['happiness',s.happiness],['curiosity',s.curiosity]];
+ for(const [k,n] of attrs){const bar=$('meter-'+k),v=$('value-'+k);if(bar)bar.style.width=clamp(n)+'%';if(v)v.textContent=Math.round(n)+'%'}
+ $('exploredCount').textContent=Object.keys(state.world.visited||{}).length+'/12';
+ $('journalCount').textContent=state.journal.length+' memories in motion';
+ $('miniLabel').textContent=M.regions[state.area]?.name||'Valley';
+}
+function card(host,title,content,meta=''){const wrap=el('article');wrap.className='record';
+ const heading=el('strong',title);const body=el('p',content);wrap.append(heading,body);
+ if(meta){const foot=el('small',meta);wrap.append(foot)}host.append(wrap);return wrap}
+function heading(host,title,desc=''){const h=el('h3',title);host.append(h);if(desc)host.append(el('p',desc));}
+const TABS=[['world','World'],['journal','Journal'],['memories','Memories'],['goals','Goals'],['questions','Questions'],['approvals','Approvals'],['art','Artwork'],['personality','Personality'],['settings','Settings']];
+function sidebar(){const tabs=$('tabs');tabs.replaceChildren();for(const [id,title] of TABS){const b=el('button',title);b.className=id===tab?'active':'';b.onclick=()=>{tab=id;sidebar()};tabs.append(b)}
+ const host=$('sidebarContent');host.replaceChildren();
+ if(tab==='world'){
+  heading(host,'Tavi’s next intention','Tavi independently plans routes, explores, creates and learns.');
+  const goal=state.brain.target;
+  card(host,goal?'Heading to '+goal.name:'Thinking about the valley',goal?`Action: ${goal.activity} · ${M.regions[goal.area]?.name||'Valley'}`:'Tavi is choosing from 36 activities across one continuous map.');
+  heading(host,'Places connected by paths','Choose one to suggest a destination—not to load a separate scene.');
+  for(const [i,r] of M.regions.entries()){
+   const c=card(host,r.name,r.desc,state.world.visited[r.id]?'Visited':'Undiscovered');
+   const b=el('button','Suggest visit');b.className='secondary small';b.onclick=()=>{
+    const p=M.props.find(v=>v.area===i);if(setDestination(p,'suggested')){selected=p;renderStatus();sidebar();toast('Tavi is traveling to '+r.name)}
+   };c.append(b)
+  }
+ }else if(tab==='journal'){
+  heading(host,'Tavi’s journal',state.journal.length+' recorded experiences');
+  for(const v of state.journal.slice(0,75))card(host,v.kind.charAt(0).toUpperCase()+v.kind.slice(1),v.text,dateText(v.time)+' · '+v.area);
+ }else if(tab==='memories'){
+  heading(host,'Personal memories','Discoveries shape Tavi’s preferences and reflections.');
+  for(const v of state.memories.slice(0,65))card(host,v.interest+' memory',v.text,dateText(v.time)+' · '+v.area);
+ }else if(tab==='goals'){
+  heading(host,'Self-chosen projects','Tavi starts and completes projects without being told what to do.');
+  for(const g of state.goals.slice(0,38)){const r=card(host,g.title||('Explore '+g.interest),`${g.progress}/3 steps completed · ${g.status}`,dateText(g.time));
+   const progress=el('div');progress.className='mini-progress';const bar=el('i');bar.style.width=(g.progress/3*100)+'%';progress.append(bar);r.append(progress)}
+ }else if(tab==='questions'){
+  heading(host,'Questions from Tavi','Your answers become part of Tavi’s memory.');
+  for(const q of state.questions.slice(0,22)){
+   const r=card(host,q.interest,q.text,dateText(q.time));
+   if(q.answer){r.append(el('small','Your answer: '+q.answer));continue}
+   const box=el('textarea');box.rows=2;box.maxLength=240;box.placeholder='Answer Tavi in your own words…';
+   const send=el('button','Share answer');send.className='small';send.onclick=()=>{
+    const value=box.value.trim().slice(0,240);if(!value)return;q.answer=value;
+    state.interests[q.interest]=clamp((state.interests[q.interest]||0)+5);
+    memory(`My friend told me: “${value}”`,q.interest);journal('My friend answered a question about '+q.interest+'.','conversation');save();sidebar();toast('Tavi will remember that')
+   };r.append(box,send)
+  }
+ }else if(tab==='approvals'){
+  heading(host,'Your decisions matter','Tavi never makes permanent world changes without permission.');
+  for(const a of state.approvals.slice(0,30)){
+   const r=card(host,a.status==='pending'?'Approval requested':'Decision: '+a.status,a.text,(a.reason||'')+' · '+dateText(a.time));
+   if(a.status==='pending')for(const [label,status] of [['Approve','approved'],['Decline','declined']]){
+    const b=el('button',label);b.className='small '+(status==='declined'?'secondary':'');b.onclick=()=>{
+     if(status==='approved'&&a.type==='mural'){
+      if(!state.decorations.includes('mural'))state.decorations.push('mural');a.status='executed';journal('I painted my permanent mural, with permission.','approval');}
+     else{a.status=status;journal('My request was '+status+'.','approval')}
+     save();sidebar();toast('Decision saved')
+    };r.append(b)
+   }
+  }
+ }else if(tab==='art'){
+  heading(host,'Art made by Tavi',state.art.length+' little original paintings');
+  for(const a of state.art.slice(0,40)){const r=card(host,a.title||'A little painting','Created from colors Tavi chose',dateText(a.time));
+   const canvas=el('canvas');canvas.width=208;canvas.height=110;canvas.className='painting';r.append(canvas);paint(canvas,a)
+  }
+ }else if(tab==='personality'){
+  heading(host,'Simulated emotions','These are game-state values, not evidence of consciousness.');
+  for(const [k,v] of Object.entries(state.emotions)){const c=card(host,k,Math.round(v)+'/100');c.className+=' compact';const m=el('div');m.className='mini-progress';const fill=el('i');fill.style.width=clamp(v)+'%';m.append(fill);c.append(m)}
+  heading(host,'Emerging interests','Tavi’s favorite topics influence decisions.');
+  for(const [k,v] of Object.entries(state.interests).sort((a,b)=>b[1]-a[1]))card(host,k,Math.round(v)+'/100');
+ }else if(tab==='settings'){
+  heading(host,'Local Ollama brain','Optional; the independent local simulation always keeps running.');
+  card(host,'Connection',state.brain.ai.lastResult||'Not connected','Model: '+state.brain.ai.model);
+  const toggle=el('button',state.brain.ai.enabled?'Disable Ollama advice':'Enable Ollama advice');toggle.onclick=()=>{state.brain.ai.enabled=!state.brain.ai.enabled;state.brain.ai.lastCall=0;save();sidebar()};host.append(toggle);
+  const test=el('button','Test local connection');test.className='secondary';test.onclick=()=>pollAI(true);host.append(test);
+  const model=el('input');model.className='field';model.value=state.brain.ai.model;model.placeholder='Local Ollama model name (example: tavi)';model.maxLength=70;model.onchange=()=>{state.brain.ai.model=model.value.trim().replace(/[^a-zA-Z0-9._:/-]/g,'')||'tavi';save()};host.append(model);
+  card(host,'Sandboxed model','The local model can suggest only a valid landmark and a short reflection. The simulator validates its suggestion. No code, system commands, account access or world edits are permitted.');
+  heading(host,'World and display');
+  for(const [title,func] of [['Show pixel grid',()=>{showGrid=!showGrid;toast('Pixel grid '+(showGrid?'enabled':'disabled'))}],['Show all landmark labels',()=>{showSigns=!showSigns;toast('Signs '+(showSigns?'shown':'hidden'))}]] ){
+   const btn=el('button',title);btn.className='secondary';btn.onclick=func;host.append(btn)
+  }
+  heading(host,'Local save & backups');
+  card(host,'Saved in this browser',warning||'Save is local to this browser and http://localhost:8765/. Closing the browser pauses live simulation; up to six hours are approximated on reopen.');
+  const exp=el('button','Export full backup');exp.onclick=exportSave;host.append(exp);
+  const upload=el('input');upload.type='file';upload.accept='.json,application/json';upload.className='field';upload.onchange=()=>importSave(upload.files[0]);host.append(upload);
+  const reset=el('button','Reset Tavi World save');reset.className='danger';reset.onclick=()=>{
+   if(confirm('Reset will replace the current local save. Please export a backup first. Continue?')&&confirm('Really reset all Tavi World memories and progress?')){
+    state=initial();runtime.path=[];runtime.index=0;save();sidebar();toast('New Tavi World started')
+   }};host.append(reset)
+ }
+ if(host.children.length===1)host.append(el('p','Nothing to show yet. Tavi will discover new things while exploring.'));
+}
+function paint(canvas,a){const g=canvas.getContext('2d'),colors=a.palette||['#315a72','#e9d5a3','#8fc4ab','#e8a3a1'];
+ let n=(a.seed||13579)>>>0,grow=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296};
+ g.fillStyle=colors[0];g.fillRect(0,0,208,110);
+ for(let i=0;i<160;i++){const x=Math.floor(grow()*208),y=Math.floor(grow()*110),size=3+Math.floor(grow()*12);g.fillStyle=colors[i%colors.length];g.fillRect(x,y,size,2+Math.floor(grow()*11))}
+ g.fillStyle='#fff4d3';g.fillRect(14,14,5,5);g.fillRect(185,20,4,4);
+}
+function exportSave(){const wrapper={format:'tavi-living-valley',version:1,exportedAt:new Date().toISOString(),save:state};
+ const blob=new Blob([JSON.stringify(wrapper,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download='Tavi-World-Backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),3000)}
+async function importSave(file){if(!file)return;
+ try{const data=JSON.parse(await file.text()),next=data.save||data;if(!next||next.version!==1)throw Error('Not a supported Tavi World save');
+  if(!confirm('Replace current save with the imported backup? Export your current save first.'))return;
+  const raw=JSON.stringify(next);localStorage.setItem(KEY,raw);state=loadState();runtime.path=[];runtime.index=0;save();sidebar();toast('Backup restored successfully')
+ }catch(e){toast('Restore failed: '+e.message)}}
+async function pollAI(force=false){const a=state.brain.ai;
+ if((!a.enabled&&!force)||runtime.aiBusy||state.paused||document.hidden)return;
+ if(!force&&Date.now()-a.lastCall<100000)return;
+ runtime.aiBusy=true;a.lastCall=Date.now();
+ try{
+  const choices=M.props.map(p=>({area:p.area,obj:p.obj,name:p.name,interest:p.interest,place:M.regions[p.area].name}));
+  const payload={model:a.model,context:{needs:state.stats,emotions:state.emotions,interests:Object.entries(state.interests).sort((x,y)=>y[1]-x[1]).slice(0,6),recentMemories:state.memories.slice(0,8).map(v=>v.text.slice(0,160)),goal:state.goals.find(v=>v.status==='active')||null,currentArea:M.regions[state.area].name,options:choices},
+   instruction:'You are Tavi, a curious fictional creature in an original pixel-art world. Think gently about your memories, needs, goals and interests. Reply with JSON ONLY containing {"area":integer,"obj":integer,"thought":"a first-person imaginative sentence under 180 characters"}. Select exactly one available area and obj from options. No commands, tools, code, external actions, claims of consciousness, or permanent edits.'};
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),43000);
+  let res;try{res=await fetch('/api/brain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctrl.signal})}finally{clearTimeout(timer)}
+  if(!res.ok)throw Error('Ollama server unavailable (HTTP '+res.status+')');
+  const data=await res.json();let parsed=data;
+  if(typeof data.response==='string')parsed=JSON.parse(data.response.replace(/```(?:json)?/g,'').trim());
+  if(!Number.isInteger(parsed.area)||!Number.isInteger(parsed.obj)||!M.props.some(p=>p.area===parsed.area&&p.obj===parsed.obj))throw Error('Model suggested an unknown landmark');
+  a.pending={area:parsed.area,obj:parsed.obj};
+  if(typeof parsed.thought==='string'&&parsed.thought.trim()){
+    state.thought=parsed.thought.trim().slice(0,180);a.history.push({time:Date.now(),thought:state.thought});a.history.length=Math.min(a.history.length,45);journal('I considered a new idea: '+state.thought,'reflection');
+  }
+  a.lastResult='Connected · '+new Date().toLocaleTimeString();
+  if(state.brain.mode==='idle'){runtime.nextDecision=0;chooseIntent()}
+ }catch(e){a.lastResult=String(e.message||e).slice(0,160)}finally{runtime.aiBusy=false;save();if(tab==='settings')sidebar();toast(a.lastResult)}
+}
+// Canvas interaction: click or tap navigates within this one shared world.
+function screenPos(event){const canvas=$('game'),r=canvas.getBoundingClientRect();return {x:(event.clientX-r.left)/r.width*canvas.width,y:(event.clientY-r.top)/r.height*canvas.height}}
+function worldPos(event){const p=screenPos(event),c=runtime.camera;return {x:(p.x+c.x)/V.TILE,y:(p.y+c.y)/V.TILE}}
+function closestProp(point,limit=2){let best=null,d=limit;
+ for(const prop of M.props){const dist=Math.hypot(prop.x-point.x,prop.y-point.y);if(dist<d){best=prop;d=dist}}
+ return best}
+function setupInteraction(){const canvas=$('game');
+ canvas.addEventListener('pointermove',e=>{
+  const p=worldPos(e);hovered=closestProp(p,1.7);canvas.style.cursor=hovered?'pointer':freeCamera?'grab':'crosshair';
+  if(freeCamera&&runtime.drag&&runtime.drag.pointerId===e.pointerId){const xy=screenPos(e),d=runtime.drag;runtime.camera.x=clamp(d.camX-(xy.x-d.screenX),0,M.W*V.TILE-canvas.width);runtime.camera.y=clamp(d.camY-(xy.y-d.screenY),0,M.H*V.TILE-canvas.height);d.moved=true}
+ });
+ canvas.addEventListener('pointerdown',e=>{if(freeCamera){const xy=screenPos(e);runtime.drag={screenX:xy.x,screenY:xy.y,camX:runtime.camera.x,camY:runtime.camera.y,pointerId:e.pointerId,moved:false};canvas.setPointerCapture(e.pointerId)}});
+ canvas.addEventListener('pointerup',e=>{if(runtime.drag?.moved){runtime.drag=null;return}runtime.drag=null;
+  const p=worldPos(e),poi=closestProp(p,2);if(poi){selected=poi;setDestination(poi,'suggested');toast('Tavi is headed to '+poi.name)}
+  else{selected=null;walkTo(p.x,p.y)}
+ });
+ canvas.addEventListener('pointerleave',()=>{hovered=null});
+ const keys=new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d']);
+ document.addEventListener('keydown',e=>{
+  if(e.target.matches('input, textarea, select'))return;
+  if(keys.has(e.key)){e.preventDefault();runtime.keys.add(e.key);return}
+  if(e.key.toLowerCase()==='m'){e.preventDefault();toggleMap()}
+  if(e.key==='Escape'&&showMap)toggleMap(false);
+  if(e.key===' '){e.preventDefault();$('pause').click()}
+ });
+ document.addEventListener('keyup',e=>runtime.keys.delete(e.key));
+ window.addEventListener('blur',()=>runtime.keys.clear());
+ $('pause').onclick=()=>{state.paused=!state.paused;journal(state.paused?'Autonomy paused by my friend.':'Autonomy resumed by my friend.','system');if(!state.paused)runtime.nextDecision=0;save();renderStatus();sidebar()};
+ $('follow').onclick=()=>{freeCamera=!freeCamera;renderStatus();toast(freeCamera?'Drag the map to look around':'Camera now follows Tavi')};
+ $('mapButton').onclick=()=>toggleMap();$('closeMap').onclick=()=>toggleMap(false);
+ $('visitNext').onclick=()=>{state.brain.target=null;runtime.path=[];runtime.index=0;chooseIntent();toast('Tavi is choosing another adventure')};
+ $('help').onclick=()=>{$('helpPanel').hidden=!$('helpPanel').hidden};
+ $('bigMapCanvas').onclick=e=>{const c=e.target,r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*M.W,y=(e.clientY-r.top)/r.height*M.H;
+  const nearest=M.regions.reduce((best,p)=>Math.hypot(p.x-x,p.y-y)<Math.hypot(best.x-x,best.y-y)?p:best,M.regions[0]);
+  const regionIndex=M.regions.indexOf(nearest),prop=M.props.find(p=>p.area===regionIndex);
+  if(prop){setDestination(prop,'suggested');selected=prop;toggleMap(false);toast('Tavi is traveling to '+nearest.name)}
+ };
+ $('minimap').onclick=()=>toggleMap();
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){state.clock=Date.now();save()}else{simulateOffline();runtime.lastFrame=performance.now()}});
+ window.addEventListener('beforeunload',()=>{state.clock=Date.now();save()});
+}
+function toggleMap(force){showMap=typeof force==='boolean'?force:!showMap;$('mapOverlay').hidden=!showMap;if(showMap){V.minimap($('bigMapCanvas'),state,{showCamera:true,camera:runtime.camera,screen:{w:$('game').width,h:$('game').height}})}}
+function loop(now){const dt=clamp((now-(runtime.lastFrame||now))/1000,0,.075);runtime.lastFrame=now;
+ update(dt);if(!runtime.lastPaint||now-runtime.lastPaint>30){drawingCanvas();runtime.lastPaint=now;}
+ if(now-runtime.lastUI>450){renderStatus();runtime.lastUI=now}
+ if(now-runtime.lastSidebar>6300&&tab==='world'){sidebar();runtime.lastSidebar=now}
+ if(now-runtime.lastAutosave>6500){state.clock=Date.now();save();runtime.lastAutosave=now}
+ requestAnimationFrame(loop)
+}
+function init(){
+ const safe=M.nearestWalkable(state.world.x,state.world.y);
+ if(!M.walkable(state.world.x,state.world.y)){state.world.x=safe.x+.5;state.world.y=safe.y+.5;}
+ // Existing world migrations keep all original entries, including previously collected memories and art.
+ const current=M.regions[M.regionAt(state.world.x,state.world.y)];if(!state.world.visited[current.id])state.world.visited[current.id]=1;
+ state.area=M.regionAt(state.world.x,state.world.y);
+ const canvas=$('game');runtime.camera.x=clamp(state.world.x*V.TILE-canvas.width/2,0,M.W*V.TILE-canvas.width);runtime.camera.y=clamp(state.world.y*V.TILE-canvas.height/2,0,M.H*V.TILE-canvas.height);
+ setupInteraction();simulateOffline();renderStatus();sidebar();
+ $('startupSplash').hidden=true;document.documentElement.dataset.taviReady='1';
+ runtime.nextDecision=Date.now()+2000;runtime.lastFrame=performance.now();requestAnimationFrame(loop);
+ setInterval(()=>pollAI(),11000);
+}
+window.TaviApp={get state(){return state},get camera(){return runtime.camera},get route(){return runtime.path},setDestination,chooseIntent,save,exportSave,debug:{get spawned(){return M.props.length},get visited(){return Object.keys(state.world.visited).length}}};
+try{init()}catch(err){console.error('Tavi initialization:',err);const splash=$('startupSplash');if(splash){splash.hidden=false;splash.innerHTML='';const h=el('h2','Tavi encountered an initialization error');const p=el('p',String(err?.stack||err));splash.append(h,p)}}
+})();
+</script>
+</body></html>
