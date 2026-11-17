@@ -1,3 +1,26 @@
+# Tavi World — Cognitive Commitments Edition
+
+**New:** Tavi now treats human approval as a durable, unfinished commitment with planning, execution status, interruptions, blocked states, recovery, and completion evidence. Approval alone does not complete artwork or any future project. Duplicate open requests reuse their previous approval; repeatable work can be proposed again **after completion**. See [Commitment lifecycle](docs/COMMITMENT-LIFECYCLE.md).
+
+**Also included from the coordinated revision:** brain-inspired *computational* modules for attention, episodic recall, appraisal, expected reward, habits, decision reasoning, and consolidation. These are modeled behaviors, **not evidence of consciousness or literal human neuroscience**. The previous Ollama HTTP 400 request-size and error-reporting repair is included.
+
+**Install:** Export your save in Profile → Settings. Close older launchers, extract the ZIP, open `START-TAVI-WORLD.bat`, then use the same browser at `http://localhost:8765/`. Check **Records → Approvals** to see a project's progress and completion evidence. If a task is blocked, use **Retry approved request** or cancel it with a documented reason. The old save key and save version are unchanged.
+
+**QA:** Chromium browser tests passed for startup, save migration, cognition, mural fulfillment, generic commitments, conversations, Ollama error handling, sandbox learning, camera, book/video learning and read-only internet research. Native Windows + live Ollama still require testing on the owner's PC.
+
+---
+
+# Tavi World — Ollama HTTP 400 Repair
+
+**What changed:** The latest grounded conversation and autonomous decision context is now automatically capped to 12 KiB of UTF-8 before sending it to the local bridge; important memories, goals and the complete available action list have priority. No saves or memories are deleted to meet that limit. The Windows PowerShell bridge now reads Ollama's actual HTTP rejection message, logs it to the launcher, and retries HTTP 400 once without the optional `think` field for model compatibility. If Ollama still rejects the request, Tavi displays a targeted `OLLAMA_BAD_REQUEST` error instead of an uninformative 400 exception.
+
+**Windows upgrade:** Close earlier launchers, extract this ZIP and run `START-TAVI-WORLD.bat`. Reuse the same browser and `http://localhost:8765/` to retain the same localStorage save. Export a full save under Profile → Settings before changing installations. Re-enable Ollama advice if needed, and test conversation and **Invite Tavi to choose independently**. The `TEST-OLLAMA-BRIDGE.ps1` script checks a simple model request but does not test the richer full-memory conversation.
+
+If you still see a problem, copy the line beginning with `[Tavi Ollama HTTP 400]` or `[Tavi Ollama connection]` from the launcher. It will now include the model's actual error text when available. Do not share your full save, conversation log or private memories.
+
+**Testing:** JavaScript syntax, bundled HTML regeneration, browser regressions, and mocked HTTP error handling. Native Windows PowerShell and the user's own Ollama installation cannot be exercised here.
+
+**Note:** A JSON-mode LLM can still return invalid or low-quality output, and the hybrid rule-based simulator remains the authority on allowed actions.
 # Tavi World — Grounded Autonomy & Natural Conversation Edition
 
 The model no longer receives a scripted placeholder as part of its prompt. Conversations are grounded in relevant saved experiences, traits, goals, research and actions; independently chosen activities retain their generated reasons. See [the release notes](docs/GROUNDED-VOICE-RELEASE.md).
