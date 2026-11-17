@@ -1,11 +1,11 @@
-TAVI WORLD — LIVING OVERWORLD EDITION (WINDOWS)
+TAVI WORLD — COLORFUL VALLEY UI EDITION (WINDOWS)
 
 This is the new continuous overworld version. No area-to-area scene switching.
 
 TO START:
   1. Right-click the ZIP -> Extract All.
   2. Close ALL older Tavi World PowerShell / launcher windows.
-  3. Open the extracted Tavi-World-Overworld-Edition folder.
+  3. Open the extracted Tavi-World-Vibrant-UI-Edition folder.
   4. Double-click START-TAVI-WORLD.bat.
   5. Keep PowerShell open. Play at http://localhost:8765/
 
@@ -14,13 +14,18 @@ TIPS:
   - Tap or click grass or paths to travel there.
   - WASD / arrow keys briefly control Tavi yourself.
   - M opens the whole world map; the camera can follow or be dragged.
+  - Journal opens the Explore / Stories / Tavi menu (a slide-up drawer on mobile).
+  - The vibrant HUD shows Energy, Happiness, Curiosity: Tavi has no hunger requirement.
+  - Tavi may still enjoy a meal as an optional hobby.
   - Settings -> Export full backup protects your save.
   - Ollama remains optional, and runs locally through the Windows launcher.
 
 SAVE COMPATIBILITY:
   The legacy save key tavi-world-windows-living-valley-v1 is retained.
-  This edition also backs up any legacy save, unchanged, under
+  This edition also backs up any pre-overworld legacy save, unchanged, under
   tavi-world-legacy-save-before-overworld-v1 in the same browser storage.
+  Saves with the old hunger field are additionally backed up unchanged as
+  tavi-world-save-before-nonsurvival-v1 before removing that field from the active save.
   To see the same saved progress, use the same browser on localhost:8765.
 
   If Windows prevents startup, OPEN-TAVI-WITHOUT-SERVER.bat can show an offline
