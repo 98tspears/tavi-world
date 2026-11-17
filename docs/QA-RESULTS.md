@@ -64,3 +64,12 @@ The observer camera now allows 30% minimum zoom (formerly 60%) across buttons, w
 - Fixed a PowerShell launcher variable-shadowing issue: remote response MIME checking no longer overwrites the server's static file MIME map.
 - Browser mocked the local reader response; **the actual Windows PowerShell HTTPS retrieval has not been integration-tested**. Source availability, redirects, and live website restrictions may cause individual reads to fail safely.
 - This is a restricted reader, not unrestricted search or independent web browsing.
+
+
+## Grounded autonomy / conversational voice regression
+
+- PASSED — tests/test_grounded_voice.py: real saved memory/traits/goals included; provisional canned reply excluded; longer original response persisted; learned conversational interest and experience recorded; suggestions handled without forcing canned action phrasing; autonomous Ollama reason retained and model-initiated question logged.
+- PASSED — tests/test_ollama_json.py: valid replies, malformed payload, empty response and transparent local fallbacks.
+- PASSED — tests/test_connect_learning.py; tests/test_smoke.py; tests/test_bridge_hardening.py; tests/test_camera.py; tests/test_internet_reader.py; tests/test_sandbox.py.
+- PASSED ON RERUN — tests/test_lifelong.py; one timing-sensitive recovery assertion failed on the first run and passed on a second run.
+- UNVERIFIED — Windows/PowerShell execution on the owner's computer and actual model output quality during live use.
