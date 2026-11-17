@@ -1,9 +1,15 @@
 """Connect/Learning regression: dialogue, autonomous choices, reading, source fidelity, video-frame palette extraction, persistence."""
 from pathlib import Path
+import shutil, subprocess
 from playwright.sync_api import sync_playwright
 ROOT=Path(__file__).resolve().parents[1]
 HTML=(ROOT/'game'/'index.html').read_text('utf-8')
 VIDEO=ROOT/'tests'/'fixtures'/'painting-reference.mp4'
+if not VIDEO.exists():
+    VIDEO.parent.mkdir(parents=True,exist_ok=True)
+    if shutil.which('ffmpeg'):
+        subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-f','lavfi','-i','testsrc2=size=320x240:rate=6','-t','3','-pix_fmt','yuv420p',str(VIDEO)],check=True)
+    else: raise RuntimeError('Missing painting-reference.mp4. Install ffmpeg to generate the test fixture, or use the supplied release ZIP.')
 KEY='tavi-world-windows-living-valley-v1'
 
 def init(page,data=None):
