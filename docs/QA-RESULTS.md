@@ -37,3 +37,6 @@ Verified using Linux Chromium/Playwright with the single self-contained HTML bui
 - No physical iPhone/iPad Safari or multi-hour soak test.
 - Scores are programmed outputs of the model; this is **not evidence of subjective consciousness, emotion or life**.
 - Browser localStorage can be cleared or exhausted; export the Tavi save and experimental notebook for long-term studies.
+
+
+Independent camera: zoom 60–240%, anchored wheel zoom, pointer drag and touch pinch, one-shot Find Tavi button, viewport rectangle at different zoom levels, preserved simulations and camera preference isolation.
