@@ -40,3 +40,15 @@ Verified using Linux Chromium/Playwright with the single self-contained HTML bui
 
 
 Independent camera: zoom 60–240%, anchored wheel zoom, pointer drag and touch pinch, one-shot Find Tavi button, viewport rectangle at different zoom levels, preserved simulations and camera preference isolation.
+
+### Wide-overworld zoom update
+The observer camera now allows 30% minimum zoom (formerly 60%) across buttons, wheel and pinch. Tests cover camera bounds, clamping and saved preferences.
+
+### Read-only internet research and 30% camera (November 16, 2026)
+- Camera regression: 30%–240% zoom; desktop zoom/wheel, pointer pan, touch pinch, Find Tavi, view bounds and saved preferences.
+- Browser research regression: rejects disallowed hosts, schemes, credentials, ports, query/fragment and arbitrary paths *before network requests*.
+- Approved article request stores a source-attributed, timestamped note while sending only the public URL to the local reader endpoint (no memories or conversation).
+- Autonomous research is disabled by default and rate-limited to once per ten minutes when opted in; notes persist across reload.
+- Fixed a PowerShell launcher variable-shadowing issue: remote response MIME checking no longer overwrites the server's static file MIME map.
+- Browser mocked the local reader response; **the actual Windows PowerShell HTTPS retrieval has not been integration-tested**. Source availability, redirects, and live website restrictions may cause individual reads to fail safely.
+- This is a restricted reader, not unrestricted search or independent web browsing.
